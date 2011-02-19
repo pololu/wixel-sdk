@@ -12,3 +12,10 @@ void dmaInit()
 {
 	DMA1CFG = (uint16)&dmaConfig;
 }
+
+// Local Variables: **
+// mode: C **
+// c-basic-offset: 4 **
+// tab-width: 4 **
+// indent-tabs-mode: nil **
+// end: **

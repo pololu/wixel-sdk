@@ -99,3 +99,10 @@ void radioComTxSendByte(uint8 byte)
 }
 
 void radioComTxSend(const uint8 XDATA * buffer, uint8 size);
+
+// Local Variables: **
+// mode: C **
+// c-basic-offset: 4 **
+// tab-width: 4 **
+// indent-tabs-mode: nil **
+// end: **

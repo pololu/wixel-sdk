@@ -72,3 +72,10 @@ uint8 randomNumber()
 	ADCCON1 = (ADCCON1 & ~0x0C) | 0x07;      // Start generating the next random number.
 	return rand;
 }
+
+// Local Variables: **
+// mode: C **
+// c-basic-offset: 4 **
+// tab-width: 4 **
+// indent-tabs-mode: nil **
+// end: **

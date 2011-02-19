@@ -626,3 +626,10 @@ void usbInitEndpointOut(uint8 endpointNumber, uint8 maxPacketSize)
 	USBMAXO = maxPacketSize >> 3;
 	USBCSOH = 1;                    // Enable Double buffering
 }
+
+// Local Variables: **
+// mode: C **
+// c-basic-offset: 4 **
+// tab-width: 4 **
+// indent-tabs-mode: nil **
+// end: **

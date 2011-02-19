@@ -132,10 +132,10 @@ void main()
 }
 
 // Local Variables: **
-// mode: C++ **
+// mode: C **
 // c-basic-offset: 4 **
 // tab-width: 4 **
-// indent-tabs-mode: t **
+// indent-tabs-mode: nil **
 // end: **
 
 

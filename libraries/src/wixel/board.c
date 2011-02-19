@@ -175,3 +175,10 @@ void enableUsbPullup()
     P2_0 = 1;
     P2DIR |= (1<<0);   // Drive P2_0 high.
 }
+
+// Local Variables: **
+// mode: C **
+// c-basic-offset: 4 **
+// tab-width: 4 **
+// indent-tabs-mode: nil **
+// end: **

@@ -265,3 +265,10 @@ void radioMacTx(uint8 XDATA * packet)
 
     radioMacState = RADIO_MAC_STATE_TX;
 }
+
+// Local Variables: **
+// mode: C **
+// c-basic-offset: 4 **
+// tab-width: 4 **
+// indent-tabs-mode: nil **
+// end: **
