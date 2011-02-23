@@ -30,67 +30,67 @@ void usbInit()
 void usbReadFifo(uint8 endpointNumber, uint8 count, uint8 XDATA * buffer)
 {
     XDATA uint8 * fifo = (XDATA uint8 *)(0xDE20 + (uint8)(endpointNumber<<1));
-	while(count > 0)
-	{
-		count--;
-		*(buffer++) = *fifo;
-	}
+    while(count > 0)
+    {
+        count--;
+        *(buffer++) = *fifo;
+    }
 }
 
 void usbWriteFifo(uint8 endpointNumber, uint8 count, const uint8 XDATA * buffer)
 {
-	XDATA uint8 * fifo = (XDATA uint8 *)(0xDE20 + (uint8)(endpointNumber<<1));
-	while(count > 0)
-	{
-		count--;
-		*fifo = *(buffer++);
-	}
+    XDATA uint8 * fifo = (XDATA uint8 *)(0xDE20 + (uint8)(endpointNumber<<1));
+    while(count > 0)
+    {
+        count--;
+        *fifo = *(buffer++);
+    }
 }
 
 // Performs some basic tasks that should be done after USB is connected and after every
 // Reset interrupt.
 static void basicUsbInit()
 {
-	usbSuspendMode = 0;
+    usbSuspendMode = 0;
 
-	// Enable suspend detection and disable any other weird features.
-	USBPOW = 1;
+    // Enable suspend detection and disable any other weird features.
+    USBPOW = 1;
 
-	// Enable the USB common interrupts we care about: Reset, Resume, Suspend.
-	// Without this, we USBCIF.SUSPENDIF will not get set (the datasheet is incomplete).
-	USBCIE = 0b0111;
+    // Enable the USB common interrupts we care about: Reset, Resume, Suspend.
+    // Without this, we USBCIF.SUSPENDIF will not get set (the datasheet is incomplete).
+    USBCIE = 0b0111;
 }
 
 void usbPoll()
 {
-	uint8 usbcif;
-	uint8 usbiif;
-	//uint8 usboif = USBOIF;
+    uint8 usbcif;
+    uint8 usbiif;
+    //uint8 usboif = USBOIF;
 
     if (!usbPowerPresent())
     {
         // The VBUS line is low.  This usually means that the USB cable has been
         // disconnected or the computer has been turned off.
 
-    	SLEEP &= ~(1<<7); // Disable the USB module (SLEEP.USB_EN = 0).
+        SLEEP &= ~(1<<7); // Disable the USB module (SLEEP.USB_EN = 0).
 
-    	disableUsbPullup();
-    	usbDeviceState = USB_STATE_DETACHED;
-    	usbSuspendMode = 0;
-    	return;
+        disableUsbPullup();
+        usbDeviceState = USB_STATE_DETACHED;
+        usbSuspendMode = 0;
+        return;
     }
 
     if (usbDeviceState == USB_STATE_DETACHED)
     {
-    	enableUsbPullup();
-    	SLEEP |= (1<<7);            // Enable the USB module (SLEEP.USB_EN = 1).
-    	__asm nop __endasm;         // Datasheet doesn't say so, but David suspects we need some NOPs here before writing to USB registers.
-    	__asm nop __endasm;
-    	__asm nop __endasm;
-    	__asm nop __endasm;
-    	usbDeviceState = USB_STATE_POWERED;
+        enableUsbPullup();
+        SLEEP |= (1<<7);            // Enable the USB module (SLEEP.USB_EN = 1).
+        __asm nop __endasm;         // Datasheet doesn't say so, but David suspects we need some NOPs here before writing to USB registers.
+        __asm nop __endasm;
+        __asm nop __endasm;
+        __asm nop __endasm;
+        usbDeviceState = USB_STATE_POWERED;
 
-    	basicUsbInit();
+        basicUsbInit();
     }
 
     usbcif = USBCIF;
@@ -98,175 +98,175 @@ void usbPoll()
 
     if (usbcif & (1<<0)) // Check SUSPENDIF
     {
-    	// The bus has been idle for 3 ms, so we are now in Suspend mode.
-    	// It is the user's responsibility to check usbSuspended() and go to sleep (PM1)
-    	// if necessary.
-    	usbSuspendMode = 1;
+        // The bus has been idle for 3 ms, so we are now in Suspend mode.
+        // It is the user's responsibility to check usbSuspended() and go to sleep (PM1)
+        // if necessary.
+        usbSuspendMode = 1;
     }
 
     if (usbcif & (1<<2))  // check RSTIF, the reset flag
     {
-    	// A USB reset signal has been received.
-    	usbDeviceState = USB_STATE_DEFAULT;
-    	controlTransferState = CONTROL_TRANSFER_STATE_NONE;
+        // A USB reset signal has been received.
+        usbDeviceState = USB_STATE_DEFAULT;
+        controlTransferState = CONTROL_TRANSFER_STATE_NONE;
 
-    	basicUsbInit();
+        basicUsbInit();
     }
 
     if (usbcif & (1<<1)) // Check RESUMEIF
     {
-    	usbSuspendMode = 0;
+        usbSuspendMode = 0;
     }
 
     if (usbiif & (1<<0)) // Check EP0IF
     {
-    	// Something happened on Endpoint 0, the endpoint for control transfers.
-    	uint8 usbcs0;
-    	USBINDEX = 0;
-    	usbcs0 = USBCS0;
+        // Something happened on Endpoint 0, the endpoint for control transfers.
+        uint8 usbcs0;
+        USBINDEX = 0;
+        usbcs0 = USBCS0;
 
-  	    if (usbcs0 & (1<<4)) // Check SETUP_END
-  	    {
-  	    	// A new setup packet has arrived, prematurely ending the previous control transfer.
-    	    USBCS0 = 0x80; // Clear the SETUP_END bit
-    	    controlTransferState = CONTROL_TRANSFER_STATE_NONE;
+        if (usbcs0 & (1<<4)) // Check SETUP_END
+        {
+            // A new setup packet has arrived, prematurely ending the previous control transfer.
+            USBCS0 = 0x80; // Clear the SETUP_END bit
+            controlTransferState = CONTROL_TRANSFER_STATE_NONE;
         }
 
-   	    if (usbcs0 & (1<<2))  // Check SENT_STALL
-   	    {
+        if (usbcs0 & (1<<2))  // Check SENT_STALL
+        {
             // A STALL packet was sent
-   	    	USBCS0 = 0x00;  // Reset endpoint 0.
-   	    	controlTransferState = CONTROL_TRANSFER_STATE_NONE;
-   	    }
+            USBCS0 = 0x00;  // Reset endpoint 0.
+            controlTransferState = CONTROL_TRANSFER_STATE_NONE;
+        }
 
-    	if (usbcs0 & (1<<0))  // Check OUTPKT_RDY
-    	{
-    		// Requirement: Every codepath from here must result in writing a 1 to
-    		// bit 6 of USBCS0 to clear the OUTPKT_RDY flag USBCS0 |= (1<<6).
+        if (usbcs0 & (1<<0))  // Check OUTPKT_RDY
+        {
+            // Requirement: Every codepath from here must result in writing a 1 to
+            // bit 6 of USBCS0 to clear the OUTPKT_RDY flag USBCS0 |= (1<<6).
 
-    		if (controlTransferState == CONTROL_TRANSFER_STATE_WRITE)
-    		{
-   	    		// A data packet has been received as part of a control write transfer.
-   	    		uint8 bytesReceived = USBCNT0;
-   	    		if (bytesReceived > controlTransferBytesLeft)
-   	    		{
-   	    			bytesReceived = controlTransferBytesLeft;
-   	    		}
-   	    		usbReadFifo(0, bytesReceived, controlTransferPointer);
-   	    		controlTransferPointer += bytesReceived;
-   	    		controlTransferBytesLeft -= bytesReceived;
+            if (controlTransferState == CONTROL_TRANSFER_STATE_WRITE)
+            {
+                // A data packet has been received as part of a control write transfer.
+                uint8 bytesReceived = USBCNT0;
+                if (bytesReceived > controlTransferBytesLeft)
+                {
+                    bytesReceived = controlTransferBytesLeft;
+                }
+                usbReadFifo(0, bytesReceived, controlTransferPointer);
+                controlTransferPointer += bytesReceived;
+                controlTransferBytesLeft -= bytesReceived;
 
-   	    		if (controlTransferBytesLeft)
-   	    		{
-   	    			// Arm the endpoint to receive more bytes
-   	    			USBCS0 = (1<<6);  // De-asserts the OUTPKT_RDY bit (bit 0).
-   	    		}
-   	    		else
-   	    		{
-   	    			// The host has sent all the data we were expecting.
+                if (controlTransferBytesLeft)
+                {
+                    // Arm the endpoint to receive more bytes
+                    USBCS0 = (1<<6);  // De-asserts the OUTPKT_RDY bit (bit 0).
+                }
+                else
+                {
+                    // The host has sent all the data we were expecting.
 
-   	    			if (usbSetupPacket.requestType != USB_REQUEST_TYPE_STANDARD) // OPT: remove this check
-   	    			{
-   	    				usbCallbackControlWriteHandler();
-   	    			}
+                    if (usbSetupPacket.requestType != USB_REQUEST_TYPE_STANDARD) // OPT: remove this check
+                    {
+                        usbCallbackControlWriteHandler();
+                    }
 
-   	    			if (controlTransferState == CONTROL_TRANSFER_STATE_NONE)
-   	    			{
-   	    				// The data received was invalid.
-   	    				USBCS0 = (1<<6) | (1<<3) | (1<<5); // clear OUTPKT_RDY, set DATA_END, SEND_STALL
-   	    			}
-   	    			else
-   	    			{
-   	    				// The data received was valid.
-   	    				USBCS0 = (1<<6) | (1<<3); // clear OUTPKT_RDY, set DATA_END
-   	    				controlTransferState = CONTROL_TRANSFER_STATE_NONE;
-   	    			}
-   	    		}
-   	    	}
-    		else if (USBCNT0 == 8)
-    		{
-   	    		// A SETUP packet has been received from the computer, starting a new
-   	    		// control transfer.
+                    if (controlTransferState == CONTROL_TRANSFER_STATE_NONE)
+                    {
+                        // The data received was invalid.
+                        USBCS0 = (1<<6) | (1<<3) | (1<<5); // clear OUTPKT_RDY, set DATA_END, SEND_STALL
+                    }
+                    else
+                    {
+                        // The data received was valid.
+                        USBCS0 = (1<<6) | (1<<3); // clear OUTPKT_RDY, set DATA_END
+                        controlTransferState = CONTROL_TRANSFER_STATE_NONE;
+                    }
+                }
+            }
+            else if (USBCNT0 == 8)
+            {
+                // A SETUP packet has been received from the computer, starting a new
+                // control transfer.
 
-   	    		usbReadFifo(0, 8, (uint8 XDATA *)&usbSetupPacket); // Store the data in usbSetupPacket.
+                usbReadFifo(0, 8, (uint8 XDATA *)&usbSetupPacket); // Store the data in usbSetupPacket.
 
-   	    		// Wipe out the information about the last control transfer.
-   	    		controlTransferState = CONTROL_TRANSFER_STATE_NONE;
+                // Wipe out the information about the last control transfer.
+                controlTransferState = CONTROL_TRANSFER_STATE_NONE;
 
-   	 		    if (usbSetupPacket.requestType == USB_REQUEST_TYPE_STANDARD)
-   	 	    	{
-   	    			// The request_type field indicates that this is a Standard Device Request
-    	 			// as described in USB2.0 Chapter 9.4 Standard Device Requests.
-    	 			// These requests are handled by the library in the function below.
-    	 			usbStandardDeviceRequestHandler();
-    	 		}
-   	    		else
-   	 		    {
-     	 			// Otherwise, we use this callback so the user can decide how to handle the
-    	 			// setup packet.  In this callback, the user can call various helper
-    	 			// functions that set controlTransferState.
-   	 			    usbCallbackSetupHandler();
-   	 		    }
+                if (usbSetupPacket.requestType == USB_REQUEST_TYPE_STANDARD)
+                {
+                    // The request_type field indicates that this is a Standard Device Request
+                    // as described in USB2.0 Chapter 9.4 Standard Device Requests.
+                    // These requests are handled by the library in the function below.
+                    usbStandardDeviceRequestHandler();
+                }
+                else
+                {
+                    // Otherwise, we use this callback so the user can decide how to handle the
+                    // setup packet.  In this callback, the user can call various helper
+                    // functions that set controlTransferState.
+                    usbCallbackSetupHandler();
+                }
 
-   	 		    USBINDEX = 0;  // Select EP0 again because the functions above might have changed USBINDEX.
+                USBINDEX = 0;  // Select EP0 again because the functions above might have changed USBINDEX.
 
-   	 		    // Prepare for the first transaction after the SETUP packet.
-   	    		if (controlTransferState == CONTROL_TRANSFER_STATE_NONE)
-   	    		{
-   	    			// This is invalid/unrecognized control transfer, so send a STALL packet.
-   	    		    USBCS0 = (1<<6) | (1<<5); // Clears the OUTPKT_RDY flag because we've handled it, and sends a STALL.
-   	    		}
-   	    		else if (controlTransferState == CONTROL_TRANSFER_STATE_WRITE)
-   	    		{
-   	    			if (controlTransferBytesLeft)
-   	    			{
-   	    				// Arm the endpoint to receive the first data packet of a control write transfer.
-   	    				USBCS0 = (1<<6);  // De-asserts the OUTPKT_RDY bit.
-   	    			}
-   	    			else
-   	    			{
-   	    				// Acknowledge a control write transfer with no data phase.
-   	    				USBCS0 = (1<<6) | (1<<3) | (1<<1);  // De-asserts OUTPKY_RDY, asserts DATA_END, asserts INPKT_RDY.
-   	    			    controlTransferState = CONTROL_TRANSFER_STATE_NONE;
-   	    		    }
-   	    		}
-    		}
-    		else
-    		{
-    			// An OUT packet was received on Endpoint 0, but we are not in the middle of a
-    			// control write transfer and it was not the right length to be a setup packet.
-    			// This situation is not expected.
-    			USBCS0 = (1<<6);  // De-asserts the OUTPKT_RDY.
-    		}
-   	    }
+                // Prepare for the first transaction after the SETUP packet.
+                if (controlTransferState == CONTROL_TRANSFER_STATE_NONE)
+                {
+                    // This is invalid/unrecognized control transfer, so send a STALL packet.
+                    USBCS0 = (1<<6) | (1<<5); // Clears the OUTPKT_RDY flag because we've handled it, and sends a STALL.
+                }
+                else if (controlTransferState == CONTROL_TRANSFER_STATE_WRITE)
+                {
+                    if (controlTransferBytesLeft)
+                    {
+                        // Arm the endpoint to receive the first data packet of a control write transfer.
+                        USBCS0 = (1<<6);  // De-asserts the OUTPKT_RDY bit.
+                    }
+                    else
+                    {
+                        // Acknowledge a control write transfer with no data phase.
+                        USBCS0 = (1<<6) | (1<<3) | (1<<1);  // De-asserts OUTPKY_RDY, asserts DATA_END, asserts INPKT_RDY.
+                        controlTransferState = CONTROL_TRANSFER_STATE_NONE;
+                    }
+                }
+            }
+            else
+            {
+                // An OUT packet was received on Endpoint 0, but we are not in the middle of a
+                // control write transfer and it was not the right length to be a setup packet.
+                // This situation is not expected.
+                USBCS0 = (1<<6);  // De-asserts the OUTPKT_RDY.
+            }
+        }
 
-    	if (!(usbcs0 & (1<<1)) && (controlTransferState == CONTROL_TRANSFER_STATE_READ))
-   	    {
-    		// We are doing a control read transfer, and Endpoint 0 is ready to accept another
-    		// IN packet to send to the computer.
-   	    	uint8 bytesToSend;
-   	    	if (controlTransferBytesLeft < USB_EP0_PACKET_SIZE)
-   	    	{
-   	    		// Send the last packet (might be an empty packet).
-   	    		usbcs0 = (1<<1)|(1<<3);  // INPKT_RDY and DATA_END
-   	    		bytesToSend = controlTransferBytesLeft;
-   	    		controlTransferState = CONTROL_TRANSFER_STATE_NONE;
-   	    	}
-   	    	else
-   	    	{
-   	    		// Send a packet.
-   	   	    	usbcs0 = (1<<1); // INPKT_RDY
-   	    		bytesToSend = USB_EP0_PACKET_SIZE;
-   	    	}
+        if (!(usbcs0 & (1<<1)) && (controlTransferState == CONTROL_TRANSFER_STATE_READ))
+        {
+            // We are doing a control read transfer, and Endpoint 0 is ready to accept another
+            // IN packet to send to the computer.
+            uint8 bytesToSend;
+            if (controlTransferBytesLeft < USB_EP0_PACKET_SIZE)
+            {
+                // Send the last packet (might be an empty packet).
+                usbcs0 = (1<<1)|(1<<3);  // INPKT_RDY and DATA_END
+                bytesToSend = controlTransferBytesLeft;
+                controlTransferState = CONTROL_TRANSFER_STATE_NONE;
+            }
+            else
+            {
+                // Send a packet.
+                usbcs0 = (1<<1); // INPKT_RDY
+                bytesToSend = USB_EP0_PACKET_SIZE;
+            }
 
-   	    	// Arm endpoint 0 to send the next packet.
-   	    	usbWriteFifo(0, bytesToSend, controlTransferPointer);
-   	    	USBCS0 = usbcs0;
+            // Arm endpoint 0 to send the next packet.
+            usbWriteFifo(0, bytesToSend, controlTransferPointer);
+            USBCS0 = usbcs0;
 
-   	    	// Update the control transfer state.
-   	    	controlTransferPointer += bytesToSend;
-   	    	controlTransferBytesLeft -= bytesToSend;
-   	    }
+            // Update the control transfer state.
+            controlTransferPointer += bytesToSend;
+            controlTransferBytesLeft -= bytesToSend;
+        }
     }
 }
 
@@ -277,8 +277,8 @@ void usbPoll()
 // Assumption: controlTransferState is CONTROL_TRANSFER_STATE_NONE when this function is called.
 static void usbStandardDeviceRequestHandler()
 {
-	// Prepare a convenient two-byte buffer for sending 1 or 2 byte responses.
-	static XDATA uint8 response[2];
+    // Prepare a convenient two-byte buffer for sending 1 or 2 byte responses.
+    static XDATA uint8 response[2];
     response[0] = 0;
     response[1] = 0;
 
@@ -363,8 +363,8 @@ static void usbStandardDeviceRequestHandler()
             // and that is a valid request, meaning we should revert to address 0.
             //pendingDeviceAddress = (usbSetupPacket.wValue & 0xFF) | 0x80;
 
-			USBADDR = (uint8)usbSetupPacket.wValue;
-			usbDeviceState = ((uint8)usbSetupPacket.wValue) ? USB_STATE_ADDRESS : USB_STATE_DEFAULT;
+            USBADDR = (uint8)usbSetupPacket.wValue;
+            usbDeviceState = ((uint8)usbSetupPacket.wValue) ? USB_STATE_ADDRESS : USB_STATE_DEFAULT;
 
             // Get ready to provide a handshake.
             usbControlAcknowledge();
@@ -380,7 +380,7 @@ static void usbStandardDeviceRequestHandler()
                     // We have been deconfigured.
 
                     // NOTE: Once we add non-zero endpoint support to libusb, we will need to make resetNonzeroEndpoints()
-                	// and call it here.  (TODO after bootloader is done).
+                    // and call it here.  (TODO after bootloader is done).
 
                     if (usbDeviceState > USB_STATE_ADDRESS)
                     {
@@ -439,9 +439,9 @@ static void usbStandardDeviceRequestHandler()
                 case USB_RECIPIENT_DEVICE:
                 {
                     // See USB Spec Table 9-4.
-                	response[0] = vinPowerPresent() ? 1 : 0;
-                	// Assumption: response[1] == 0
-                	usbControlRead(2, response);
+                    response[0] = vinPowerPresent() ? 1 : 0;
+                    // Assumption: response[1] == 0
+                    usbControlRead(2, response);
                     return;
                 }
                 case USB_RECIPIENT_INTERFACE:
@@ -461,7 +461,7 @@ static void usbStandardDeviceRequestHandler()
 
                     // Send a 2-byte response of 0,0 (all of the bits are reserved)
                     // Assumption: response[0] == 0 and response[1] == 0
-                	usbControlRead(2, response);
+                    usbControlRead(2, response);
                     return;
                 }
                 case USB_RECIPIENT_ENDPOINT:
@@ -485,7 +485,7 @@ static void usbStandardDeviceRequestHandler()
 
                     // Send a 2-byte response of 0,0.
                     // Assumption: response[0] == 0 and response[1] == 0
-                	usbControlRead(2, response);
+                    usbControlRead(2, response);
                     return;
                 }
             }
@@ -500,14 +500,14 @@ static void usbStandardDeviceRequestHandler()
         case USB_REQUEST_SET_FEATURE:
         case USB_REQUEST_CLEAR_FEATURE:
         {
-        	// Acknowledge the request but don't do anything.
-        	usbControlAcknowledge();
-        	return;
+            // Acknowledge the request but don't do anything.
+            usbControlAcknowledge();
+            return;
         }
         case USB_REQUEST_SYNCH_FRAME:
         {
-        	// Send a two-byte response of 0,0.
-        	usbControlRead(2, response);
+            // Send a two-byte response of 0,0.
+            usbControlRead(2, response);
             return;
         }
     }
@@ -515,7 +515,7 @@ static void usbStandardDeviceRequestHandler()
 
 BIT usbSuspended()
 {
-	return usbSuspendMode;
+    return usbSuspendMode;
 }
 
 void delayMs(uint16); //tmphax
@@ -536,95 +536,95 @@ void delayMs(uint16); //tmphax
 // on the jrk, maestros, and simple motor controller to see if this pattern works.
 void usbSleep()
 {
-	uint8 savedPICTL = PICTL;
-	BIT savedP0IE = P0IE;
+    uint8 savedPICTL = PICTL;
+    BIT savedP0IE = P0IE;
 
-	// The USB resume interrupt is mapped to the non-existent pin, P0_7.
+    // The USB resume interrupt is mapped to the non-existent pin, P0_7.
 
-	P0IE = 0;         // Disable the P0 interrupt while we are reconfiguring it (maybe not necessary).
-	PICTL |= (1<<4);  // PICTL.P0IENH = 1  Enable the Port 0 interrupts for inputs 4-7 (USB_RESUME is #7).
-	PICTL &= ~(1<<0); // PICTL.P0ICON = 0  Detect rising edges (this is required for waking up).
+    P0IE = 0;         // Disable the P0 interrupt while we are reconfiguring it (maybe not necessary).
+    PICTL |= (1<<4);  // PICTL.P0IENH = 1  Enable the Port 0 interrupts for inputs 4-7 (USB_RESUME is #7).
+    PICTL &= ~(1<<0); // PICTL.P0ICON = 0  Detect rising edges (this is required for waking up).
 
-	do
-	{
-		// Clear the P0 interrupt flag that might prevent us from sleeping.
-		P0IFG = 0;   // Clear Port 0 module interrupt flags.
-		P0IF = 0;    // Clear Port 0 CPU interrupt flag (IRCON.P0IF = 0).
+    do
+    {
+        // Clear the P0 interrupt flag that might prevent us from sleeping.
+        P0IFG = 0;   // Clear Port 0 module interrupt flags.
+        P0IF = 0;    // Clear Port 0 CPU interrupt flag (IRCON.P0IF = 0).
 
-		P0IE = 1;    // Enable the Port 0 interrupt (IEN1.P0IE = 1) so we can wake up.
+        P0IE = 1;    // Enable the Port 0 interrupt (IEN1.P0IE = 1) so we can wake up.
 
-		// Put the device to sleep by following the recommended pseudo code in the datasheet section 12.1.3:
-		SLEEP = (SLEEP & ~3) | 1;    // SLEEP.MODE = 1 : Selects Power Mode 1 (PM1).
-		__asm nop __endasm; __asm nop __endasm; __asm nop __endasm;
-		if (SLEEP & 3)
-		{
-			P1_0 = 1;
-			PCON |= 1;    // PCON.IDLE = 1 : Actually go to sleep.
-			P1_0 = 0;
-		}
+        // Put the device to sleep by following the recommended pseudo code in the datasheet section 12.1.3:
+        SLEEP = (SLEEP & ~3) | 1;    // SLEEP.MODE = 1 : Selects Power Mode 1 (PM1).
+        __asm nop __endasm; __asm nop __endasm; __asm nop __endasm;
+        if (SLEEP & 3)
+        {
+            P1_0 = 1;
+            PCON |= 1;    // PCON.IDLE = 1 : Actually go to sleep.
+            P1_0 = 0;
+        }
 
-		// Disable the Port 0 interrupt.  If we don't do this, and there is no ISR
-		// (just a reti), then the non-existent ISR could run many times while we
-		// are awake, slowing down this loop.
-		P0IE = 0; // (IEN1.P0IE = 1)
+        // Disable the Port 0 interrupt.  If we don't do this, and there is no ISR
+        // (just a reti), then the non-existent ISR could run many times while we
+        // are awake, slowing down this loop.
+        P0IE = 0; // (IEN1.P0IE = 1)
 
-		// Check to see if the USB_RESUME bit is set.  If it is set, then there was
-		// activity detected on the USB and it is time to wake up.
-		// NOTE: The P0INT ISR might also set usbSuspendMode to 0 if the user defines
-		// that ISR.  See the comment about P0INT in usb.h for more info.
-		if (P0IFG & 0x80)
-		{
-			usbSuspendMode = 0;
-		}
-	}
-	while(usbSuspendMode && !vinPowerPresent());
+        // Check to see if the USB_RESUME bit is set.  If it is set, then there was
+        // activity detected on the USB and it is time to wake up.
+        // NOTE: The P0INT ISR might also set usbSuspendMode to 0 if the user defines
+        // that ISR.  See the comment about P0INT in usb.h for more info.
+        if (P0IFG & 0x80)
+        {
+            usbSuspendMode = 0;
+        }
+    }
+    while(usbSuspendMode && !vinPowerPresent());
 
-	// Wait for the high speed crystal oscillator to become stable again
-	// because we can't write to USB registers until that happens.
-	while(!(SLEEP & (1<<6))){};
+    // Wait for the high speed crystal oscillator to become stable again
+    // because we can't write to USB registers until that happens.
+    while(!(SLEEP & (1<<6))){};
 
-	// Restore the interrupt registers to their original states.
-	PICTL = savedPICTL;
-	P0IE = savedP0IE;
+    // Restore the interrupt registers to their original states.
+    PICTL = savedPICTL;
+    P0IE = savedP0IE;
 }
 
 void usbControlRead(uint16 bytesCount, uint8 XDATA * source)
 {
-	controlTransferState = CONTROL_TRANSFER_STATE_READ;
-	controlTransferBytesLeft = bytesCount;
-	controlTransferPointer = source;
+    controlTransferState = CONTROL_TRANSFER_STATE_READ;
+    controlTransferBytesLeft = bytesCount;
+    controlTransferPointer = source;
 }
 
 void usbControlWrite(uint16 bytesCount, uint8 XDATA * source)
 {
-	controlTransferState = CONTROL_TRANSFER_STATE_WRITE;
-	controlTransferBytesLeft = bytesCount;
-	controlTransferPointer = source;
+    controlTransferState = CONTROL_TRANSFER_STATE_WRITE;
+    controlTransferBytesLeft = bytesCount;
+    controlTransferPointer = source;
 }
 
 void usbControlAcknowledge()
 {
-	controlTransferState = CONTROL_TRANSFER_STATE_WRITE;
-	controlTransferBytesLeft = 0;
+    controlTransferState = CONTROL_TRANSFER_STATE_WRITE;
+    controlTransferBytesLeft = 0;
 }
 
 void usbControlStall()
 {
-	controlTransferState = CONTROL_TRANSFER_STATE_NONE;
+    controlTransferState = CONTROL_TRANSFER_STATE_NONE;
 }
 
 void usbInitEndpointIn(uint8 endpointNumber, uint8 maxPacketSize)
 {
-	USBINDEX = endpointNumber;
-	USBMAXI = maxPacketSize >> 3;
-	USBCSIH = 1;                    // Enable Double buffering
+    USBINDEX = endpointNumber;
+    USBMAXI = maxPacketSize >> 3;
+    USBCSIH = 1;                    // Enable Double buffering
 }
 
 void usbInitEndpointOut(uint8 endpointNumber, uint8 maxPacketSize)
 {
-	USBINDEX = endpointNumber;
-	USBMAXO = maxPacketSize >> 3;
-	USBCSOH = 1;                    // Enable Double buffering
+    USBINDEX = endpointNumber;
+    USBMAXO = maxPacketSize >> 3;
+    USBCSOH = 1;                    // Enable Double buffering
 }
 
 // Local Variables: **

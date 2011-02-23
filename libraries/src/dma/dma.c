@@ -10,7 +10,7 @@ DMA14_CONFIG XDATA dmaConfig;
 
 void dmaInit()
 {
-	DMA1CFG = (uint16)&dmaConfig;
+    DMA1CFG = (uint16)&dmaConfig;
 }
 
 // Local Variables: **

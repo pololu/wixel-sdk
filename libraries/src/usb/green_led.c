@@ -6,8 +6,8 @@ void usbShowStatusWithGreenLed()
 {
     if (usbSuspended() || usbDeviceState == USB_STATE_DETACHED)
     {
-    	LED_GREEN(0);                         // We aren't connected to USB, or we are in suspend
-    	                                      // mode, so turn off the LED.
+        LED_GREEN(0);                         // We aren't connected to USB, or we are in suspend
+                                              // mode, so turn off the LED.
     }
     else if (usbDeviceState == USB_STATE_CONFIGURED)
     {

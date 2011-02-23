@@ -9,7 +9,7 @@ static uint8 XDATA * DATA txPointer = 0;
 
 void radioComInit()
 {
-	radioLinkInit();
+    radioLinkInit();
 }
 
 // NOTE: This function only returns the number of bytes available in the CURRENT PACKET.
@@ -19,83 +19,83 @@ void radioComInit()
 // never reach that value.
 uint8 radioComRxAvailable(void)
 {
-	if (rxBytesLeft != 0)
-	{
-		return rxBytesLeft;
-	}
+    if (rxBytesLeft != 0)
+    {
+        return rxBytesLeft;
+    }
 
-	rxPointer = radioLinkRxCurrentPacket();
+    rxPointer = radioLinkRxCurrentPacket();
 
-	if (rxPointer == 0)
-	{
-		return 0;
-	}
+    if (rxPointer == 0)
+    {
+        return 0;
+    }
 
-	rxBytesLeft = rxPointer[RADIO_LINK_PACKET_LENGTH_OFFSET];
-	rxPointer += RADIO_LINK_PACKET_DATA_OFFSET;
+    rxBytesLeft = rxPointer[RADIO_LINK_PACKET_LENGTH_OFFSET];
+    rxPointer += RADIO_LINK_PACKET_DATA_OFFSET;
 
-	// Assumption: radioLink doesn't ever return zero-length packets,
-	// so rxBytesLeft is non-zero now and we don't have to worry about
-	// discard zero-length packets in radio_com.c.
+    // Assumption: radioLink doesn't ever return zero-length packets,
+    // so rxBytesLeft is non-zero now and we don't have to worry about
+    // discard zero-length packets in radio_com.c.
 
-	return rxBytesLeft;
+    return rxBytesLeft;
 }
 
 // Assumption: The user recently called radioComRxAvailable and it returned
 // a non-zero value.
 uint8 radioComRxReceiveByte(void)
 {
-	uint8 tmp = *rxPointer;   // Read a byte from the current RX packet.
-	rxPointer++;              // Update pointer and counter.
-	rxBytesLeft--;
+    uint8 tmp = *rxPointer;   // Read a byte from the current RX packet.
+    rxPointer++;              // Update pointer and counter.
+    rxBytesLeft--;
 
-	if (rxBytesLeft == 0)     // If there are no bytes left in this packet...
-	{
-		radioLinkRxDoneWithPacket();  // Tell the radio link layer we are done with it so we can receive more.
-	}
+    if (rxBytesLeft == 0)     // If there are no bytes left in this packet...
+    {
+        radioLinkRxDoneWithPacket();  // Tell the radio link layer we are done with it so we can receive more.
+    }
 
-	return tmp;
+    return tmp;
 }
 
 static void radioComSendPacketNow()
 {
-	radioLinkTxSendPacket(txBytesLoaded);
-	txBytesLoaded = 0;
+    radioLinkTxSendPacket(txBytesLoaded);
+    txBytesLoaded = 0;
 }
 
 void radioComTxService(void)
 {
-	if (txBytesLoaded != 0)
-	{
-		radioComSendPacketNow();
-	}
+    if (txBytesLoaded != 0)
+    {
+        radioComSendPacketNow();
+    }
 }
 
 
 uint8 radioComTxAvailable(void)
 {
-	// Assumption: If txBytesLoaded is non-zero, radioLinkTxAvailable will be non-zero,
-	// so the subtraction below does not overflow.
-	// Assumption: The multiplication below does not overflow ever.
-	return radioLinkTxAvailable()*RADIO_LINK_MAX_PACKET_SIZE - txBytesLoaded;
+    // Assumption: If txBytesLoaded is non-zero, radioLinkTxAvailable will be non-zero,
+    // so the subtraction below does not overflow.
+    // Assumption: The multiplication below does not overflow ever.
+    return radioLinkTxAvailable()*RADIO_LINK_MAX_PACKET_SIZE - txBytesLoaded;
 }
 
 void radioComTxSendByte(uint8 byte)
 {
-	// Assumption: The user called radioComTxAvailable recently and it returned a non-zero value.
-	if (txBytesLoaded == 0)
-	{
-		txPointer = radioLinkTxCurrentPacket() + RADIO_LINK_PACKET_DATA_OFFSET;
-	}
+    // Assumption: The user called radioComTxAvailable recently and it returned a non-zero value.
+    if (txBytesLoaded == 0)
+    {
+        txPointer = radioLinkTxCurrentPacket() + RADIO_LINK_PACKET_DATA_OFFSET;
+    }
 
-	*txPointer = byte;
-	txPointer++;
-	txBytesLoaded++;
+    *txPointer = byte;
+    txPointer++;
+    txBytesLoaded++;
 
-	if (txBytesLoaded == RADIO_LINK_MAX_PACKET_SIZE)
-	{
-		radioComSendPacketNow();
-	}
+    if (txBytesLoaded == RADIO_LINK_MAX_PACKET_SIZE)
+    {
+        radioComSendPacketNow();
+    }
 }
 
 void radioComTxSend(const uint8 XDATA * buffer, uint8 size);

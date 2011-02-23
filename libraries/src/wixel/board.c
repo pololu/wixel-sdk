@@ -11,9 +11,9 @@
 // saying "__using(1)" if the compiler switches back to bank 0 before calling any functions?
 //ISR(P0INT, 1)
 //{
-//	P1_0 ^= 1;
-//	delayMicroseconds(40);
-//	P1_0 ^= 1;
+//  P1_0 ^= 1;
+//  delayMicroseconds(40);
+//  P1_0 ^= 1;
 //
 //}
 
@@ -30,7 +30,7 @@ static BIT vbusHighBit;
 
 void wixelInit()
 {
-	wixelIoInit();
+    wixelIoInit();
     wixelClockInit();
     timeInit();
     dmaInit();
@@ -38,7 +38,7 @@ void wixelInit()
 
 void wixelService()
 {
-	wixelStartBootloaderIfNeeded();
+    wixelStartBootloaderIfNeeded();
 }
 
 /* Starts up the external 48 MHz oscillator and configures
@@ -46,7 +46,7 @@ void wixelService()
  */
 void wixelClockInit()
 {
-	// OSC_PD=0: Power up both high-speed oscillators: XOSC and HS RCOSC.
+    // OSC_PD=0: Power up both high-speed oscillators: XOSC and HS RCOSC.
     SLEEP &= ~0x04;
 
     // Wait until the high speed crystal oscillator is stable (SLEEP.XOSC_STB=1)
@@ -65,9 +65,9 @@ void wixelClockInit()
     // CLKCON.OSC).
     SLEEP |= 0x04;
 
-	// Enable pre-fetching of instructions from flash,
+    // Enable pre-fetching of instructions from flash,
     // which makes the code execute much faster.
-	MEMCTR = 0;
+    MEMCTR = 0;
 }
 
 void wixelIoInit()
@@ -75,7 +75,7 @@ void wixelIoInit()
     P2DIR = 0;           // Make all the Port 2 pins be inputs.
     P2 = 0b00000110;     // P2_1 = 1: drive the red LED line high LATER (when LED_RED(1) is called)
                          // P2_2 = 1: drive the yellow LED line high LATER (when LED_YELLOW(1) is called)
-    					 // P2_4 = 0: drive the VBUS_IN/GREEN_LED line low LATER (when LED_GREEN(1) is called)
+                         // P2_4 = 0: drive the VBUS_IN/GREEN_LED line low LATER (when LED_GREEN(1) is called)
     P2INP = 0b10011001;  // Pull down LED pins (P2_2, P2_1), and tristate the other Port 2 pins.
 }
 
@@ -85,79 +85,79 @@ void wixelIoInit()
  * This function updates the bit variable vbusHigh. */
 void wixelDetectVbus()
 {
-	static uint8 lastCheck = 128;
+    static uint8 lastCheck = 128;
     if ((uint8)(timeMs - lastCheck) > 25)
     {
-	    BIT savedState = (P2DIR >> 4) & 1;
-	    if (savedState == 0)
-	    {
-    		P2DIR |= (1<<4);       // Drive the VBUS_IN low
-	    	delayMicroseconds(2);
-    	}
-	    P2INP &= ~(1<<4);          // Set input mode to pull-down
-	    P2DIR &= ~(1<<4);          // Make the line an input.
-	    delayMicroseconds(1);
+        BIT savedState = (P2DIR >> 4) & 1;
+        if (savedState == 0)
+        {
+            P2DIR |= (1<<4);       // Drive the VBUS_IN low
+            delayMicroseconds(2);
+        }
+        P2INP &= ~(1<<4);          // Set input mode to pull-down
+        P2DIR &= ~(1<<4);          // Make the line an input.
+        delayMicroseconds(1);
 
-    	vbusHighBit = P2_4;           // Measure the voltage.
+        vbusHighBit = P2_4;           // Measure the voltage.
 
-	    P2INP |= (1<<4);           // Set input mode to tristate.
-	    if (savedState)
-    	{
-	    	P2DIR |= (1<<4);  // LED was on previously so turn it back on.
-	    }
+        P2INP |= (1<<4);           // Set input mode to tristate.
+        if (savedState)
+        {
+            P2DIR |= (1<<4);  // LED was on previously so turn it back on.
+        }
 
-    	lastCheck = timeMs;
+        lastCheck = timeMs;
     }
 }
 
 void wixelStartBootloader()
 {
-	EA = 0;             // Disable interrupts.
+    EA = 0;             // Disable interrupts.
 
-	DMAARM = 0x9F;   	// Disarm all DMA channels.
+    DMAARM = 0x9F;      // Disarm all DMA channels.
 
-	delayMs(10);        // Wait to give the USB module time to acknowledge the last request.
+    delayMs(10);        // Wait to give the USB module time to acknowledge the last request.
 
-	P0DIR = 0;          // Make all the IO lines be inputs.  That's going to happen later in
-	P1DIR = 0;       	// the bootloader anyway.  We might as well do it now so that any devices
-	P2DIR = 0;       	// such as motors stop running right away.  This also signals to the computer
-	                    // that we are disconnecting.
+    P0DIR = 0;          // Make all the IO lines be inputs.  That's going to happen later in
+    P1DIR = 0;          // the bootloader anyway.  We might as well do it now so that any devices
+    P2DIR = 0;          // such as motors stop running right away.  This also signals to the computer
+                        // that we are disconnecting.
 
-	delayMs(100);
-	__asm ljmp 6 __endasm;
+    delayMs(100);
+    __asm ljmp 6 __endasm;
 }
 
 void wixelStartBootloaderIfNeeded()
 {
-	if (!(P2DIR & (1<<2)))       // If the yellow LED is off...
-	{
-		delayMicroseconds(10);
-		if (P2_2)
-		{
-			wixelStartBootloader();
-		}
-	}
+    if (!(P2DIR & (1<<2)))       // If the yellow LED is off...
+    {
+        delayMicroseconds(10);
+        if (P2_2)
+        {
+            wixelStartBootloader();
+        }
+    }
 }
 
 void delayMs(uint16 milliseconds)
 {
-	// TODO: think about how to make this more accurate.
-	// A great way would be to use the compare feature of Timer 4 and then
-	// wait for the right number of compare events to happen, but then we
-	// can't use that channel for PWM in the future.
-	while(milliseconds--)
-	{
-		delayMicroseconds(250);
-		delayMicroseconds(250);
-		delayMicroseconds(250);
-		delayMicroseconds(249); // there's some overhead, so only delay by 249 here
-	}
+    // TODO: think about how to make this more accurate.
+    // A great way would be to use the compare feature of Timer 4 and then
+    // wait for the right number of compare events to happen, but then we
+    // can't use that channel for PWM in the future.
+    while(milliseconds--)
+    {
+        delayMicroseconds(250);
+        delayMicroseconds(250);
+        delayMicroseconds(250);
+        delayMicroseconds(249); // there's some overhead, so only delay by 249 here
+    }
 }
 
 BIT usbPowerPresent()
 {
-	wixelDetectVbus();
-	return vbusHighBit;
+    wixelDetectVbus();
+    return vbusHighBit;
 }
 
 BIT vinPowerPresent()
@@ -167,7 +167,7 @@ BIT vinPowerPresent()
 
 void disableUsbPullup()
 {
-	P2DIR &= ~(1<<0);  // Make P2_0 be a floating input.
+    P2DIR &= ~(1<<0);  // Make P2_0 be a floating input.
 }
 
 void enableUsbPullup()

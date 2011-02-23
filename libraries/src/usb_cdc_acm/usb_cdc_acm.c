@@ -62,10 +62,10 @@ uint8 usbComControlLineState = 0xFF;
 
 ACM_LINE_CODING XDATA usbComLineCoding =
 {
-	9600,     // dwDTERate (baud rate)
-	0,        // bCharFormat = 0: 1 stop bit
-	0,        // bParityType = 0: no parity
-	8,        // bDataBits = 8
+    9600,     // dwDTERate (baud rate)
+    0,        // bCharFormat = 0: 1 stop bit
+    0,        // bParityType = 0: no parity
+    8,        // bDataBits = 8
 };
 
 // This bit is true if we need to send an empty (zero-length) packet of data to
@@ -118,10 +118,10 @@ CODE struct CONFIG1 {
         2,                                               // bNumInterfaces
         1,                                               // bConfigurationValue
         0,                                               // iConfiguration
-		0xC0,                                            // bmAttributes: self powered (but may use bus power)
+        0xC0,                                            // bmAttributes: self powered (but may use bus power)
         50,                                              // bMaxPower
     },
-    {                                           		 // Communications Interface: Used for device management.
+    {                                                    // Communications Interface: Used for device management.
         sizeof(struct USB_DESCRIPTOR_INTERFACE),
         USB_DESCRIPTOR_TYPE_INTERFACE,
         CDC_CONTROL_INTERFACE_NUMBER,                    // bInterfaceNumber
@@ -134,29 +134,29 @@ CODE struct CONFIG1 {
     },
     {                                                    // Functional Descriptors.
 
-	    5,                                               // 5-byte General Descriptor: Header Functional Descriptor
-	    CDC_DESCRIPTOR_TYPE_CS_INTERFACE,
-	    CDC_DESCRIPTOR_SUBTYPE_HEADER,
-    	0x20,0x01,                                       // bcdCDC.  We conform to CDC 1.20.
+        5,                                               // 5-byte General Descriptor: Header Functional Descriptor
+        CDC_DESCRIPTOR_TYPE_CS_INTERFACE,
+        CDC_DESCRIPTOR_SUBTYPE_HEADER,
+        0x20,0x01,                                       // bcdCDC.  We conform to CDC 1.20.
 
 
-	    4,                                               // 4-byte PTSN-Specific Descriptor: Abstract Control Management Functional Descriptor.
-	    CDC_DESCRIPTOR_TYPE_CS_INTERFACE,
-	    CDC_DESCRIPTOR_SUBTYPE_ABSTRACT_CONTROL_MANAGEMENT,
-    	2,                                               // bmCapabilities.  See USBPSTN1.2 Table 4.  We support SetLineCoding,
-    	                                                 //SetControlLineState, GetLineCoding, and SerialState notifications.
+        4,                                               // 4-byte PTSN-Specific Descriptor: Abstract Control Management Functional Descriptor.
+        CDC_DESCRIPTOR_TYPE_CS_INTERFACE,
+        CDC_DESCRIPTOR_SUBTYPE_ABSTRACT_CONTROL_MANAGEMENT,
+        2,                                               // bmCapabilities.  See USBPSTN1.2 Table 4.  We support SetLineCoding,
+                                                         //SetControlLineState, GetLineCoding, and SerialState notifications.
 
-    	5,     	                                         // 5-byte General Descriptor: Union Interface Functional Descriptor (CDC 1.20 Table 16).
-    	CDC_DESCRIPTOR_TYPE_CS_INTERFACE,
-    	CDC_DESCRIPTOR_SUBTYPE_UNION,
-    	CDC_CONTROL_INTERFACE_NUMBER,                    // index of the control interface
-    	CDC_DATA_INTERFACE_NUMBER,                       // index of the subordinate interface
+        5,                                               // 5-byte General Descriptor: Union Interface Functional Descriptor (CDC 1.20 Table 16).
+        CDC_DESCRIPTOR_TYPE_CS_INTERFACE,
+        CDC_DESCRIPTOR_SUBTYPE_UNION,
+        CDC_CONTROL_INTERFACE_NUMBER,                    // index of the control interface
+        CDC_DATA_INTERFACE_NUMBER,                       // index of the subordinate interface
 
-    	5, 		                                         // 5-byte PTSN-Specific Descriptor
-    	CDC_DESCRIPTOR_TYPE_CS_INTERFACE,
-    	CDC_DESCRIPTOR_SUBTYPE_CALL_MANAGEMENT,
-    	0x00,                                            // bmCapabilities.  USBPSTN1.2 Table 3.  Device does not handle call management.
-    	CDC_DATA_INTERFACE_NUMBER                        // index of the data interface
+        5,                                               // 5-byte PTSN-Specific Descriptor
+        CDC_DESCRIPTOR_TYPE_CS_INTERFACE,
+        CDC_DESCRIPTOR_SUBTYPE_CALL_MANAGEMENT,
+        0x00,                                            // bmCapabilities.  USBPSTN1.2 Table 3.  Device does not handle call management.
+        CDC_DATA_INTERFACE_NUMBER                        // index of the data interface
     },
     {
         sizeof(struct USB_DESCRIPTOR_ENDPOINT),
@@ -207,9 +207,9 @@ uint16 CODE * CODE usbStringDescriptors[] = { languages, manufacturer, product, 
 
 void usbCallbackInitEndpoints()
 {
-	usbInitEndpointIn(CDC_NOTIFICATION_ENDPOINT, 8);
-	usbInitEndpointOut(CDC_DATA_ENDPOINT, CDC_OUT_PACKET_SIZE);
-	usbInitEndpointIn(CDC_DATA_ENDPOINT, CDC_IN_PACKET_SIZE);
+    usbInitEndpointIn(CDC_NOTIFICATION_ENDPOINT, 8);
+    usbInitEndpointOut(CDC_DATA_ENDPOINT, CDC_OUT_PACKET_SIZE);
+    usbInitEndpointIn(CDC_DATA_ENDPOINT, CDC_IN_PACKET_SIZE);
 }
 
 // Implements all the control transfers that are required by D1 of the
@@ -233,7 +233,7 @@ void usbCallbackSetupHandler()
             break;
 
         case ACM_REQUEST_SET_CONTROL_LINE_STATE:                   // SetControlLineState (USBPSTN1.20 Section 6.3.12 SetControlLineState)
-        	usbComControlLineState = usbSetupPacket.wValue;
+            usbComControlLineState = usbSetupPacket.wValue;
             usbControlAcknowledge();
             break;
     }
@@ -250,17 +250,17 @@ void usbCallbackControlWriteHandler()
 
 uint8 usbComRxAvailable()
 {
-	USBINDEX = CDC_DATA_ENDPOINT;      // Select the data endpoint.
-	if (USBCSOL & USBCSOL_OUTPKT_RDY)  // Check the OUTPKT_RDY flag because USBCNTL is only valid when it is 1.
-	{
-		// Assumption: We don't need to read USBCNTH because we can't receive packets
-		// larger than 255 bytes.
-		return USBCNTL;
-	}
-	else
-	{
-		return 0;
-	}
+    USBINDEX = CDC_DATA_ENDPOINT;      // Select the data endpoint.
+    if (USBCSOL & USBCSOL_OUTPKT_RDY)  // Check the OUTPKT_RDY flag because USBCNTL is only valid when it is 1.
+    {
+        // Assumption: We don't need to read USBCNTH because we can't receive packets
+        // larger than 255 bytes.
+        return USBCNTL;
+    }
+    else
+    {
+        return 0;
+    }
 }
 
 
@@ -270,41 +270,41 @@ uint8 usbComRxAvailable()
 // was non-zero.
 uint8 usbComRxReceiveByte()
 {
-	uint8 tmp;
+    uint8 tmp;
 
-	USBINDEX = CDC_DATA_ENDPOINT;         // Select the CDC data endpoint.
-	tmp = CDC_DATA_FIFO;                  // Read one byte from the FIFO.
+    USBINDEX = CDC_DATA_ENDPOINT;         // Select the CDC data endpoint.
+    tmp = CDC_DATA_FIFO;                  // Read one byte from the FIFO.
 
-	if (USBCNTL == 0)                     // If there are no bytes left in this packet...
-	{
-		USBCSOL &= ~USBCSOL_OUTPKT_RDY;   // Tell the USB module we are done reading this packet, so it can receive more.
-	}
-	return tmp;
+    if (USBCNTL == 0)                     // If there are no bytes left in this packet...
+    {
+        USBCSOL &= ~USBCSOL_OUTPKT_RDY;   // Tell the USB module we are done reading this packet, so it can receive more.
+    }
+    return tmp;
 }
 
 // Assumption: The user has previously called usbComRxAvailable and its return value
 // was greater than or equal to size.
 uint8 usbComRxReceiveNonBlocking(uint8 XDATA* buffer, uint8 size)
 {
-	uint8 bytesToGet;
-	bytesToGet = usbComRxAvailable();
-	if (bytesToGet >= size)
-	{
-		bytesToGet = size;
-	}
-	if (bytesToGet == 0)
-	{
-		return 0;
-	}
+    uint8 bytesToGet;
+    bytesToGet = usbComRxAvailable();
+    if (bytesToGet >= size)
+    {
+        bytesToGet = size;
+    }
+    if (bytesToGet == 0)
+    {
+        return 0;
+    }
 
-	usbReadFifo(CDC_DATA_ENDPOINT, bytesToGet, buffer);
+    usbReadFifo(CDC_DATA_ENDPOINT, bytesToGet, buffer);
 
-	if (USBCNTL == 0)
-	{
-		USBCSOL &= ~USBCSOL_OUTPKT_RDY;   // Tell the USB module we are done reading this packet, so it can receive more.
-	}
+    if (USBCNTL == 0)
+    {
+        USBCSOL &= ~USBCSOL_OUTPKT_RDY;   // Tell the USB module we are done reading this packet, so it can receive more.
+    }
 
-	return bytesToGet;
+    return bytesToGet;
 }
 
 void usbComRxReceive(const uint8 XDATA * buffer, uint8 size);
@@ -316,61 +316,61 @@ void usbComRxReceive(const uint8 XDATA * buffer, uint8 size);
 
 static void sendPacketNow()
 {
-	USBINDEX = CDC_DATA_ENDPOINT;
-	USBCSIL |= USBCSIL_INPKT_RDY;					   // Send the packet.
+    USBINDEX = CDC_DATA_ENDPOINT;
+    USBCSIL |= USBCSIL_INPKT_RDY;                      // Send the packet.
 
-	// If the last packet transmitted was a full packet, we should send an empty packet later.
-	sendEmptyPacketSoon = (inFifoBytesLoaded == CDC_IN_PACKET_SIZE);
-	inFifoBytesLoaded = 0;
+    // If the last packet transmitted was a full packet, we should send an empty packet later.
+    sendEmptyPacketSoon = (inFifoBytesLoaded == CDC_IN_PACKET_SIZE);
+    inFifoBytesLoaded = 0;
 }
 
 void usbComService(void)
 {
-	USBINDEX = CDC_DATA_ENDPOINT;
+    USBINDEX = CDC_DATA_ENDPOINT;
 
-	// Send a packet now if there is data loaded in the FIFO waiting to be sent OR
-	//
-	// Typical USB systems wait for a short or empty packet before forwarding the data
-	// up to the software that requested it, so this is necessary.  However, we only transmit
-	// an empty packet if there are no packets currently loaded in the FIFO.
-	if (inFifoBytesLoaded || ( sendEmptyPacketSoon && !(USBCSIL & USBCSIL_PKT_PRESENT) ) )
-	{
-		sendPacketNow();
-	}
+    // Send a packet now if there is data loaded in the FIFO waiting to be sent OR
+    //
+    // Typical USB systems wait for a short or empty packet before forwarding the data
+    // up to the software that requested it, so this is necessary.  However, we only transmit
+    // an empty packet if there are no packets currently loaded in the FIFO.
+    if (inFifoBytesLoaded || ( sendEmptyPacketSoon && !(USBCSIL & USBCSIL_PKT_PRESENT) ) )
+    {
+        sendPacketNow();
+    }
 
-	usbPoll();
+    usbPoll();
 
-	if (usbComLineCoding.dwDTERate == 333)
-	{
-		// TODO: we should wait for 100-500 ms before actually going in to bootloader mode,
-		// so that the computer can do a successful GetLineCoding request and SetCommState
-		// does not return an error code.
+    if (usbComLineCoding.dwDTERate == 333)
+    {
+        // TODO: we should wait for 100-500 ms before actually going in to bootloader mode,
+        // so that the computer can do a successful GetLineCoding request and SetCommState
+        // does not return an error code.
 
-		// The baud rate has been set to 333.  That is the special signal
-		// sent by the USB host telling us to enter bootloader mode.
-		wixelStartBootloader();
-	}
+        // The baud rate has been set to 333.  That is the special signal
+        // sent by the USB host telling us to enter bootloader mode.
+        wixelStartBootloader();
+    }
 }
 
 // Assumption: We are using double buffering, so we can load either 0, 1, or 2
 // packets in to the FIFO at this time.
 uint8 usbComTxAvailable()
 {
-	uint8 tmp;
-	USBINDEX = CDC_DATA_ENDPOINT;
-	tmp = USBCSIL;
-	if (tmp & USBCSIL_PKT_PRESENT)
-	{
-		if (tmp & USBCSIL_INPKT_RDY)
-		{
-			return 0;                                       // 2 packets are in the FIFO, so no room
-		}
-		return CDC_IN_PACKET_SIZE - inFifoBytesLoaded;      // 1 packet is in the FIFO, so there is room for 1 more
-	}
-	else
-	{
-		return (CDC_IN_PACKET_SIZE<<1) - inFifoBytesLoaded; // 0 packets are in the FIFO, so there is room for 2 more
-	}
+    uint8 tmp;
+    USBINDEX = CDC_DATA_ENDPOINT;
+    tmp = USBCSIL;
+    if (tmp & USBCSIL_PKT_PRESENT)
+    {
+        if (tmp & USBCSIL_INPKT_RDY)
+        {
+            return 0;                                       // 2 packets are in the FIFO, so no room
+        }
+        return CDC_IN_PACKET_SIZE - inFifoBytesLoaded;      // 1 packet is in the FIFO, so there is room for 1 more
+    }
+    else
+    {
+        return (CDC_IN_PACKET_SIZE<<1) - inFifoBytesLoaded; // 0 packets are in the FIFO, so there is room for 2 more
+    }
 }
 
 // Assumption: The user called usbComTxAvailable() before calling this function,
@@ -378,55 +378,55 @@ uint8 usbComTxAvailable()
 // TIMING: David did an experiment on 2011-1-3.  This function took 25us to run when size==8 and 250us when size
 void usbComTxSendNonBlocking(const uint8 XDATA * buffer, uint8 size)
 {
-	uint8 packetSize;
-	while(size)
-	{
-		packetSize = CDC_IN_PACKET_SIZE - inFifoBytesLoaded;   // Decide how many bytes to send in this packet (packetSize).
-		if (packetSize > size){ packetSize = size; }
+    uint8 packetSize;
+    while(size)
+    {
+        packetSize = CDC_IN_PACKET_SIZE - inFifoBytesLoaded;   // Decide how many bytes to send in this packet (packetSize).
+        if (packetSize > size){ packetSize = size; }
 
-		usbWriteFifo(CDC_DATA_ENDPOINT, packetSize, buffer);    // Write those bytes to the USB FIFO.
+        usbWriteFifo(CDC_DATA_ENDPOINT, packetSize, buffer);    // Write those bytes to the USB FIFO.
 
-		buffer += packetSize;                                   // Update pointers.
-		size -= packetSize;
-		inFifoBytesLoaded += packetSize;
+        buffer += packetSize;                                   // Update pointers.
+        size -= packetSize;
+        inFifoBytesLoaded += packetSize;
 
-		if (inFifoBytesLoaded == CDC_IN_PACKET_SIZE)
-		{
-			sendPacketNow();
-		}
-	}
+        if (inFifoBytesLoaded == CDC_IN_PACKET_SIZE)
+        {
+            sendPacketNow();
+        }
+    }
 }
 
 // For use with printf.
 void usbComTxSendByte(uint8 byte)
 {
-	while(usbComTxAvailable() == 0)
-	{
-		// TODO: call any background tasks that need to be called?
-	}
+    while(usbComTxAvailable() == 0)
+    {
+        // TODO: call any background tasks that need to be called?
+    }
 
-	CDC_DATA_FIFO = byte;                          // Give the byte to the USB module's FIFO.
-	inFifoBytesLoaded++;
+    CDC_DATA_FIFO = byte;                          // Give the byte to the USB module's FIFO.
+    inFifoBytesLoaded++;
 
-	if (inFifoBytesLoaded == CDC_IN_PACKET_SIZE)
-	{
-		sendPacketNow();
-	}
+    if (inFifoBytesLoaded == CDC_IN_PACKET_SIZE)
+    {
+        sendPacketNow();
+    }
 }
 
 void usbComTxSend(const uint8 XDATA * buffer, uint8 size)
 {
-	uint8 bytesToSend;
-	while(size)
-	{
-		bytesToSend = usbComTxAvailable();                 // Determine how many bytes we can send in the next call.
-		if (bytesToSend == 0){ continue; }                 // Skip the rest of the loop if we can't send any bytes right now.
-		if (bytesToSend > size){ bytesToSend = size; }     // Don't send more bytes than we need to.
+    uint8 bytesToSend;
+    while(size)
+    {
+        bytesToSend = usbComTxAvailable();                 // Determine how many bytes we can send in the next call.
+        if (bytesToSend == 0){ continue; }                 // Skip the rest of the loop if we can't send any bytes right now.
+        if (bytesToSend > size){ bytesToSend = size; }     // Don't send more bytes than we need to.
 
-		usbComTxSendNonBlocking(buffer, size);
-		buffer += bytesToSend;
-		size -= bytesToSend;
-	}
+        usbComTxSendNonBlocking(buffer, size);
+        buffer += bytesToSend;
+        size -= bytesToSend;
+    }
 }
 
 // Local Variables: **

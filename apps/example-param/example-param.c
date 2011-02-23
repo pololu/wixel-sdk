@@ -14,47 +14,47 @@ __at(5000) paramo_blink_period_max;
 
 void updateLeds()
 {
-	static uint32 lastToggle = 0;
+    static uint32 lastToggle = 0;
 
-	usbShowStatusWithGreenLed();
+    usbShowStatusWithGreenLed();
 
     LED_YELLOW(0);
 
     if ((uint16)(timeMs - lastToggle) >= param_blink_period)
     {
-    	LED_RED(!LED_RED_STATE);
-    	lastToggle = timeMs;
+        LED_RED(!LED_RED_STATE);
+        lastToggle = timeMs;
     }
 }
 
 void receiveCommands()
 {
-	uint8 XDATA response[64];
+    uint8 XDATA response[64];
 
-	if (usbComRxAvailable() && usbComTxAvailable() >= 64)
-	{
-		uint8 byte;
-		byte = usbComRxReceiveByte();
-		if (byte == (uint8)'?')
-		{
-			uint8 length = sprintf(response, "? blink period = %d, baud = %d\r\n", (uint16)param_blink_period, (uint16)param_baud_rate);
-			usbComTxSend(response, length);
-		}
-	}
+    if (usbComRxAvailable() && usbComTxAvailable() >= 64)
+    {
+        uint8 byte;
+        byte = usbComRxReceiveByte();
+        if (byte == (uint8)'?')
+        {
+            uint8 length = sprintf(response, "? blink period = %d, baud = %d\r\n", (uint16)param_blink_period, (uint16)param_baud_rate);
+            usbComTxSend(response, length);
+        }
+    }
 }
 
 void main()
 {
-	wixelInit();
-	usbInit();
+    wixelInit();
+    usbInit();
 
-	while(1)
-	{
-		wixelService();
-		updateLeds();
-		usbComService();
-		receiveCommands();
-	}
+    while(1)
+    {
+        wixelService();
+        updateLeds();
+        usbComService();
+        receiveCommands();
+    }
 }
 
 // Local Variables: **

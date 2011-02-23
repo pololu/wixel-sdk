@@ -22,10 +22,10 @@
 
 static void writeRndlFromAdc()
 {
-	ADCIF = 0;               // Clear the flag.
-	ADCCON3 = 0b10001110;	 // Read the temperature sensor using VDD as a reference, with only 7 bits of resolution.
-	while(!ADCIF){};         // Wait for the reading to finish.
-	RNDL = ADCL;             // At this point, the 6 MSbs of ADCL are basically random.  Add them to the LFSR.
+    ADCIF = 0;               // Clear the flag.
+    ADCCON3 = 0b10001110;    // Read the temperature sensor using VDD as a reference, with only 7 bits of resolution.
+    while(!ADCIF){};         // Wait for the reading to finish.
+    RNDL = ADCL;             // At this point, the 6 MSbs of ADCL are basically random.  Add them to the LFSR.
 }
 
 /* randomSeedFromADC: This function should be called to initialize the state of the
@@ -40,9 +40,9 @@ static void writeRndlFromAdc()
  */
 void randomSeedFromAdc()
 {
-	writeRndlFromAdc();                    	 // Write to RNDL twice to seed the LFSR.
-	writeRndlFromAdc();
-	ADCCON1 = (ADCCON1 & ~0x0C) | 0x07;      // Start generating the first random number.
+    writeRndlFromAdc();                      // Write to RNDL twice to seed the LFSR.
+    writeRndlFromAdc();
+    ADCCON1 = (ADCCON1 & ~0x0C) | 0x07;      // Start generating the first random number.
 }
 
 /* randomAddSeed: Adds another seed to the state of the random number generator.
@@ -51,13 +51,13 @@ void randomSeedFromAdc()
  */
 void randomRefreshFromAdc()
 {
-	ADCIF = 0;                               // Clear the flag.
-	ADCCON3 = 0b10001110;	                 // Read the temperature sensor using VDD as a reference, with only 7 bits of resolution.
-	while(!ADCIF){};                         // Wait for the reading to finish.
+    ADCIF = 0;                               // Clear the flag.
+    ADCCON3 = 0b10001110;                    // Read the temperature sensor using VDD as a reference, with only 7 bits of resolution.
+    while(!ADCIF){};                         // Wait for the reading to finish.
 
-	while(ADCCON1 & 0x0C);                   // Wait for the last random number to finish.
-	RNDL = RNDH ^ ADCL;                      // Add the seed, but don't throw away the randomness in RNDH.
-	ADCCON1 = (ADCCON1 & ~0x0C) | 0x07;      // Start generating the next random number.
+    while(ADCCON1 & 0x0C);                   // Wait for the last random number to finish.
+    RNDL = RNDH ^ ADCL;                      // Add the seed, but don't throw away the randomness in RNDH.
+    ADCCON1 = (ADCCON1 & ~0x0C) | 0x07;      // Start generating the next random number.
 }
 
 /* Returns a new random number.  Warning: this is not reentrant.  It is possible that this function
@@ -66,11 +66,11 @@ void randomRefreshFromAdc()
  */
 uint8 randomNumber()
 {
-	uint8 rand;
-	while(ADCCON1 & 0x0C);                   // Wait for the random number to finish.
-	rand = RNDL;                             // Get the random number.
-	ADCCON1 = (ADCCON1 & ~0x0C) | 0x07;      // Start generating the next random number.
-	return rand;
+    uint8 rand;
+    while(ADCCON1 & 0x0C);                   // Wait for the random number to finish.
+    rand = RNDL;                             // Get the random number.
+    ADCCON1 = (ADCCON1 & ~0x0C) | 0x07;      // Start generating the next random number.
+    return rand;
 }
 
 // Local Variables: **

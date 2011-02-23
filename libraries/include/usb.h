@@ -212,15 +212,15 @@ BIT usbSuspended();
 /* TODO: document usbSleep
  *
  * Example usage:
- * 		if (usbSuspended() && !selfPowered())
- *  	{
+ *      if (usbSuspended() && !selfPowered())
+ *      {
  *          // Here you must shut down anything that draws a lot of current
  *          // (except the USB pull-up resistor).  Power consumption during
  *          // suspend mode must be less than 0.5 mA or the device
  *          // will be out of spec (but usually nothing bad happens).
- *  		usbSleep();
- *  		// Here you should re-enable the things that were disabled.
- *  	}
+ *          usbSleep();
+ *          // Here you should re-enable the things that were disabled.
+ *      }
  */
 void usbSleep();
 
@@ -233,7 +233,7 @@ void usbSleep();
  *
  * ISR(P0INT, 1)
  * {
- * 	   // Handle the P0 flags you care about here, but you might want to
+ *     // Handle the P0 flags you care about here, but you might want to
  *     // check PICTL first because if we are in suspend mode then the P0
  *     // interrupt settings may be different from what you set them to be.
  *

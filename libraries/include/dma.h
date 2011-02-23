@@ -9,10 +9,10 @@ void dmaInit();
 
 typedef struct DMA14_CONFIG
 {
-	volatile DMA_CONFIG radio;   // DMA channel: for RF purposes
-	volatile DMA_CONFIG __1;     // DMA channel (unassigned)
-	volatile DMA_CONFIG __2;     // DMA channel (unassigned)
-	volatile DMA_CONFIG __3;     // DMA channel (unassigned)
+    volatile DMA_CONFIG radio;   // DMA channel: for RF purposes
+    volatile DMA_CONFIG __1;     // DMA channel (unassigned)
+    volatile DMA_CONFIG __2;     // DMA channel (unassigned)
+    volatile DMA_CONFIG __3;     // DMA channel (unassigned)
 } DMA14_CONFIG;
 
 extern DMA14_CONFIG XDATA dmaConfig;

@@ -23,10 +23,10 @@
  *  regular data, you would need to replace this layer with something more complicated that
  *  keeps track of different streams and schedules them in a reasonable way.
  *
- *	There is a distinction here between RF packets and data packets:  an RF packet is what gets
- *	transmitted by the radio.  A data packet is a piece of data that needs to be sent to the
- *	other device, and it might correspond to several RF packets because there are retries and
- *	ACKs.
+ *  There is a distinction here between RF packets and data packets:  an RF packet is what gets
+ *  transmitted by the radio.  A data packet is a piece of data that needs to be sent to the
+ *  other device, and it might correspond to several RF packets because there are retries and
+ *  ACKs.
  *
  *  This layer does not correspond cleanly to any of the layers in the OSI Model.
  *  It combines portions of the Data Link Layer (#2), Network Layer (#3), and
@@ -95,17 +95,17 @@ volatile BIT rxSequenceBit;
 
 void radioLinkInit()
 {
-	// Initialize the first byte of each TX buffer: this indicates the that both buffers
-	// are owned by the main loop.
-	radioLinkTxPacket[0][RADIO_LINK_PACKET_LENGTH_OFFSET] = 0;
-	radioLinkTxPacket[1][RADIO_LINK_PACKET_LENGTH_OFFSET] = 0;
+    // Initialize the first byte of each TX buffer: this indicates the that both buffers
+    // are owned by the main loop.
+    radioLinkTxPacket[0][RADIO_LINK_PACKET_LENGTH_OFFSET] = 0;
+    radioLinkTxPacket[1][RADIO_LINK_PACKET_LENGTH_OFFSET] = 0;
 
-	rxSequenceBit = 1;
+    rxSequenceBit = 1;
 
     PKTLEN = RADIO_MAX_PACKET_SIZE;
 
-	radioMacInit();
-	radioMacStrobe();
+    radioMacInit();
+    radioMacStrobe();
 }
 
 // Returns a random delay in units of 50 microseconds (the same units of radioMacRx).
@@ -114,208 +114,208 @@ void radioLinkInit()
 // packet has been sent already, so we can do some sort of exponential backoff.
 static uint16 randomDelay()
 {
-	// WARNING: You can't do multiplication here because it might call a non-reentrant
-	// 16-bit math function.  We can't do that in an ISR!  Also, if you ever change this
-	// function, you should check it to make sure it isn't calling a non-reentrant math
-	// function.
-	return (2 + (randomNumber() & 15)) << 4;
+    // WARNING: You can't do multiplication here because it might call a non-reentrant
+    // 16-bit math function.  We can't do that in an ISR!  Also, if you ever change this
+    // function, you should check it to make sure it isn't calling a non-reentrant math
+    // function.
+    return (2 + (randomNumber() & 15)) << 4;
 }
 
 /* TX FUNCTIONS (called by higher-level code in main loop) ********************/
 
 uint8 radioLinkTxAvailable(void)
 {
-	// If the length byte of a TX packet buffer is zero, then the buffer is available
-	// for us to populate.
+    // If the length byte of a TX packet buffer is zero, then the buffer is available
+    // for us to populate.
 
-	return ((radioLinkTxPacket[0][RADIO_LINK_PACKET_LENGTH_OFFSET] == 0)
-			+ (radioLinkTxPacket[1][RADIO_LINK_PACKET_LENGTH_OFFSET] == 0));
+    return ((radioLinkTxPacket[0][RADIO_LINK_PACKET_LENGTH_OFFSET] == 0)
+            + (radioLinkTxPacket[1][RADIO_LINK_PACKET_LENGTH_OFFSET] == 0));
 }
 
 uint8 XDATA * radioLinkTxCurrentPacket()
 {
-	if (!radioLinkTxAvailable())
-	{
-		return 0;
-	}
+    if (!radioLinkTxAvailable())
+    {
+        return 0;
+    }
 
-	return radioLinkTxPacket[txMainLoopIndex];
+    return radioLinkTxPacket[txMainLoopIndex];
 }
 
 void radioLinkTxSendPacket(uint8 size)
 {
-	// Assumption: the user has added data to the current TX packet, but has NOT set the
-	// length byte.
+    // Assumption: the user has added data to the current TX packet, but has NOT set the
+    // length byte.
 
-	// Now we set the length byte.  This is the signal to the ISR that the packet buffer now
-	// belongs to the ISR.  The main loop must not touch this buffer any more until the ISR
-	// sets the length byte to 0.
-	radioLinkTxPacket[txMainLoopIndex][RADIO_LINK_PACKET_LENGTH_OFFSET] = size + RADIO_LINK_PACKET_HEADER_LENGTH;
+    // Now we set the length byte.  This is the signal to the ISR that the packet buffer now
+    // belongs to the ISR.  The main loop must not touch this buffer any more until the ISR
+    // sets the length byte to 0.
+    radioLinkTxPacket[txMainLoopIndex][RADIO_LINK_PACKET_LENGTH_OFFSET] = size + RADIO_LINK_PACKET_HEADER_LENGTH;
 
-	// Make sure that radioMacEventHandler runs soon so it can see this new data and send it.
-	radioMacStrobe();
+    // Make sure that radioMacEventHandler runs soon so it can see this new data and send it.
+    radioMacStrobe();
 
-	// Update our index of which packet to populate in the main loop.
-	txMainLoopIndex ^= 1;
+    // Update our index of which packet to populate in the main loop.
+    txMainLoopIndex ^= 1;
 }
 
 /* RX FUNCTIONS (called by higher-level code in main loop) ********************/
 
 XDATA uint8 * radioLinkRxCurrentPacket(void)
 {
-	if (rxMainLoopIndex == rxInterruptIndex)
-	{
-		return 0;
-	}
+    if (rxMainLoopIndex == rxInterruptIndex)
+    {
+        return 0;
+    }
 
-	return radioLinkRxPacket[rxMainLoopIndex];
+    return radioLinkRxPacket[rxMainLoopIndex];
 }
 
 void radioLinkRxDoneWithPacket(void)
 {
-	if (rxMainLoopIndex == RX_PACKET_COUNT - 1)
-	{
-		rxMainLoopIndex = 0;
-	}
-	else
-	{
-		rxMainLoopIndex++;
-	}
+    if (rxMainLoopIndex == RX_PACKET_COUNT - 1)
+    {
+        rxMainLoopIndex = 0;
+    }
+    else
+    {
+        rxMainLoopIndex++;
+    }
 }
 
 /* FUNCTIONS CALLED IN RF_ISR *************************************************/
 
 void takeInitiative()
 {
-	if (radioLinkTxPacket[txInterruptIndex][RADIO_LINK_PACKET_LENGTH_OFFSET] != 0)
-	{
-		// Try to send the next data packet.
-		radioLinkTxPacket[txInterruptIndex][RADIO_LINK_PACKET_TYPE_OFFSET] = PACKET_TYPE_PING | txInterruptIndex;
-		radioMacTx(radioLinkTxPacket[txInterruptIndex]);
-	}
-	else
-	{
+    if (radioLinkTxPacket[txInterruptIndex][RADIO_LINK_PACKET_LENGTH_OFFSET] != 0)
+    {
+        // Try to send the next data packet.
+        radioLinkTxPacket[txInterruptIndex][RADIO_LINK_PACKET_TYPE_OFFSET] = PACKET_TYPE_PING | txInterruptIndex;
+        radioMacTx(radioLinkTxPacket[txInterruptIndex]);
+    }
+    else
+    {
 
-		radioMacRx(radioLinkRxPacket[rxInterruptIndex], 0);
-	}
+        radioMacRx(radioLinkRxPacket[rxInterruptIndex], 0);
+    }
 }
 
 void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
 {
-	if (event == RADIO_MAC_EVENT_STROBE)
-	{
-		takeInitiative();
-		return;
-	}
-	else if (event == RADIO_MAC_EVENT_TX)
-	{
-		// We sent a packet, so now lets give the other party a chance to talk.
-		radioMacRx(radioLinkRxPacket[rxInterruptIndex], randomDelay());
-		return;
-	}
-	else if (event == RADIO_MAC_EVENT_RX)
-	{
-		uint8 XDATA * currentRxPacket = radioLinkRxPacket[rxInterruptIndex];
+    if (event == RADIO_MAC_EVENT_STROBE)
+    {
+        takeInitiative();
+        return;
+    }
+    else if (event == RADIO_MAC_EVENT_TX)
+    {
+        // We sent a packet, so now lets give the other party a chance to talk.
+        radioMacRx(radioLinkRxPacket[rxInterruptIndex], randomDelay());
+        return;
+    }
+    else if (event == RADIO_MAC_EVENT_RX)
+    {
+        uint8 XDATA * currentRxPacket = radioLinkRxPacket[rxInterruptIndex];
 
-		if (!radioCrcPassed())
-		{
-			if (radioLinkTxPacket[txInterruptIndex][RADIO_LINK_PACKET_LENGTH_OFFSET] != 0)
-			{
-				radioMacRx(currentRxPacket, randomDelay());
-			}
-			else
-			{
-				radioMacRx(currentRxPacket, 0);
-			}
-			return;
-		}
+        if (!radioCrcPassed())
+        {
+            if (radioLinkTxPacket[txInterruptIndex][RADIO_LINK_PACKET_LENGTH_OFFSET] != 0)
+            {
+                radioMacRx(currentRxPacket, randomDelay());
+            }
+            else
+            {
+                radioMacRx(currentRxPacket, 0);
+            }
+            return;
+        }
 
-		if ((currentRxPacket[RADIO_LINK_PACKET_TYPE_OFFSET] & PACKET_TYPE_MASK) == PACKET_TYPE_ACK)
-		{
-			// The packet we received contained an acknowledgment.
+        if ((currentRxPacket[RADIO_LINK_PACKET_TYPE_OFFSET] & PACKET_TYPE_MASK) == PACKET_TYPE_ACK)
+        {
+            // The packet we received contained an acknowledgment.
 
-			// NOTE: Maybe we should detect whether this acknowledgment could possibly be valid before
-			// acting on it.  If radioLinkTxPacket[txInterruptIndex][RADIO_LINK_PACKET_LENGTH_OFFSET] == 0
-			// then this is acknowledgment can not be valid.
+            // NOTE: Maybe we should detect whether this acknowledgment could possibly be valid before
+            // acting on it.  If radioLinkTxPacket[txInterruptIndex][RADIO_LINK_PACKET_LENGTH_OFFSET] == 0
+            // then this is acknowledgment can not be valid.
 
-			// Give ownership of the current TX packet back to the main loop.
-			radioLinkTxPacket[txInterruptIndex][RADIO_LINK_PACKET_LENGTH_OFFSET] = 0;
+            // Give ownership of the current TX packet back to the main loop.
+            radioLinkTxPacket[txInterruptIndex][RADIO_LINK_PACKET_LENGTH_OFFSET] = 0;
 
-			// The next packet we transmit will come from the other buffer.
-			txInterruptIndex ^= 1;
-		}
+            // The next packet we transmit will come from the other buffer.
+            txInterruptIndex ^= 1;
+        }
 
-		if (currentRxPacket[RADIO_LINK_PACKET_LENGTH_OFFSET] > RADIO_LINK_PACKET_HEADER_LENGTH)
-		{
-			// We received a packet that contains actual data.
+        if (currentRxPacket[RADIO_LINK_PACKET_LENGTH_OFFSET] > RADIO_LINK_PACKET_HEADER_LENGTH)
+        {
+            // We received a packet that contains actual data.
 
-			uint8 responsePacketType = PACKET_TYPE_ACK;
+            uint8 responsePacketType = PACKET_TYPE_ACK;
 
-			if (rxSequenceBit != (currentRxPacket[RADIO_LINK_PACKET_TYPE_OFFSET] & 1))
-			{
-				// This packet is NOT a retransmission of the last packet we received.
+            if (rxSequenceBit != (currentRxPacket[RADIO_LINK_PACKET_TYPE_OFFSET] & 1))
+            {
+                // This packet is NOT a retransmission of the last packet we received.
 
-				uint8 nextRxInterruptIndex;
+                uint8 nextRxInterruptIndex;
 
-				// See if we can give the data to the main loop.
-				if (rxInterruptIndex == RX_PACKET_COUNT - 1)
-				{
-					nextRxInterruptIndex = 0;
-				}
-				else
-				{
-					nextRxInterruptIndex = rxInterruptIndex + 1;
-				}
+                // See if we can give the data to the main loop.
+                if (rxInterruptIndex == RX_PACKET_COUNT - 1)
+                {
+                    nextRxInterruptIndex = 0;
+                }
+                else
+                {
+                    nextRxInterruptIndex = rxInterruptIndex + 1;
+                }
 
-				if(nextRxInterruptIndex != rxMainLoopIndex)
-				{
-					// We can accept this packet and send an ACK!
+                if(nextRxInterruptIndex != rxMainLoopIndex)
+                {
+                    // We can accept this packet and send an ACK!
 
-					// Decrease the size byte because the higher level code doesn't know about the header added by this layer.
-					currentRxPacket[RADIO_LINK_PACKET_LENGTH_OFFSET] -= RADIO_LINK_PACKET_HEADER_LENGTH;
+                    // Decrease the size byte because the higher level code doesn't know about the header added by this layer.
+                    currentRxPacket[RADIO_LINK_PACKET_LENGTH_OFFSET] -= RADIO_LINK_PACKET_HEADER_LENGTH;
 
-					rxSequenceBit ^= 1;
+                    rxSequenceBit ^= 1;
 
-					rxInterruptIndex = nextRxInterruptIndex;
-				}
-				else
-				{
-					// The main loop is already using all of the other RX packet buffers,
-					// so we can't give this packet to the main loop and we will send a NAK.
-					responsePacketType = PACKET_TYPE_NAK;
-				}
+                    rxInterruptIndex = nextRxInterruptIndex;
+                }
+                else
+                {
+                    // The main loop is already using all of the other RX packet buffers,
+                    // so we can't give this packet to the main loop and we will send a NAK.
+                    responsePacketType = PACKET_TYPE_NAK;
+                }
 
-			}
+            }
 
-			// Send an ACK or NAK to the other party.
+            // Send an ACK or NAK to the other party.
 
-			if (radioLinkTxPacket[txInterruptIndex][RADIO_LINK_PACKET_LENGTH_OFFSET] != 0)
-			{
-				// Send some data along with the ACK or NAK.
-				radioLinkTxPacket[txInterruptIndex][RADIO_LINK_PACKET_TYPE_OFFSET] = responsePacketType | txInterruptIndex;
-				radioMacTx(radioLinkTxPacket[txInterruptIndex]);
-			}
-			else
-			{
-				// No data is available, so just send the ACK or NAK by itself.
+            if (radioLinkTxPacket[txInterruptIndex][RADIO_LINK_PACKET_LENGTH_OFFSET] != 0)
+            {
+                // Send some data along with the ACK or NAK.
+                radioLinkTxPacket[txInterruptIndex][RADIO_LINK_PACKET_TYPE_OFFSET] = responsePacketType | txInterruptIndex;
+                radioMacTx(radioLinkTxPacket[txInterruptIndex]);
+            }
+            else
+            {
+                // No data is available, so just send the ACK or NAK by itself.
 
-				// Assumption: The length byte of the shortTxPacket is 1.
-				shortTxPacket[RADIO_LINK_PACKET_LENGTH_OFFSET] = 1;  // tmphax
-				shortTxPacket[RADIO_LINK_PACKET_TYPE_OFFSET] = responsePacketType;
-				radioMacTx(shortTxPacket);
-			}
-		}
-		else
-		{
-			takeInitiative();
-		}
-		return;
-	}
-	else if (event == RADIO_MAC_EVENT_RX_TIMEOUT)
-	{
-		takeInitiative();
-		return;
-	}
+                // Assumption: The length byte of the shortTxPacket is 1.
+                shortTxPacket[RADIO_LINK_PACKET_LENGTH_OFFSET] = 1;  // tmphax
+                shortTxPacket[RADIO_LINK_PACKET_TYPE_OFFSET] = responsePacketType;
+                radioMacTx(shortTxPacket);
+            }
+        }
+        else
+        {
+            takeInitiative();
+        }
+        return;
+    }
+    else if (event == RADIO_MAC_EVENT_RX_TIMEOUT)
+    {
+        takeInitiative();
+        return;
+    }
 }
 
 // Local Variables: **

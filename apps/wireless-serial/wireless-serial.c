@@ -13,25 +13,25 @@
 
 void blinkLeds()
 {
-	usbShowStatusWithGreenLed();
+    usbShowStatusWithGreenLed();
 
     if(vinPowerPresent()){ LED_YELLOW(1); }
 
     if (MARCSTATE == 0x11)
     {
-    	LED_RED(1);
+        LED_RED(1);
     }
     else
     {
-    	LED_RED(0);
+        LED_RED(0);
     }
 }
 
 uint8 nibbleToAscii(uint8 nibble)
 {
-	nibble &= 0xF;
-	if (nibble <= 0x9){ return '0' + nibble; }
-	else{ return 'A' + (nibble - 0xA); }
+    nibble &= 0xF;
+    if (nibble <= 0x9){ return '0' + nibble; }
+    else{ return 'A' + (nibble - 0xA); }
 }
 
 // Stops the CPU until another interrupt occurs.
@@ -43,92 +43,92 @@ uint8 nibbleToAscii(uint8 nibble)
 //    Set it to the correct code just before returning from sleepMode0.
 void sleepMode0()
 {
-	// Put the device to sleep by following the recommended pseudo code in the datasheet section 12.1.3:
-	SLEEP = (SLEEP & ~3) | 0;    // SLEEP.MODE = 0 : Selects Power Mode 0 (PM0).
-	__asm nop __endasm;
-	__asm nop __endasm;
-	__asm nop __endasm;
-	PCON |= 1; // PCON.IDLE = 1 : Actually go to sleep.
-	__asm nop __endasm; // tmphax
-	__asm nop __endasm; // tmphax
-	__asm nop __endasm; // tmphax
+    // Put the device to sleep by following the recommended pseudo code in the datasheet section 12.1.3:
+    SLEEP = (SLEEP & ~3) | 0;    // SLEEP.MODE = 0 : Selects Power Mode 0 (PM0).
+    __asm nop __endasm;
+    __asm nop __endasm;
+    __asm nop __endasm;
+    PCON |= 1; // PCON.IDLE = 1 : Actually go to sleep.
+    __asm nop __endasm; // tmphax
+    __asm nop __endasm; // tmphax
+    __asm nop __endasm; // tmphax
 }
 
 /**
 void radioLoopBack() // TODO: why does this just not work at all?? (radioComRxAvailable seems to always be 0)
 {
-	while(radioComRxAvailable() && radioComTxAvailable())
-	{
-		radioComTxSendByte(radioComRxReceiveByte());
-		LED_RED_TOGGLE();
-	}
+    while(radioComRxAvailable() && radioComTxAvailable())
+    {
+        radioComTxSendByte(radioComRxReceiveByte());
+        LED_RED_TOGGLE();
+    }
 }**/
 
 void radioToUsbService()
 {
-	while(radioComRxAvailable() && usbComTxAvailable())
-	{
-		usbComTxSendByte(radioComRxReceiveByte());
-	}
+    while(radioComRxAvailable() && usbComTxAvailable())
+    {
+        usbComTxSendByte(radioComRxReceiveByte());
+    }
 
-	while(usbComRxAvailable() && radioComTxAvailable())
-	{
-		radioComTxSendByte(usbComRxReceiveByte());
-	}
+    while(usbComRxAvailable() && radioComTxAvailable())
+    {
+        radioComTxSendByte(usbComRxReceiveByte());
+    }
 }
 
 void radioToUartService()
 {
-	while(radioComRxAvailable() && uart0TxAvailable())
-	{
-		uart0TxSendByte(radioComRxReceiveByte());
-	}
+    while(radioComRxAvailable() && uart0TxAvailable())
+    {
+        uart0TxSendByte(radioComRxReceiveByte());
+    }
 
-	while(uart0RxAvailable() && radioComTxAvailable())
-	{
-		radioComTxSendByte(uart0RxReceiveByte());
-	}
+    while(uart0RxAvailable() && radioComTxAvailable())
+    {
+        radioComTxSendByte(uart0RxReceiveByte());
+    }
 }
 
 void main()
 {
-	wixelInit();
-	usbInit();
-	uart0Init();
+    wixelInit();
+    usbInit();
+    uart0Init();
 
-	uart0SetBaudRate(115200);
+    uart0SetBaudRate(115200);
 
-	radioComInit();
-	randomSeedFromAdc();
+    radioComInit();
+    randomSeedFromAdc();
 
-	IOCFG2 = 0b011011; // put out a PA_PD signal on P1_7 (active low when the radio is in TX mode)
+    IOCFG2 = 0b011011; // put out a PA_PD signal on P1_7 (active low when the radio is in TX mode)
 
-	while(1)
-	{
-		wixelService();
-		blinkLeds();
+    while(1)
+    {
+        wixelService();
+        blinkLeds();
 
-		radioComTxService();
+        radioComTxService();
 
-		if (vinPowerPresent())
-		{
-			radioToUartService();
-		}
-		else
-		{
-			usbComService();
-			radioToUsbService();
-		}
+        if (vinPowerPresent())
+        {
+            radioToUartService();
+        }
+        else
+        {
+            usbComService();
+            radioToUsbService();
+        }
 
-		// TODO: when switching between the modes above, you should probably flush the buffers that aren't being used
+        // TODO: when switching between the modes above, you should probably flush the buffers that aren't being used
 
-		//TODO: sleepMode0();
+        //TODO: sleepMode0();
 
-		//TODO: if (usbSuspended())
-		//{
-		//	usbSleep();
-		//}
-	}
+        //TODO: if (usbSuspended())
+        //{
+        //  usbSleep();
+        //}
+    }
 }
 
 // Local Variables: **

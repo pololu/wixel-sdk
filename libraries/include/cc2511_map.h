@@ -322,18 +322,18 @@ SFRX(0xDE2A, USBF5)
 
 typedef struct
 {
-	unsigned char SRCADDRH;
-	unsigned char SRCADDRL;
-	unsigned char DESTADDRH;
-	unsigned char DESTADDRL;
+    unsigned char SRCADDRH;
+    unsigned char SRCADDRL;
+    unsigned char DESTADDRH;
+    unsigned char DESTADDRL;
 
-	unsigned char VLEN_LENH; // Bits 7:5 are VLEN, bits 4:0 are LEN[12:8]
-	unsigned char LENL;      // LEN[7:0]
+    unsigned char VLEN_LENH; // Bits 7:5 are VLEN, bits 4:0 are LEN[12:8]
+    unsigned char LENL;      // LEN[7:0]
 
-	// NOTE: You won't find DC6 or DC7 in the datasheet, those names were made up
-	// for this struct.
-	unsigned char DC6;     // Bit 7 is WORDSIZE, Bits 6:5 are TMODE, Bits 4:0 are TRIG.
-	unsigned char DC7;     // Bits 7:6 are SRCINC, 5:4 are DESTINC, 3 is IRQMASK, 2 is M8, 1:0 are PRIORITY.
+    // NOTE: You won't find DC6 or DC7 in the datasheet, those names were made up
+    // for this struct.
+    unsigned char DC6;     // Bit 7 is WORDSIZE, Bits 6:5 are TMODE, Bits 4:0 are TRIG.
+    unsigned char DC7;     // Bits 7:6 are SRCINC, 5:4 are DESTINC, 3 is IRQMASK, 2 is M8, 1:0 are PRIORITY.
 } DMA_CONFIG;
 
 
