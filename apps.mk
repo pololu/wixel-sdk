@@ -18,6 +18,7 @@ $(1) : apps/$(1)/$(1).hex
 
 .PHONY : load_$(1)
 load_$(1) : apps/$(1)/$(1).wxl
+	$$(WIXELCMD) write $$< -a
 
 endef
 

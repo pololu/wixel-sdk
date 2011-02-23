@@ -17,6 +17,7 @@ PACKIHX := packihx# makes .hex files smaller
 MV := move#         moves files
 ECHO := echo#       prints some text to the standard output
 GREP := grep#       prints lines from a file that match a given pattern
+WIXELCMD := wixelcmd# loads programs on the Wixel
 
 #### Include directories #######################################################
 INCDIRS += libraries/include
