@@ -18,6 +18,7 @@ apps/*/*
 *.map
 *.mem
 *.rel
+*.rst
 *.sym
 *.wxl
 
