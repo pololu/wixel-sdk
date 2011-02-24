@@ -10,6 +10,13 @@
 #include <random.h>
 #include <stdio.h>
 
+// These prototypes allow us to access the internals of raido_link.  These are not
+// available in radio_link.h because normal applications should never use them.
+extern volatile uint8 DATA radioLinkRxMainLoopIndex;   // The index of the next rxBuffer to read from the main loop.
+extern volatile uint8 DATA radioLinkRxInterruptIndex;  // The index of the next rxBuffer to write to when a packet comes from the radio.
+extern volatile uint8 DATA radioLinkTxMainLoopIndex;   // The index of the next txPacket to write to in the main loop.
+extern volatile uint8 DATA radioLinkTxInterruptIndex;  // The index of the current txPacket we are trying to send on the radio.
+
 void blinkLeds()
 {
     usbShowStatusWithGreenLed();
@@ -69,7 +76,9 @@ void handleCommands()
 		uint8 byte = usbComRxReceiveByte();
 		if (byte == (uint8)'?')
 		{
-			responseLength = sprintf(response, "? Hello\r\n");
+			responseLength = sprintf(response, "? RX=%d/%d, TX=%d/%d\r\n",
+					radioLinkRxMainLoopIndex, radioLinkRxInterruptIndex,
+					radioLinkTxMainLoopIndex, radioLinkTxInterruptIndex);
 			usbComTxSend(response, responseLength);
 		}
 		else if (byte >= (uint8)'a' && byte <= (uint8)'g')
