@@ -38,63 +38,63 @@ uint8 nibbleToAscii(uint8 nibble)
 
 void radioToUsb()
 {
-	uint8 XDATA buffer[128];
-	uint8 length;
-	uint8 i;
+    uint8 XDATA buffer[128];
+    uint8 length;
+    uint8 i;
 
-	uint8 XDATA * packet = radioLinkRxCurrentPacket();
-	if (packet == 0){ return; }
+    uint8 XDATA * packet = radioLinkRxCurrentPacket();
+    if (packet == 0){ return; }
 
-	if (usbComTxAvailable() < packet[0]*2 + 30){ return; }
+    if (usbComTxAvailable() < packet[0]*2 + 30){ return; }
 
-	length = sprintf(buffer, "RX: (");
-	buffer[length++] = nibbleToAscii(packet[1] >> 4);
-	buffer[length++] = nibbleToAscii(packet[1]);
-	buffer[length++] = ')';
-	for (i = 0; i < packet[0]; i++)
-	{
-		buffer[length++] = nibbleToAscii(packet[RADIO_LINK_PACKET_DATA_OFFSET+i] >> 4);
-		buffer[length++] = nibbleToAscii(packet[RADIO_LINK_PACKET_DATA_OFFSET+i]);
-	}
+    length = sprintf(buffer, "RX: (");
+    buffer[length++] = nibbleToAscii(packet[1] >> 4);
+    buffer[length++] = nibbleToAscii(packet[1]);
+    buffer[length++] = ')';
+    for (i = 0; i < packet[0]; i++)
+    {
+        buffer[length++] = nibbleToAscii(packet[RADIO_LINK_PACKET_DATA_OFFSET+i] >> 4);
+        buffer[length++] = nibbleToAscii(packet[RADIO_LINK_PACKET_DATA_OFFSET+i]);
+    }
 
-	buffer[length++] = '\r';
-	buffer[length++] = '\n';
+    buffer[length++] = '\r';
+    buffer[length++] = '\n';
 
-	radioLinkRxDoneWithPacket();
-	usbComTxSend(buffer, length);
+    radioLinkRxDoneWithPacket();
+    usbComTxSend(buffer, length);
 }
 
 void handleCommands()
 {
-	uint8 XDATA txNotAvailable[] = "TX not available!\r\n";
-	uint8 XDATA response[128];
-	uint8 responseLength;
-	if (usbComRxAvailable() && usbComTxAvailable() >= 50)
-	{
-		uint8 byte = usbComRxReceiveByte();
-		if (byte == (uint8)'?')
-		{
-			responseLength = sprintf(response, "? RX=%d/%d, TX=%d/%d\r\n",
-					radioLinkRxMainLoopIndex, radioLinkRxInterruptIndex,
-					radioLinkTxMainLoopIndex, radioLinkTxInterruptIndex);
-			usbComTxSend(response, responseLength);
-		}
-		else if (byte >= (uint8)'a' && byte <= (uint8)'g')
-		{
-			uint8 XDATA * packet = radioLinkTxCurrentPacket();
-			if (packet == 0)
-			{
-				usbComTxSend(txNotAvailable, sizeof(txNotAvailable));
-			}
-			else
-			{
-				packet[RADIO_LINK_PACKET_DATA_OFFSET] = byte;
-				radioLinkTxSendPacket(1);
-				responseLength = sprintf(response, "TX: %02x\r\n", byte);
-				usbComTxSend(response, responseLength);
-			}
-		}
-	}
+    uint8 XDATA txNotAvailable[] = "TX not available!\r\n";
+    uint8 XDATA response[128];
+    uint8 responseLength;
+    if (usbComRxAvailable() && usbComTxAvailable() >= 50)
+    {
+        uint8 byte = usbComRxReceiveByte();
+        if (byte == (uint8)'?')
+        {
+            responseLength = sprintf(response, "? RX=%d/%d, TX=%d/%d\r\n",
+                    radioLinkRxMainLoopIndex, radioLinkRxInterruptIndex,
+                    radioLinkTxMainLoopIndex, radioLinkTxInterruptIndex);
+            usbComTxSend(response, responseLength);
+        }
+        else if (byte >= (uint8)'a' && byte <= (uint8)'g')
+        {
+            uint8 XDATA * packet = radioLinkTxCurrentPacket();
+            if (packet == 0)
+            {
+                usbComTxSend(txNotAvailable, sizeof(txNotAvailable));
+            }
+            else
+            {
+                packet[RADIO_LINK_PACKET_DATA_OFFSET] = byte;
+                radioLinkTxSendPacket(1);
+                responseLength = sprintf(response, "TX: %02x\r\n", byte);
+                usbComTxSend(response, responseLength);
+            }
+        }
+    }
 }
 
 void main()
@@ -126,5 +126,3 @@ void main()
 // tab-width: 4 **
 // indent-tabs-mode: nil **
 // end: **
-
-

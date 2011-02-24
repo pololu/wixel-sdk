@@ -94,14 +94,6 @@ static volatile BIT txSequenceBit;
 
 void radioLinkInit()
 {
-	uint8 i;
-
-    // Initialize the first byte of each TX buffer.  TODO: remove this
-	for (i = 0; i < TX_PACKET_COUNT; i++)
-	{
-		radioLinkTxPacket[i][RADIO_LINK_PACKET_LENGTH_OFFSET] = 0;
-	}
-
     rxSequenceBit = 1;
 
     txSequenceBit = 0;
@@ -129,9 +121,8 @@ static uint16 randomDelay()
 
 uint8 radioLinkTxAvailable(void)
 {
-	// Assumption: TX_PACKET_COUNT is a power of 2
-	// TODO: check the assembly here to make sure it is reasonable
-	return (radioLinkTxInterruptIndex - radioLinkTxMainLoopIndex - 1) & (TX_PACKET_COUNT - 1);
+    // Assumption: TX_PACKET_COUNT is a power of 2
+    return (radioLinkTxInterruptIndex - radioLinkTxMainLoopIndex - 1) & (TX_PACKET_COUNT - 1);
 }
 
 uint8 XDATA * radioLinkTxCurrentPacket()
@@ -146,17 +137,17 @@ uint8 XDATA * radioLinkTxCurrentPacket()
 
 void radioLinkTxSendPacket(uint8 size)
 {
-    // Now we set the length byte.  TODO: let the higher level code set the length byte?
+    // Now we set the length byte.
     radioLinkTxPacket[radioLinkTxMainLoopIndex][RADIO_LINK_PACKET_LENGTH_OFFSET] = size + RADIO_LINK_PACKET_HEADER_LENGTH;
 
     // Update our index of which packet to populate in the main loop.
     if (radioLinkTxMainLoopIndex == TX_PACKET_COUNT - 1)
     {
-    	radioLinkTxMainLoopIndex = 0;
+        radioLinkTxMainLoopIndex = 0;
     }
     else
     {
-    	radioLinkTxMainLoopIndex++;
+        radioLinkTxMainLoopIndex++;
     }
 
     // Make sure that radioMacEventHandler runs soon so it can see this new data and send it.
@@ -238,24 +229,24 @@ void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
         {
             // The packet we received contained an acknowledgment.
 
-    		// Check to see if there is actually any TX packet that we were sending that
-        	// can be acknowledged.  This check should return true unless there is a bug
-        	// on the other Wixel.
-        	if (radioLinkTxInterruptIndex != radioLinkTxMainLoopIndex)
-        	{
-        		// Give ownership of the current TX packet back to the main loop by updated radioLinkTxInterruptIndex.
-        		if (radioLinkTxInterruptIndex == TX_PACKET_COUNT - 1)
-        		{
-        			radioLinkTxInterruptIndex = 0;
-        		}
-        		else
-        		{
-        			radioLinkTxInterruptIndex++;
-        		}
+            // Check to see if there is actually any TX packet that we were sending that
+            // can be acknowledged.  This check should return true unless there is a bug
+            // on the other Wixel.
+            if (radioLinkTxInterruptIndex != radioLinkTxMainLoopIndex)
+            {
+                // Give ownership of the current TX packet back to the main loop by updated radioLinkTxInterruptIndex.
+                if (radioLinkTxInterruptIndex == TX_PACKET_COUNT - 1)
+                {
+                    radioLinkTxInterruptIndex = 0;
+                }
+                else
+                {
+                    radioLinkTxInterruptIndex++;
+                }
 
-        		// The next packet we transmit will have a different sequence bit.
-        		txSequenceBit ^= 1;
-        	}
+                // The next packet we transmit will have a different sequence bit.
+                txSequenceBit ^= 1;
+            }
         }
 
         if (currentRxPacket[RADIO_LINK_PACKET_LENGTH_OFFSET] > RADIO_LINK_PACKET_HEADER_LENGTH)
