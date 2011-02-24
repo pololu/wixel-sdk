@@ -101,8 +101,10 @@ void main()
     radioComInit();
     randomSeedFromAdc();
 
+    // Set up P1_6 to be the RX debug signal and P1_7 to be the TX debug signal.
+    P1DIR |= (1<<6) | (1<<7);
     IOCFG1 = 0b001000; // P1_6 = Preamble Quality Reached
-    IOCFG2 = 0b111011; // P1_7 = PA_PD (TX mode)
+    IOCFG2 = 0b011011; // P1_7 = PA_PD (TX mode)
 
     while(1)
     {
