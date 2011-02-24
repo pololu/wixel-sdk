@@ -173,7 +173,7 @@ $(LIBs): %.lib:
 	$(GREP) param $(<:%.hex=%.cdb) >> $@.tmp || echo
 	$(ECHO) ====== hex>> $@.tmp
 	$(PACKIHX) $< >> $@.tmp
-	mv $@.tmp $@
+	mv -f $@.tmp $@
 
 # Include all the dependency files generated during compilation so that Make
 # knows which .rel files to recompile when a .h file changes.
