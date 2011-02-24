@@ -30,7 +30,7 @@ void receiveCommands()
         byte = usbComRxReceiveByte();
         if (byte == (uint8)'?')
         {
-            uint8 length = sprintf(response, "? blink period = %d, baud = %d\r\n", (uint16)param_blink_period);
+            uint8 length = sprintf(response, "? blink period = %d\r\n", (uint16)param_blink_period);
             usbComTxSend(response, length);
         }
     }
