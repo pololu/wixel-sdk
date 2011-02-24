@@ -1,6 +1,4 @@
-// test2: David is trying to do something more advanced, which requires
-// a little more coordination between Wixels.  The first step will be
-// to allow them to agree on time slots.
+// test_radio_link.c: A little program that lets you test the radio_link library.
 
 #include <cc2511_map.h>
 #include <board.h>
