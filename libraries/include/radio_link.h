@@ -4,6 +4,8 @@
 #include "cc2511_types.h"
 #include "radio_mac.h"
 
+// TODO: isolate the higher level code from these offsets and header lengths.
+
 // Each packet can contain at most 18 bytes of payload.
 #define RADIO_LINK_MAX_PACKET_SIZE  18
 
