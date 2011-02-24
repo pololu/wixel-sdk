@@ -69,8 +69,8 @@ volatile uint8 DATA radioLinkRxInterruptIndex = 0;  // The index of the next rxB
 /* txPackets are handed the same way. */
 #define TX_PACKET_COUNT 16
 static volatile uint8 XDATA radioLinkTxPacket[TX_PACKET_COUNT][1 + RADIO_MAX_PACKET_SIZE];  // The first byte is the length, 2nd byte is link header.
-uint8 DATA radioLinkTxMainLoopIndex = 0;            // The index of the next txPacket to write to in the main loop.
-uint8 DATA radioLinkTxInterruptIndex = 0;  // The index of the current txPacket we are trying to send on the radio.
+volatile uint8 DATA radioLinkTxMainLoopIndex = 0;   // The index of the next txPacket to write to in the main loop.
+volatile uint8 DATA radioLinkTxInterruptIndex = 0;  // The index of the current txPacket we are trying to send on the radio.
 
 uint8 XDATA shortTxPacket[2];
 
@@ -149,9 +149,6 @@ void radioLinkTxSendPacket(uint8 size)
     // Now we set the length byte.  TODO: let the higher level code set the length byte?
     radioLinkTxPacket[radioLinkTxMainLoopIndex][RADIO_LINK_PACKET_LENGTH_OFFSET] = size + RADIO_LINK_PACKET_HEADER_LENGTH;
 
-    // Make sure that radioMacEventHandler runs soon so it can see this new data and send it.
-    radioMacStrobe();
-
     // Update our index of which packet to populate in the main loop.
     if (radioLinkTxMainLoopIndex == TX_PACKET_COUNT - 1)
     {
@@ -161,6 +158,10 @@ void radioLinkTxSendPacket(uint8 size)
     {
     	radioLinkTxMainLoopIndex++;
     }
+
+    // Make sure that radioMacEventHandler runs soon so it can see this new data and send it.
+    // This must be done LAST.
+    radioMacStrobe();
 }
 
 /* RX FUNCTIONS (called by higher-level code in main loop) ********************/
