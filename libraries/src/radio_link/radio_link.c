@@ -37,6 +37,12 @@
 #include <radio_registers.h>
 #include <random.h>
 
+// Compute the max size of on-the-air packets.  This value is stored in the PKTLEN register.
+#define RADIO_MAX_PACKET_SIZE  (RADIO_LINK_MAX_PACKET_SIZE + RADIO_LINK_PACKET_HEADER_LENGTH)
+
+// The link layer will add a one byte header to the beginning of each packet.
+#define RADIO_LINK_PACKET_HEADER_LENGTH 1
+
 #define RADIO_LINK_PACKET_TYPE_OFFSET   1
 
 #define PACKET_TYPE_MASK (3 << 6) // These are the bits that determine the packet type.
