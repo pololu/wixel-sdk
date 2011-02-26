@@ -1,0 +1,81 @@
+/** \mainpage Pololu Wixel SDK Documentation
+
+The Pololu Wixel Software Development Kit (SDK) contains code, utilities, and Makefiles which will
+help you build your own applications for the Pololu Wixel, a
+wireless development platform based around the CC2511F32 chip from
+Texas Instruments.
+
+\section downloading Download Instructions
+
+You can get the Wixel SDK either by downloading it or by cloning the
+git repository.
+
+\section start_win Getting Started in Windows
+
+Install the C compiler by running win_utils/sdcc-3.0.0-setup.exe.
+This is a stable release of SDCC, the Small Device C Compiler.
+    (If you would prefer to get a later version of
+    SDCC, you can download it from their website:
+    http://sdcc.sourceforge.net/ )
+
+In order for you to use the Makefile successfully, you will need to
+have certain utilities on your path.  Please go to the Control Panel
+and add the "win_utils" folder to your path.
+    (If you alread have all of the needed utilities on your PATH,
+    you can skip this step.)
+
+\section building_app Building Your App (any platform)
+
+Open a command-line terminal, navigate to the top level directory
+of the SDK, and type "make".  This will build all of the apps in
+the apps folder and all of the libraries that they depend on.
+
+\section Documentation
+
+The <a href="./modules.html">Modules</a> section contains an overview
+of all the libraries available in this SDK.
+
+The <a href="./files.html">Files</a> section contains specific documentation
+for all the functions, grouped by header file.  This section is auto-generated
+from the header files, so you can 
+
+Documentation for the Wixel itself is available in the
+<a href="http://www.pololu.com/docs/0J46">Pololu Wixel User's Guide</a> provided by Pololu.
+
+Documentation for the CC2511F32 (the microcontroller on the Wixel) is available in the
+<a href="http://focus.ti.com/docs/prod/folders/print/cc2511f32.html">CC2511F32 datasheet</a>
+provided by Texas Instruments.
+
+\section sharing Sharing Your App with the Community
+
+**/
+
+/** \defgroup uart_libs UART Libraries
+
+Libraries are cool.
+
+**/
+
+/** \defgroup radio_libs Radio Libraries
+
+Libraries are cool.
+
+**/
+
+/** \defgroup usb_libs USB Libraries
+
+Libraries are cool.
+
+**/
+
+/** \defgroup basic_libs Basic Libraries
+
+Libraries are cool.
+
+**/
+
+/** \defgroup std_libs Standard C Libraries
+
+Libraries are cool.
+
+**/
