@@ -203,6 +203,7 @@ void radioMacStrobe()
     S1CON |= 3;
 }
 
+/** Initializes the radio_mac library. **/
 void radioMacInit()
 {
     radioRegistersInit();

@@ -1,7 +1,7 @@
 #ifndef _TYPES_H
 #define _TYPES_H
 
-/* An unsigned 8-bit integer.  The range of this data type is 0 to 255. **/
+/** An unsigned 8-bit integer.  The range of this data type is 0 to 255. **/
 typedef unsigned char  uint8;
 
 /** A signed 8-bit integer.  The range of this data type is -128 to 127. **/
