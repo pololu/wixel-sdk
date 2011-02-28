@@ -2,10 +2,11 @@
 #include "radio_com.h"
 
 static uint8 DATA txBytesLoaded = 0;
-uint8 DATA rxBytesLeft = 0;
+static uint8 DATA rxBytesLeft = 0;
 
 static uint8 XDATA * DATA rxPointer = 0;
 static uint8 XDATA * DATA txPointer = 0;
+static uint8 XDATA * DATA packetPointer = 0;
 
 void radioComInit()
 {
@@ -31,8 +32,8 @@ uint8 radioComRxAvailable(void)
         return 0;
     }
 
-    rxBytesLeft = rxPointer[RADIO_LINK_PACKET_LENGTH_OFFSET];
-    rxPointer += RADIO_LINK_PACKET_DATA_OFFSET;
+    rxBytesLeft = rxPointer[0];  // Read the packet length.
+    rxPointer += 1;              // Make rxPointer point to the data.
 
     // Assumption: radioLink doesn't ever return zero-length packets,
     // so rxBytesLeft is non-zero now and we don't have to worry about
@@ -59,7 +60,8 @@ uint8 radioComRxReceiveByte(void)
 
 static void radioComSendPacketNow()
 {
-    radioLinkTxSendPacket(txBytesLoaded);
+	*packetPointer = txBytesLoaded;
+    radioLinkTxSendPacket();
     txBytesLoaded = 0;
 }
 
@@ -77,7 +79,7 @@ uint8 radioComTxAvailable(void)
     // Assumption: If txBytesLoaded is non-zero, radioLinkTxAvailable will be non-zero,
     // so the subtraction below does not overflow.
     // Assumption: The multiplication below does not overflow ever.
-    return radioLinkTxAvailable()*RADIO_LINK_MAX_PACKET_SIZE - txBytesLoaded;
+    return radioLinkTxAvailable()*RADIO_LINK_PAYLOAD_SIZE - txBytesLoaded;
 }
 
 void radioComTxSendByte(uint8 byte)
@@ -85,14 +87,14 @@ void radioComTxSendByte(uint8 byte)
     // Assumption: The user called radioComTxAvailable recently and it returned a non-zero value.
     if (txBytesLoaded == 0)
     {
-        txPointer = radioLinkTxCurrentPacket() + RADIO_LINK_PACKET_DATA_OFFSET;
+    	txPointer = packetPointer = radioLinkTxCurrentPacket();
     }
 
-    *txPointer = byte;
     txPointer++;
+    *txPointer = byte;
     txBytesLoaded++;
 
-    if (txBytesLoaded == RADIO_LINK_MAX_PACKET_SIZE)
+    if (txBytesLoaded == RADIO_LINK_PAYLOAD_SIZE)
     {
         radioComSendPacketNow();
     }
