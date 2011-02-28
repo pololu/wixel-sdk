@@ -1,8 +1,8 @@
 /** \mainpage Pololu Wixel SDK Documentation
 
-The Pololu Wixel Software Development Kit (SDK) contains code, utilities, and Makefiles which will
-help you build your own applications for the Pololu Wixel, a
-wireless development platform based around the CC2511F32 chip from
+The Pololu Wixel Software Development Kit (SDK) contains code, utilities,
+and Makefiles which will help you build your own applications for the Pololu
+Wixel, a wireless development platform based around the CC2511F32 chip from
 Texas Instruments.
 
 \section downloading Download Instructions
@@ -10,19 +10,21 @@ Texas Instruments.
 You can get the Wixel SDK either by downloading it or by cloning the
 git repository.
 
+<!-- TODO: add details here -->
+
 \section start_win Getting Started in Windows
 
-Install the C compiler by running win_utils/sdcc-3.0.0-setup.exe.
-This is a stable release of SDCC, the Small Device C Compiler.
-    (If you would prefer to get a later version of
-    SDCC, you can download it from their website:
-    http://sdcc.sourceforge.net/ )
+Download and install the latest stable version of the
+<a href="http://sdcc.sourceforge.net/">Small Device C Computer (SDCC)</a>.
+This SDK will not work with SDCC versions prior to 3.0.0.
 
 In order for you to use the Makefile successfully, you will need to
-have certain utilities on your path.  Please go to the Control Panel
-and add the "win_utils" folder to your path.
-    (If you alread have all of the needed utilities on your PATH,
-    you can skip this step.)
+have certain utilities on your path.  Please download the Pololu Build
+Utilities from Pololu and add them to your path.
+(If you already have all of the needed utilities on your PATH,
+you can skip this step.)
+
+<!-- TODO: linkify "Pololu Build Utilities" -->
 
 \section building_app Building Your App (any platform)
 
@@ -30,7 +32,7 @@ Open a command-line terminal, navigate to the top level directory
 of the SDK, and type "make".  This will build all of the apps in
 the apps folder and all of the libraries that they depend on.
 
-\section Documentation
+\section sdk_docs Documentation of Wixel SDK Libraries (incomplete!)
 
 The <a href="./modules.html">Modules</a> section contains an overview
 of all the libraries available in this SDK.
@@ -39,6 +41,8 @@ The <a href="./files.html">Files</a> section contains specific documentation
 for all the functions, grouped by header file.  This section is auto-generated
 from the header files, so you can 
 
+\section other_docs Other Documentation
+
 Documentation for the Wixel itself is available in the
 <a href="http://www.pololu.com/docs/0J46">Pololu Wixel User's Guide</a> provided by Pololu.
 
@@ -46,36 +50,102 @@ Documentation for the CC2511F32 (the microcontroller on the Wixel) is available 
 <a href="http://focus.ti.com/docs/prod/folders/print/cc2511f32.html">CC2511F32 datasheet</a>
 provided by Texas Instruments.
 
-\section sharing Sharing Your App with the Community
+Documentation for SDCC is available on the <a href="http://sdcc.sourceforge.net/">SDCC website</a>.
+
+\section help Getting Help
+
+If you have a problem or question, feel free to ask us on the
+<a href="http://forum.pololu.com/viewforum.php?f=3">Pololu Forum</a>.
+
 
 **/
 
+/******************************************************************************/
 /** \defgroup uart_libs UART Libraries
 
-Libraries are cool.
+The CC2511 has two hardware USARTS: USART0 and USART1.
+
+The Wixel SDK has a library named
+<code>uart.lib</code> that supports using USART0 in UART mode to send and receive
+a serial bytes.  For details, see uart.h.
 
 **/
 
+/******************************************************************************/
 /** \defgroup radio_libs Radio Libraries
 
-Libraries are cool.
+The CC2511 has a 2.4 GHz radio transceiver which can send and receive data 
+packets wirelessly.
 
+The Wixel SDK provides several libraries for using the radio:
+
+- <code>radio_registers.lib</code>: This library takes care of configuring the
+  radio iteself with some good default settings.  The default on-air
+  data rate is 350 kbps, and variable-length packets are enabled.  See
+  radio_registers.
+- <code>radio_mac.lib</code>: This library takes care of setting up the radio's
+  DMA channel and interrupt, and provides a simple interface that allows
+  higher-level code to control the radio from the interrupt.
+  This is a general purpose library that could be used to implement any kind of
+  radio protocol.  See radio_mac.h.
+  This library depends on <code>radio_registers.lib</code> and <code>dma.lib</code>
+- <code>radio_link.lib</code>: This library provides reliable, ordered delivery
+  and reception of a series of data packets between
+  this device and another on the same frequency.  This is the layer that takes
+  care of Ping/ACK/NAK packets, and handles the details of timing.  This library
+  depends on <code>radio_mac.lib</code>.  See radio_link.h.
+- <code>radio_com.lib</code>: This library takes care of populating/receiving
+  radio packets so that the higher-level code doesn't have to worry about
+  packets and can treat the radio as a bidirectional stream of
+  bytes, similar to a UART.  This library depends on radio_link.lib.
+  See radio_com.h.<code>
 **/
 
+/******************************************************************************/
 /** \defgroup usb_libs USB Libraries
 
-Libraries are cool.
+The CC2511 has a built-in USB interface that can allow it to be a USB device.
+
+The Wixel SDK provides two libraries for using USB:
+
+- <code>usb.lib</code>: This library takes care of setting up the USB module and
+  responding to standard device requests.  This is a general purpose library that
+  could be used to implement many different kinds of USB device interfaces.
+  See usb.h.
+- <code>usb_cdc_acm.lib</code>: This library implements the USB CDC ACM
+  interface, which allows the Wixel to appear as a virtual COM port when it is
+  connected to a PC.
+  It also takes care of populating/receiving USB packets
+  so that higher-level code doesn't have to worry about packets and can treat
+  the COM port as a bidirectional stream of bytes, similar to a UART.
+  This library depends on <code>usb.lib</code>.  See usb_com.h.
 
 **/
 
+/******************************************************************************/
 /** \defgroup basic_libs Basic Libraries
 
-Libraries are cool.
+The Wixel SDK provides several basic libraries:
 
+- <code>wixel.lib</code>: This library takes care of everything that is specific
+  to the Wixel hardware, including managing LEDs and other IO lines, detecting
+  the current power source, keeping track of time, and providing delay
+  functions.  It implements the interfaces defined in board.h and time.h.
+- <code>dma.lib</code>: This library coordinates the use of DMA channels 1-3.
+  It does not use DMA channel 0.  See dma.h.
+- <code>random.lib</code>: Takes care of generating random numbers. 
+  See random.h.
 **/
 
+/******************************************************************************/
 /** \defgroup std_libs Standard C Libraries
 
-Libraries are cool.
+The Small Device C Compiler (SDCC) provides library routines that may be
+useful for your application.  In particular, if you need to format a string of
+ASCII text, <code>sprintf</code> is useful.  SDCC also provides math routines
+and a memory allocation routine (malloc).
+See the
+<a href="http://sdcc.sourceforge.net/doc/sdccman.html/node92.html">Library
+Routines section of the SDCC manual</a> for more information.
 
 **/

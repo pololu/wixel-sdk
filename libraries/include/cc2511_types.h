@@ -81,6 +81,7 @@ typedef __bit BIT;
 #define XDATA
 #define DATA
 #define PDATA
+#define ISR(source, bank) void source##_ISR()
 #endif
 
 #endif
