@@ -38,11 +38,12 @@
 #include <random.h>
 
 // Compute the max size of on-the-air packets.  This value is stored in the PKTLEN register.
-#define RADIO_MAX_PACKET_SIZE  (RADIO_LINK_MAX_PACKET_SIZE + RADIO_LINK_PACKET_HEADER_LENGTH)
+#define RADIO_MAX_PACKET_SIZE  (RADIO_LINK_PAYLOAD_SIZE + RADIO_LINK_PACKET_HEADER_LENGTH)
 
 // The link layer will add a one byte header to the beginning of each packet.
 #define RADIO_LINK_PACKET_HEADER_LENGTH 1
 
+#define RADIO_LINK_PACKET_LENGTH_OFFSET 0
 #define RADIO_LINK_PACKET_TYPE_OFFSET   1
 
 #define PACKET_TYPE_MASK (3 << 6) // These are the bits that determine the packet type.
@@ -138,13 +139,13 @@ uint8 XDATA * radioLinkTxCurrentPacket()
         return 0;
     }
 
-    return radioLinkTxPacket[radioLinkTxMainLoopIndex];
+    return radioLinkTxPacket[radioLinkTxMainLoopIndex] + RADIO_LINK_PACKET_HEADER_LENGTH;
 }
 
-void radioLinkTxSendPacket(uint8 size)
+void radioLinkTxSendPacket(void)
 {
     // Now we set the length byte.
-    radioLinkTxPacket[radioLinkTxMainLoopIndex][RADIO_LINK_PACKET_LENGTH_OFFSET] = size + RADIO_LINK_PACKET_HEADER_LENGTH;
+    radioLinkTxPacket[radioLinkTxMainLoopIndex][0] = radioLinkTxPacket[radioLinkTxMainLoopIndex][RADIO_LINK_PACKET_HEADER_LENGTH] + RADIO_LINK_PACKET_HEADER_LENGTH;
 
     // Update our index of which packet to populate in the main loop.
     if (radioLinkTxMainLoopIndex == TX_PACKET_COUNT - 1)
@@ -163,14 +164,14 @@ void radioLinkTxSendPacket(uint8 size)
 
 /* RX FUNCTIONS (called by higher-level code in main loop) ********************/
 
-XDATA uint8 * radioLinkRxCurrentPacket(void)
+uint8 XDATA * radioLinkRxCurrentPacket(void)
 {
     if (radioLinkRxMainLoopIndex == radioLinkRxInterruptIndex)
     {
         return 0;
     }
 
-    return radioLinkRxPacket[radioLinkRxMainLoopIndex];
+    return radioLinkRxPacket[radioLinkRxMainLoopIndex] + RADIO_LINK_PACKET_HEADER_LENGTH;
 }
 
 void radioLinkRxDoneWithPacket(void)
@@ -281,8 +282,9 @@ void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
                 {
                     // We can accept this packet and send an ACK!
 
-                    // Decrease the size byte because the higher level code doesn't know about the header added by this layer.
-                    currentRxPacket[RADIO_LINK_PACKET_LENGTH_OFFSET] -= RADIO_LINK_PACKET_HEADER_LENGTH;
+                    // Set length byte that will be read by the higher-level code.
+                	// (This overrides the 1-byte header.)
+                    currentRxPacket[RADIO_LINK_PACKET_HEADER_LENGTH] = currentRxPacket[RADIO_LINK_PACKET_LENGTH_OFFSET] - RADIO_LINK_PACKET_HEADER_LENGTH;
 
                     rxSequenceBit ^= 1;
 

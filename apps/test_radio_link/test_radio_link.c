@@ -47,14 +47,11 @@ void radioToUsb()
 
     if (usbComTxAvailable() < packet[0]*2 + 30){ return; }
 
-    length = sprintf(buffer, "RX: (");
-    buffer[length++] = nibbleToAscii(packet[1] >> 4);
-    buffer[length++] = nibbleToAscii(packet[1]);
-    buffer[length++] = ')';
+    length = sprintf(buffer, "RX: ");
     for (i = 0; i < packet[0]; i++)
     {
-        buffer[length++] = nibbleToAscii(packet[RADIO_LINK_PACKET_DATA_OFFSET+i] >> 4);
-        buffer[length++] = nibbleToAscii(packet[RADIO_LINK_PACKET_DATA_OFFSET+i]);
+        buffer[length++] = nibbleToAscii(packet[1+i] >> 4);
+        buffer[length++] = nibbleToAscii(packet[1+i]);
     }
 
     buffer[length++] = '\r';
@@ -88,9 +85,12 @@ void handleCommands()
             }
             else
             {
-                packet[RADIO_LINK_PACKET_DATA_OFFSET] = byte;
-                radioLinkTxSendPacket(1);
-                responseLength = sprintf(response, "TX: %02x\r\n", byte);
+            	packet[0] = 3; // Packet length
+                packet[1] = byte;
+                packet[2] = byte + 1;
+                packet[3] = byte + 2;
+                radioLinkTxSendPacket();
+                responseLength = sprintf(response, "TX: %02x%02x%02x\r\n", packet[1], packet[2], packet[3]);
                 usbComTxSend(response, responseLength);
             }
         }
