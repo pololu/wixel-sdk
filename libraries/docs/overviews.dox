@@ -39,7 +39,7 @@ of all the libraries available in this SDK.
 
 The <a href="./files.html">Files</a> section contains specific documentation
 for all the functions, grouped by header file.  This section is auto-generated
-from the header files, so you can 
+from the .c and .h files in the SDK.
 
 \section other_docs Other Documentation
 
