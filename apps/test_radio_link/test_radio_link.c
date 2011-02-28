@@ -85,7 +85,7 @@ void handleCommands()
             }
             else
             {
-            	packet[0] = 3; // Packet length
+                packet[0] = 3; // Packet length
                 packet[1] = byte;
                 packet[2] = byte + 1;
                 packet[3] = byte + 2;

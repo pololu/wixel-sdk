@@ -60,7 +60,7 @@ uint8 radioComRxReceiveByte(void)
 
 static void radioComSendPacketNow()
 {
-	*packetPointer = txBytesLoaded;
+    *packetPointer = txBytesLoaded;
     radioLinkTxSendPacket();
     txBytesLoaded = 0;
 }
@@ -87,7 +87,7 @@ void radioComTxSendByte(uint8 byte)
     // Assumption: The user called radioComTxAvailable recently and it returned a non-zero value.
     if (txBytesLoaded == 0)
     {
-    	txPointer = packetPointer = radioLinkTxCurrentPacket();
+        txPointer = packetPointer = radioLinkTxCurrentPacket();
     }
 
     txPointer++;

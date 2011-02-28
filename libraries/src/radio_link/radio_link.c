@@ -283,7 +283,7 @@ void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
                     // We can accept this packet and send an ACK!
 
                     // Set length byte that will be read by the higher-level code.
-                	// (This overrides the 1-byte header.)
+                    // (This overrides the 1-byte header.)
                     currentRxPacket[RADIO_LINK_PACKET_HEADER_LENGTH] = currentRxPacket[RADIO_LINK_PACKET_LENGTH_OFFSET] - RADIO_LINK_PACKET_HEADER_LENGTH;
 
                     rxSequenceBit ^= 1;
