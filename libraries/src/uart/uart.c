@@ -1,10 +1,9 @@
-/*  Library for sending and receiving a stream of serial bytes on UART0.
- *  This library uses a circular buffer and an interrupt for RX, and a
- *  circular buffer and an interrupt for TX, so it is capable of sending
- *  and receiving a constant stream of bytes without interruption.
+/** \file uart.c
+ * This is the main source file for <code>uart.lib</code>.  See uart.h for
+ * information on how to use this library.
  */
 
-// TODO: why does the loopback test (serialPortTester.csproj) fail when we have this setup:
+// TODO: why does the loopback test fail when we have this setup:
 // Computer -> Wixel )))) Wixel with RX tied to TX
 // It works for small transmissions, but if you try to send more than about 140 or so  bytes,
 // a bunch of zeroes are received!  I suspect there might be something wrong with this library,
@@ -31,30 +30,7 @@ volatile BIT uart0RxParityErrorOccurred;
 volatile BIT uart0RxFramingErrorOccurred;
 volatile BIT uart0RxBufferFullOccurred;
 
-void uart0SetBaudRate(uint32 baud)
-{
-    uint32 baudMPlus256;
-    uint8 baudE = 0;
-
-    // actual max baud rate is 1500000 (F/16) - we are limited by the way we calculate the exponent and mantissa
-    if (baud < 23 || baud > 495782)
-        return;
-
-    // calculate baud rate - see datasheet 12.14.3
-    // this is derived from (baudM + 256) = baud * 2^28 / 24000000
-    baudMPlus256 = (baud * 11) + (baud * 8663 / 46875);
-
-    // get baudMPlus256 into the range 256-511 (so BAUD_M is in the range 0-255)
-    while (baudMPlus256 > 0x1ff)
-    {
-        baudE++;
-        baudMPlus256 /= 2;
-    }
-    U0GCR = baudE; // U0GCR.BAUD_E (4:0)
-    U0BAUD = baudMPlus256; // U0BAUD.BAUD_M (7:0) - only the lowest 8 bits of baudMPlus256 are used, so this is effectively baudMPlus256 - 256
-}
-
-void uart0Init()
+void uart0Init(void)
 {
     /* USART0 UART Alt. 1: RTS = P0_5
      *                     CTS = P0_4
@@ -96,6 +72,12 @@ void uart0Init()
     // configure USART0 to enable UART and receiver
     U0CSR |= 0xc0; // U0CSR.MODE (7) = 1 (UART mode); U0CSR.RE (6) = 1 (receiver enabled)
 
+    // Set the priority of the UART0 RX and TX interrupts to be 1 (second lowest priority).
+    // They need to be higher than the RF interrupt because that one could take a long time.
+    // This code also sets the priority of the T2 interrupt, because it is grouped with UART0.
+    IP0 |= (1<<2);
+    IP1 &= ~(1<<2);
+
     // enable rx interrupt
     URX0IE = 1;
 
@@ -103,10 +85,34 @@ void uart0Init()
     EA = 1;
 }
 
-uint8 uart0TxAvailable()
+void uart0SetBaudRate(uint32 baud)
+{
+    uint32 baudMPlus256;
+    uint8 baudE = 0;
+
+    // actual max baud rate is 1500000 (F/16) - we are limited by the way we calculate the exponent and mantissa
+    if (baud < 23 || baud > 495782)
+        return;
+
+    // calculate baud rate - see datasheet 12.14.3
+    // this is derived from (baudM + 256) = baud * 2^28 / 24000000
+    baudMPlus256 = (baud * 11) + (baud * 8663 / 46875);
+
+    // get baudMPlus256 into the range 256-511 (so BAUD_M is in the range 0-255)
+    while (baudMPlus256 > 0x1ff)
+    {
+        baudE++;
+        baudMPlus256 /= 2;
+    }
+    U0GCR = baudE; // U0GCR.BAUD_E (4:0)
+    U0BAUD = baudMPlus256; // U0BAUD.BAUD_M (7:0) - only the lowest 8 bits of baudMPlus256 are used, so this is effectively baudMPlus256 - 256
+}
+
+uint8 uart0TxAvailable(void)
 {
     return UART_TX_BUFFER_FREE_BYTES();
 }
+
 void uart0TxSend(const uint8 XDATA * buffer, uint8 size)
 {
     // Assumption: uart0TxSend() was recently called and it returned a number at least as big as 'size'.
@@ -136,7 +142,20 @@ void uart0TxSendByte(uint8 byte)
     IEN2 |= 0x04; // IEN2.UTX0IE (2)
 }
 
-// Transmit interrupt.
+uint8 uart0RxAvailable(void)
+{
+    return UART_RX_BUFFER_USED_BYTES();
+}
+
+uint8 uart0RxReceiveByte(void)
+{
+    // Assumption: uart0RxAvailable was recently called and it returned a non-zero value.
+
+    uint8 byte = uartRxBuffer[uartRxBufferMainLoopIndex];
+    uartRxBufferMainLoopIndex = (uartRxBufferMainLoopIndex + 1) & (sizeof(uartRxBuffer) - 1);
+    return byte;
+}
+
 ISR(UTX0, 1)
 {
     // A byte has just started transmitting on TX and there is room in
@@ -159,21 +178,6 @@ ISR(UTX0, 1)
     }
 }
 
-uint8 uart0RxAvailable()
-{
-    return UART_RX_BUFFER_USED_BYTES();
-}
-
-uint8 uart0RxReceiveByte()
-{
-    // Assumption: uart0RxAvailable was recently called and it returned a non-zero value.
-
-    uint8 byte = uartRxBuffer[uartRxBufferMainLoopIndex];
-    uartRxBufferMainLoopIndex = (uartRxBufferMainLoopIndex + 1) & (sizeof(uartRxBuffer) - 1);
-    return byte;
-}
-
-// Receive interrupt.
 ISR(URX0, 1)
 {
     URX0IF = 0;

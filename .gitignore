@@ -25,3 +25,6 @@ apps/*/*
 # Ignore eclipse files
 .cproject
 .project
+
+# Ignore generated docs
+libraries/doc_output

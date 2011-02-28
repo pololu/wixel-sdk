@@ -28,9 +28,9 @@
 #define RADIO_MAC_EVENT_RX_TIMEOUT          33    // We were trying to receive a packet normally, but the timeout period expired.
 #define RADIO_MAC_EVENT_STROBE              34    // The user set radioMacStrobe=1 in order to get the ISR to run.
 
-void radioMacInit();
+void radioMacInit(void);
 
-void radioMacStrobe();        // Forces radioMacEventHandler to run soon.
+void radioMacStrobe(void);        // Forces radioMacEventHandler to run soon.
 
 // Current state of the MAC.
 extern volatile uint8 DATA radioMacState;
