@@ -3,7 +3,7 @@
  *  of asynchronous serial bytes on USART0 in UART mode.
  *  This library uses a circular buffer and an interrupt for RX, and a
  *  circular buffer and an interrupt for TX, so it is capable of sending
- *  and receiving a constant stream of bytes without interruption.
+ *  and receiving a continuous stream of bytes with no gaps.
  *
  *  To use this library, you must include uart.h in your program:
  *
