@@ -1,6 +1,7 @@
 #include "usb.h"
 #include <cc2511_map.h>
 #include <cc2511_types.h>
+#include <board.h>
 
 // TODO: make the usb library work will with Sleep Mode 0 (an interrupt should be enabled for all the endpoints we care about so we can handle them quickly)
 // TODO: SUSPEND MODE!

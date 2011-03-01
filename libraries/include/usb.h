@@ -269,13 +269,6 @@ extern volatile BIT usbSuspendMode;
  */
 void usbShowStatusWithGreenLed();
 
-/* LOW-LEVEL HARDWARE PROYOTYPES REQUIRED BY usb.c ****************************/
-// usb.c requires these low-level hardware functions to be available:
-
-BIT usbPowerPresent();
-BIT vinPowerPresent();
-void enableUsbPullup();
-void disableUsbPullup();
 
 /* HIGH-LEVEL CALLBACKS AND DATA STRUCTURES REQUIRED BY usb.c *****************/
 // usb.c requires these high-level callbacks and data structures:
