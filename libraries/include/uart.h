@@ -5,11 +5,8 @@
  *  circular buffer and an interrupt for TX, so it is capable of sending
  *  and receiving a continuous stream of bytes with no gaps.
  *
- *  To use this library, you must include uart.h in your program:
- *
- *  <pre>
- *  #include <uart.h>
- *  </pre>
+ *  To use this library, you must include uart.h in your app:
+ *  <pre>#include <uart.h></pre>
  */
 
 #ifndef _UART_H
@@ -26,7 +23,7 @@ void uart0Init();
 
 /*! Sets the baud rate.
  *
- * \param baud The baud rate, in bits per second (bps).  Must be between 23 and 495782.
+ * \param baudrate The baud rate, in bits per second (bps).  Must be between 23 and 495782.
  *
  * Note: Higher baud rates are achievable if you write directly to the U0CGR and U0BAUD
  * registers instead of using this function.

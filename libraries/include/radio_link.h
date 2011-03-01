@@ -43,6 +43,7 @@ uint8 radioLinkTxAvailable(void);
  *       packet[3] = 'c';
  *       radioLinkTxSendPacket();
  *   }
+ * </pre>
  */
 uint8 XDATA * radioLinkTxCurrentPacket(void);
 void radioLinkTxSendPacket(void);

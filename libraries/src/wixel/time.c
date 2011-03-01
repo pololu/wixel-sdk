@@ -1,18 +1,15 @@
+/* \file time.c
+ *
+ * This is the source file for the time component of <code>wixel.lib</code>.
+ * For information on how to use these functions, see time.h.
+ */
+
 #include <cc2511_types.h>
 #include <time.h>
 
-/* timeMs: The approximate number of milliseconds since the processor
- * started.  NOTE: This is not very accurate.  The units of this time
- * measurement are actually closer to 1.00266 milliseconds.  If you need
- * millisecond timing more accurate than that, use Timer 1.
- * This variable is updated by T4_ISR.  */
 PDATA volatile uint32 timeMs;
 
-/*  void T4_ISR()
- * The interrupt service routine (ISR) for Timer 4.
- * This function is called every 1.00266 milliseconds, when
- * Timer 4 overflows.  It increments timeMs. */
-void T4_ISR() __interrupt(T4_VECTOR) __using(1)
+ISR(T4, 1)
 {
     timeMs++;
     // T4CC0 ^= 1; // If we do this, then on average the interrupts will occur precisely 1.000 ms apart.

@@ -98,7 +98,7 @@ The Wixel SDK provides several libraries for using the radio:
   radio packets so that the higher-level code doesn't have to worry about
   packets and can treat the radio as a bidirectional stream of
   bytes, similar to a UART.  This library depends on radio_link.lib.
-  See radio_com.h.<code>
+  See radio_com.h.
 **/
 
 /******************************************************************************/
