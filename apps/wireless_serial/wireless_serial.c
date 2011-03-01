@@ -26,7 +26,7 @@ int32 CODE param_baud_rate = 9600;
 void updateLeds()
 {
     //usbShowStatusWithGreenLed();
-	LED_GREEN(usbPowerPresent());
+    LED_GREEN(usbPowerPresent());
 
     if(vinPowerPresent()){ LED_YELLOW(1); }
 
