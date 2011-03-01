@@ -108,7 +108,7 @@ void main()
         {
             if (vinPowerPresent())
             {
-            	usbToUartService();
+                usbToUartService();
             }
             else
             {
