@@ -1,9 +1,11 @@
 /* wireless_serial:
  *
- *
  * TODO: Support for USB CDC ACM control signals.
  * TODO: UART flow control.
  * TODO: Better radio protocol (see TODOs in radio_link.c).
+ * TODO: Obey CDC-ACM Set Line Coding commands:
+ *       In USB-UART mode this would let the user change the baud rate at run-time.
+ *       In USB-RADIO mode, bauds 0-255 would correspond to radio channels.
  */
 
 #include <cc2511_map.h>
@@ -25,7 +27,7 @@ void updateLeds()
 {
     usbShowStatusWithGreenLed();
 
-    if(vinPowerPresent()){ LED_YELLOW(1); }
+    LED_YELLOW(vinPowerPresent());
 
     // Turn on the red LED if the radio is in the RX_OVERFLOW state.
     // There used to be several bugs in the radio libraries that would cause
