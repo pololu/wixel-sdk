@@ -13,15 +13,15 @@
 #include <cc2511_map.h>
 #include <cc2511_types.h>
 
-static volatile uint8 XDATA uartTxBuffer[64];     // sizeof(uartTxBuffer) must be a power of two
-static volatile uint8 DATA uartTxBufferMainLoopIndex;  // main loop writes here
-static volatile uint8 DATA uartTxBufferInterruptIndex; // tx interrupt reads here
+static volatile uint8 XDATA uartTxBuffer[256];         // sizeof(uartTxBuffer) must be a power of two
+static volatile uint8 DATA uartTxBufferMainLoopIndex;  // Index of next byte main loop will write.
+static volatile uint8 DATA uartTxBufferInterruptIndex; // Index of next byte interrupt will read.
 
 #define UART_TX_BUFFER_FREE_BYTES() ((uartTxBufferInterruptIndex - uartTxBufferMainLoopIndex - 1) & (sizeof(uartTxBuffer) - 1))
 
-static volatile uint8 XDATA uartRxBuffer[64];     // sizeof(uartRxBuffer) must be a power of two
-static volatile uint8 DATA uartRxBufferMainLoopIndex;  // main loop reads here
-static volatile uint8 DATA uartRxBufferInterruptIndex; // rx interrupt writes here
+static volatile uint8 XDATA uartRxBuffer[256];     // sizeof(uartRxBuffer) must be a power of two
+static volatile uint8 DATA uartRxBufferMainLoopIndex;  // Index of next byte main loop will read.
+static volatile uint8 DATA uartRxBufferInterruptIndex; // Index of next byte interrupt will write.
 
 #define UART_RX_BUFFER_FREE_BYTES() ((uartRxBufferMainLoopIndex - uartRxBufferInterruptIndex - 1) & (sizeof(uartRxBuffer) - 1))
 #define UART_RX_BUFFER_USED_BYTES() ((uartRxBufferInterruptIndex - uartRxBufferMainLoopIndex) & (sizeof(uartRxBuffer) - 1))
