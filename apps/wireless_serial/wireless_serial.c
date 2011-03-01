@@ -1,5 +1,3 @@
-// TODO: fix bug: USB power is only being detected once at the beginning and never detected again!
-
 /* wireless_serial:
  *
  *
@@ -25,12 +23,9 @@ int32 CODE param_baud_rate = 9600;
 
 void updateLeds()
 {
-    //usbShowStatusWithGreenLed();
-    LED_GREEN(usbPowerPresent());
+    usbShowStatusWithGreenLed();
 
     if(vinPowerPresent()){ LED_YELLOW(1); }
-
-    LED_RED(timeMs & 1);
 
     // Turn on the red LED if the radio is in the RX_OVERFLOW state.
     // There used to be several bugs in the radio libraries that would cause
