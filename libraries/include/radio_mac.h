@@ -37,7 +37,7 @@ extern volatile uint8 DATA radioMacState;
 
 // State-changing functions.  These should not be called if radioMacState == RADIO_MAC_STATE_TX.
 void radioMacTx(uint8 XDATA * packet);
-void radioMacRx(uint8 XDATA * packet, uint16 timeout);
+void radioMacRx(uint8 XDATA * packet, uint8 timeout);
 
 // This function is called by the Mac in an ISR when an important event
 // happens (and puts the MAC in the idle state).  This function should be

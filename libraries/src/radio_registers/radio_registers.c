@@ -7,6 +7,101 @@
 #include "radio_registers.h"
 #include <cc2511_map.h>
 
+void tmphaxOldSettings()  // from revision 2409 of the private Pololu repository
+{
+	// TODO: Look at the signal on the spectrum analyzer to choose a good RX filter bandwidth (MDMCFG4).
+	// TODO: try increasing RX filter BW to 1200 kHz because the spectrum analyzer makes it look like the band is
+	// that wide
+
+	// Transmit power: one of the highest settings, but no the highest.
+    PA_TABLE0 = 0xFE;
+
+    // Set the frequency to 2420 MHz.
+    // FREQ[23:0] = 2^16*(fCarrier/fRef) = 2^16*(2420/24) = 0x64D555
+    FREQ2 = 0x64;
+    FREQ1 = 0xD5;
+	FREQ0 = 0x55;
+
+    // Controls the FREQ_IF used for RX.
+    // This is affected by MDMCFG2.DEM_DCFILT_OFF according to p.212 of datasheet.
+    // TODO: Learn what the correct value should be!
+	FSCTRL1 = 0x0A;  // Frequency Synthesizer Control
+	FSCTRL0 = 0x00;  // Frequency Synthesizer Control
+
+    // Sets the data rate (symbol rate) used in TX and RX.  See Sec 13.5 of the datasheet.
+    // Also sets the channel bandwidth.
+	// We tried different data rates: 375 kbps was pretty good, but 400 kbps and above caused lots of packet errors.
+	MDMCFG4 = 0x1D;  MDMCFG3 = 0xDE; // Modem configuration (data rate = 350 kbps, bandwidth = 600 kHz).
+// From Table 68: RSSI offset for 250kbps is 71.
+
+    // MDMCFG2.DEM_DCFILT_OFF = 0, enable digital DC blocking filter before
+    //   demodulator.  This affects the FREQ_IF according to p.212 of datasheet.
+	// MDMCFC2.MANCHESTER_EN = 0 is required because we are using MSK (see Sec 13.9.2)
+    // MDMCFG2.MOD_FORMAT = 111: MSK modulation
+    // MDMCFG2.SYNC_MODE = 111: Strictest requirements for receiving a packet.
+	MDMCFG2 = 0x73;  // Modem Configuration
+
+    // Note: I had to modify MDMCFG1 from the settings given by
+    // SmartRF Studio to be compatible with the per_test and datasheet
+	// (NUM_PREAMBLE should be 8 at 500 kbps and having it be high is a good idea in general).
+    // MDMCFG1.FEC_EN = 0,1 : 0=Disable,1=Enable Forward Error Correction
+    // MDMCFG1.NUM_PREAMBLE = 100 : Minimum number of preamble bytes is 8.
+    // MDMCFG1.CHANSPC_E = 11 : Channel spacing exponent.
+    // MDMCFG0.CHANSPC_M = 0xFF : Channel spacing mantissa.
+    // Channel spacing = (256 + CHANSPC_M)*2^(CHANSPC_E) * f_ref / 2^18
+    //   = (256 + 255)*2^(2) * 24000kHz / 2^18 = 374 kHz
+    // NOTE: The radio's Forward Error Correction feature requires CLKSPD=000.
+    MDMCFG1 = 0x43;
+	MDMCFG0 = 0x55;  // Modem Configuration
+
+    //DEVIATN = 0x00;  // Modem Deviation Setting.  No effect because we are using MSK.
+    // See Sec 13.9.2.
+
+	FREND1 = 0xB6;   // Front End RX Configuration (adjusts various things, not well documented)
+	FREND0 = 0x10;   // Front End TX Configuration (adjusts current TX LO buffer, not well documented)
+
+    // MCSM.FS_AUTOCAL = 1: Calibrate freq when going from IDLE to RX or TX (or FSTXON).
+	MCSM0 = 0x14;    // Main Radio Control State Machine Configuration
+    MCSM1 = 0x05;    // Disable CCA.  After RX, go to FSTXON.  After TX, go to FSTXON.
+    MCSM2 = 0x07;    // NOTE: MCSM2 also gets set every time we go in to RX mode.
+
+    // F0CFG and BSCFG configure details of the PID loop used to correct the
+    // bit rate and frequency of the signal (RX only I believe).
+	FOCCFG = 0x1D;  // Frequency Offset Compensation Configuration
+	BSCFG = 0x1C;   // Bit Synchronization Configuration
+
+    // AGC Control: Complicated stuff that David doesn't understand yet.
+    // This affects many things, including:
+    //    Carrier Sense Absolute Threshold (Sec 13.10.5).
+    //    Carrier Sense Relative Threshold (Sec 13.10.6).
+	AGCCTRL2 = 0xC7;
+	AGCCTRL1 = 0x00;
+	AGCCTRL0 = 0xB2;
+
+    // Frequency Synthesizer registers that are not fully documented.
+    // TODO: Implement fast channel hopping by storing the results of calibrations
+    // in memory.  See p. 221 of the datasheet. Also change MCSM.FS_AUTOCAL.
+	FSCAL3 = 0xEA;
+	FSCAL2 = 0x0A;
+	FSCAL1 = 0x00;
+	FSCAL0 = 0x11;
+
+	// Mostly-undocumented test settings.
+    // NOTE: The datasheet says TEST1 must be 0x31, but SmartRF Studio recommends 0x11.
+	TEST2 = 0x88;
+	TEST1 = 0x31;//0x31;//0x11;
+    TEST0 = 0x09;//0x09;//0x0B;
+
+    CHANNR = 0;     // Start on Channel 0 (this determines the frequency)
+
+    // Packet control settings.
+	PKTCTRL1 = 0x04;
+    PKTCTRL0 = 0x45; // Enable data whitening, CRC, and variable length packets.
+
+    // Device address (not used).
+    ADDR = 0;
+}
+
 void radioRegistersInit()
 {
     // TODO: Look at the signal on the spectrum analyzer to choose a good RX filter bandwidth (MDMCFG4).
@@ -47,7 +142,7 @@ void radioRegistersInit()
     // MDMCFG1.FEC_EN = 0,1 : 0=Disable,1=Enable Forward Error Correction
     // MDMCFG1.NUM_PREAMBLE = 100 : Minimum number of preamble bytes is 8.
     // MDMCFG1.CHANSPC_E = 11 : Channel spacing exponent.
-    // MDMCFG1.CHANSPC_M = 0xFF : Channel spacing mantissa.
+    // MDMCFG0.CHANSPC_M = 0xFF : Channel spacing mantissa.
     // Channel spacing = (256 + CHANSPC_M)*2^(CHANSPC_E) * f_ref / 2^18
     //   = (256 + 170)*2^(3) * 24000kHz / 2^18 = 312 kHz
     // NOTE: The radio's Forward Error Correction feature requires CLKSPD=000.
@@ -90,24 +185,23 @@ void radioRegistersInit()
     // Packet control settings.
     PKTCTRL1 = 0x04;
     PKTCTRL0 = 0x45; // Enable data whitening, CRC, and variable length packets.
+
+    tmphaxOldSettings();
 }
 
 BIT radioCrcPassed()
 {
     return (LQI & 0x80) ? 1 : 0;
-    //return radioPacketRx[radioPacketRx[0] + 2] & 0x80;
 }
 
 uint8 radioLqi()
 {
     return LQI & 0x7F;
-    //return radioPacketRx[radioPacketRx[0] + 2] & 0x7F;
 }
 
 int8 radioRssi()
 {
     return ((int8)RSSI)/2 - RSSI_OFFSET;
-    //return ((int8)radioPacketRx[radioPacketRx[0] + 1])/2 - RSSI_OFFSET;
 }
 
 // Local Variables: **

@@ -1,7 +1,3 @@
-// TODO: make some way for the devices to synchronize their sequence numbers so when a
-//  device starts up, it can guarantee that its first data packet won't be ignored by
-//  the other party?
-
 /* radio_link.c:
  *  This layer uses radio_mac.c in order to provide reliable ordered delivery and reception of
  *  a series of data packets between this device and another.  This is the layer that takes care
@@ -32,6 +28,14 @@
  *  It combines portions of the Data Link Layer (#2), Network Layer (#3), and
  *  Transport Layer (#4).
  */
+
+// TODO: make some way for the devices to synchronize their sequence numbers so when a
+//  device starts up, it can guarantee that its first data packet won't be ignored by
+//  the other party?
+// TODO: why does it look like the radio sometimes sends three packets without waiting
+//  for acknowledgement of the 1st or 2nd?  This seems to happen when in the wireless_serial
+//  app for the first 3 packets it sends when it is in USB-to-Radio mode and I try to send
+//  a big block of text via a terminal program.
 
 #include <radio_link.h>
 #include <radio_registers.h>
@@ -118,17 +122,13 @@ void radioLinkInit()
     radioMacStrobe();
 }
 
-// Returns a random delay in units of 50 microseconds (the same units of radioMacRx).
+// Returns a random delay in units of 0.998 ms (the same units of radioMacRx).
 // This is used to decide how long to wait before retransmitting.
 // Eventually we might want to make this delay depend on the number of times the
 // packet has been sent already, so we can do some sort of exponential backoff.
-static uint16 randomDelay()
+static uint8 randomDelay()
 {
-    // WARNING: You can't do multiplication here because it might call a non-reentrant
-    // 16-bit math function.  We can't do that in an ISR!  Also, if you ever change this
-    // function, you should check it to make sure it isn't calling a non-reentrant math
-    // function.
-    return (2 + (randomNumber() & 15)) << 4;
+	return 1 + (randomNumber() & 3);
 }
 
 /* TX FUNCTIONS (called by higher-level code in main loop) ********************/

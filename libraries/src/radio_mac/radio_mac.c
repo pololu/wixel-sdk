@@ -223,16 +223,16 @@ void radioMacInit()
     dmaConfig.radio.DC6 = 19; // WORDSIZE = 0, TMODE = 0, TRIG = 19
 }
 
-// Called by the user during RADIO_MAC_STATE_IDLE to tell the Mac that it should
-// start trying to receive a packet.
-void radioMacRx(uint8 XDATA * packet, uint16 timeout)
+// Called by the user from radioMacEventHandler to tell the Mac that it should
+// start trying to receive a packet.  The timeout is in units of .998 ms.
+void radioMacRx(uint8 XDATA * packet, uint8 timeout)
 {
     if (timeout)
     {
         MCSM2 = 0x01;   // RX_TIME = 1.  Helps determine the units of the RX timeout period.
-        WORCTRL = 3;    // WOR_RES = 3.  Helps determine the units of the RX timeout period.
-        WOREVT1 = timeout >> 8;
-        WOREVT0 = timeout & 0xFF;
+        WORCTRL = 0;    // WOR_RES = 0.  Helps determine the units of the RX timeout period.
+        WOREVT1 = timeout;
+        WOREVT0 = 0;
     }
     else
     {
