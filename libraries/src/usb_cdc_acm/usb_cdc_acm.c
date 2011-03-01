@@ -348,7 +348,7 @@ void usbComService(void)
 
         // The baud rate has been set to 333.  That is the special signal
         // sent by the USB host telling us to enter bootloader mode.
-        wixelStartBootloader();
+        boardStartBootloader();
     }
 }
 

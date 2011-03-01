@@ -1,3 +1,5 @@
+// TODO: fix bug: USB power is only being detected once at the beginning and never detected again!
+
 /* wireless_serial:
  *
  *
@@ -9,6 +11,7 @@
 #include <cc2511_map.h>
 #include <board.h>
 #include <random.h>
+#include <time.h>
 
 #include <usb.h>
 #include <usb_com.h>
@@ -22,16 +25,17 @@ int32 CODE param_baud_rate = 9600;
 
 void updateLeds()
 {
-    usbShowStatusWithGreenLed();
+    //usbShowStatusWithGreenLed();
+	LED_GREEN(usbPowerPresent());
 
     if(vinPowerPresent()){ LED_YELLOW(1); }
+
+    LED_RED(timeMs & 1);
 
     // Turn on the red LED if the radio is in the RX_OVERFLOW state.
     // There used to be several bugs in the radio libraries that would cause
     // the radio to go in to this state, but hopefully they are all fixed now.
-    //if (MARCSTATE == 0x11)
-
-    if (uart0RxBufferFullOccurred)
+    if (MARCSTATE == 0x11)
     {
         LED_RED(1);
     }
@@ -82,10 +86,10 @@ void usbToUartService()
 
 void main()
 {
-    wixelInit();
+    systemInit();
     usbInit();
-    uart0Init();
 
+    uart0Init();
     uart0SetBaudRate(param_baud_rate);
 
     radioComInit();
@@ -98,7 +102,7 @@ void main()
 
     while(1)
     {
-        wixelService();
+        boardService();
         updateLeds();
 
         radioComTxService();

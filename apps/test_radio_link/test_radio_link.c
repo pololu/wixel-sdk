@@ -99,7 +99,7 @@ void handleCommands()
 
 void main()
 {
-    wixelInit();
+    systemInit();
     usbInit();
 
     radioLinkInit();
@@ -112,7 +112,7 @@ void main()
 
     while(1)
     {
-        wixelService();
+        boardService();
         blinkLeds();
         radioToUsb();
         handleCommands();

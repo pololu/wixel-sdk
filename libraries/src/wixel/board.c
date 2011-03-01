@@ -28,23 +28,23 @@
  *  This variable is updated by wixelDetectVbus(). */
 static BIT vbusHighBit;
 
-void wixelInit()
+void systemInit()
 {
-    wixelIoInit();
-    wixelClockInit();
+    boardIoInit();
+    boardClockInit();
     timeInit();
     dmaInit();
 }
 
-void wixelService()
+void boardService()
 {
-    wixelStartBootloaderIfNeeded();
+    boardStartBootloaderIfNeeded();
 }
 
 /* Starts up the external 48 MHz oscillator and configures
  * the processor to run at 24 MHz.
  */
-void wixelClockInit()
+void boardClockInit()
 {
     // OSC_PD=0: Power up both high-speed oscillators: XOSC and HS RCOSC.
     SLEEP &= ~0x04;
@@ -70,7 +70,7 @@ void wixelClockInit()
     MEMCTR = 0;
 }
 
-void wixelIoInit()
+void boardIoInit()
 {
     P2DIR = 0;           // Make all the Port 2 pins be inputs.
     P2 = 0b00000110;     // P2_1 = 1: drive the red LED line high LATER (when LED_RED(1) is called)
@@ -83,7 +83,7 @@ void wixelIoInit()
  * The check is only performed if it has not been performed within the last 25 milliseconds.
  * (USB spec says we have to detect power loss within 100 ms).
  * This function updates the bit variable vbusHigh. */
-void wixelDetectVbus()
+static void boardDetectVbus()
 {
     static uint8 lastCheck = 128;
     if ((uint8)(timeMs - lastCheck) > 25)
@@ -110,7 +110,7 @@ void wixelDetectVbus()
     }
 }
 
-void wixelStartBootloader()
+void boardStartBootloader()
 {
     EA = 0;             // Disable interrupts.
 
@@ -127,14 +127,14 @@ void wixelStartBootloader()
     __asm ljmp 6 __endasm;
 }
 
-void wixelStartBootloaderIfNeeded()
+void boardStartBootloaderIfNeeded()
 {
     if (!(P2DIR & (1<<2)))       // If the yellow LED is off...
     {
         delayMicroseconds(10);
         if (P2_2)
         {
-            wixelStartBootloader();
+            boardStartBootloader();
         }
     }
 }
@@ -156,7 +156,7 @@ void delayMs(uint16 milliseconds)
 
 BIT usbPowerPresent()
 {
-    wixelDetectVbus();
+    boardDetectVbus();
     return vbusHighBit;
 }
 

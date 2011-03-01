@@ -38,12 +38,12 @@ void receiveCommands()
 
 void main()
 {
-    wixelInit();
+    systemInit();
     usbInit();
 
     while(1)
     {
-        wixelService();
+        boardService();
         updateLeds();
         usbComService();
         receiveCommands();

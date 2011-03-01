@@ -16,15 +16,14 @@
 #define LED_YELLOW_TOGGLE() {P2DIR ^= 0x04;}
 #define LED_RED_TOGGLE()    {P2DIR ^= 0x02;}
 
-void wixelInit();
-void wixelIoInit();
-void wixelClockInit();
+void systemInit();
+void boardIoInit();
+void boardClockInit();
 
-void wixelService();
+void boardService();
 
-void wixelDetectVbus();
-void wixelStartBootloaderIfNeeded();
-void wixelStartBootloader();
+void boardStartBootloaderIfNeeded();
+void boardStartBootloader();
 
 BIT usbPowerPresent();
 BIT vinPowerPresent();
