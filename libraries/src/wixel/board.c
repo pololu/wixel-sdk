@@ -2,20 +2,17 @@
 // hardware on the Wixel.  Includes LED, power detection, and common
 // timing/delay functions.
 
+// TODO: Allow for getting in to bootloader mode when the yellow LED is on
+//    (need to turn it off for a brief time).
 // TODO: add a section of the library for using the watchdog timer
 // TODO: let delayMicroseconds take a 16-bit argument (and TEST it again of course)
-// TODO: why does Wixel sometimes crash when I try to enter the bootloader from the application?
-// it goes in to a state where the yellow LED is on slightly (pulled up) and I have no idea what it is doing
-
-// TODO: WHY does this interrupt only result in a 6 us pulse??  Also, what's the good of
-// saying "__using(1)" if the compiler switches back to bank 0 before calling any functions?
-//ISR(P0INT, 1)
-//{
-//  P1_0 ^= 1;
-//  delayMicroseconds(40);
-//  P1_0 ^= 1;
-//
-//}
+// TODO: WHY does this interrupt only result in a 6 us pulse??
+//   ISR(P0INT, 1)
+//   {
+//     P1_0 ^= 1;
+//     delayMicroseconds(40);
+//     P1_0 ^= 1;
+//   }
 
 #include <cc2511_map.h>
 #include <cc2511_types.h>
