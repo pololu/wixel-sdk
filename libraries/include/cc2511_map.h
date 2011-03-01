@@ -30,7 +30,7 @@
   SBIT(address+7, bit7)
 #define SFR16(addressH, addressL, name) static __sfr16 __at (((addressH) << 8) + (addressL)) name;
 #define SFRX(address, name)       static volatile unsigned char __xdata __at(address) name;
-#define ISR(source, bank) void source##_ISR() __interrupt(source##_VECTOR) __using(bank)
+#define ISR(source, bank) void ISR_##source() __interrupt(source##_VECTOR) __using(bank)
 
 #else
 #error "Unknown compiler."
