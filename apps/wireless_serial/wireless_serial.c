@@ -1,23 +1,37 @@
-// test2: David is trying to do something more advanced, which requires
-// a little more coordination between Wixels.  The first step will be
-// to allow them to agree on time slots.
+/* wireless_serial:
+ *
+ *
+ * TODO: Support for USB CDC ACM control signals.
+ * TODO: UART flow control.
+ * TODO: Better radio protocol (see TODOs in radio_link.c).
+ */
 
 #include <cc2511_map.h>
 #include <board.h>
+#include <random.h>
+
 #include <usb.h>
 #include <usb_com.h>
+
 #include <radio_com.h>
 #include <radio_link.h>
-#include <random.h>
+
 #include <uart.h>
 
-void blinkLeds()
+int32 CODE param_baud_rate = 9600;
+
+void updateLeds()
 {
     usbShowStatusWithGreenLed();
 
     if(vinPowerPresent()){ LED_YELLOW(1); }
 
-    if (MARCSTATE == 0x11)
+    // Turn on the red LED if the radio is in the RX_OVERFLOW state.
+    // There used to be several bugs in the radio libraries that would cause
+    // the radio to go in to this state, but hopefully they are all fixed now.
+    //if (MARCSTATE == 0x11)
+
+    if (uart0RxBufferFullOccurred)
     {
         LED_RED(1);
     }
@@ -27,66 +41,42 @@ void blinkLeds()
     }
 }
 
-uint8 nibbleToAscii(uint8 nibble)
+void usbToRadioService()
 {
-    nibble &= 0xF;
-    if (nibble <= 0x9){ return '0' + nibble; }
-    else{ return 'A' + (nibble - 0xA); }
-}
-
-// Stops the CPU until another interrupt occurs.
-// (Such as the Timer 4 interrupt, which happens every millisecond.)
-// TODO: put the code that actually does PCON.IDLE=1 in to XDATA (or better yet, DATA).
-//    Set it to be a NOP or RET from any interrupt that wants the main loop to
-//    fully execute after the interrupt has run.  For example, there
-//    should be a USB interrupt that does this.
-//    Set it to the correct code just before returning from sleepMode0.
-void sleepMode0()
-{
-    // Put the device to sleep by following the recommended pseudo code in the datasheet section 12.1.3:
-    SLEEP = (SLEEP & ~3) | 0;    // SLEEP.MODE = 0 : Selects Power Mode 0 (PM0).
-    __asm nop __endasm;
-    __asm nop __endasm;
-    __asm nop __endasm;
-    PCON |= 1; // PCON.IDLE = 1 : Actually go to sleep.
-    __asm nop __endasm; // tmphax
-    __asm nop __endasm; // tmphax
-    __asm nop __endasm; // tmphax
-}
-
-/**
-void radioLoopBack() // TODO: why does this just not work at all?? (radioComRxAvailable seems to always be 0)
-{
-    while(radioComRxAvailable() && radioComTxAvailable())
-    {
-        radioComTxSendByte(radioComRxReceiveByte());
-        LED_RED_TOGGLE();
-    }
-}**/
-
-void radioToUsbService()
-{
-    while(radioComRxAvailable() && usbComTxAvailable())
-    {
-        usbComTxSendByte(radioComRxReceiveByte());
-    }
-
     while(usbComRxAvailable() && radioComTxAvailable())
     {
         radioComTxSendByte(usbComRxReceiveByte());
     }
+
+    while(radioComRxAvailable() && usbComTxAvailable())
+    {
+        usbComTxSendByte(radioComRxReceiveByte());
+    }
 }
 
-void radioToUartService()
+void uartToRadioService()
 {
+    while(uart0RxAvailable() && radioComTxAvailable())
+    {
+        radioComTxSendByte(uart0RxReceiveByte());
+    }
+
     while(radioComRxAvailable() && uart0TxAvailable())
     {
         uart0TxSendByte(radioComRxReceiveByte());
     }
+}
 
-    while(uart0RxAvailable() && radioComTxAvailable())
+void usbToUartService()
+{
+    while(usbComRxAvailable() && uart0TxAvailable())
     {
-        radioComTxSendByte(uart0RxReceiveByte());
+        uart0TxSendByte(usbComRxReceiveByte());
+    }
+
+    while(uart0RxAvailable() && usbComTxAvailable())
+    {
+        usbComTxSendByte(uart0RxReceiveByte());
     }
 }
 
@@ -96,7 +86,7 @@ void main()
     usbInit();
     uart0Init();
 
-    uart0SetBaudRate(115200);
+    uart0SetBaudRate(param_baud_rate);
 
     radioComInit();
     randomSeedFromAdc();
@@ -109,28 +99,26 @@ void main()
     while(1)
     {
         wixelService();
-        blinkLeds();
+        updateLeds();
 
         radioComTxService();
+        usbComService();
 
-        if (vinPowerPresent())
+        if (usbPowerPresent())
         {
-            radioToUartService();
+            if (vinPowerPresent())
+            {
+            	usbToUartService();
+            }
+            else
+            {
+                usbToRadioService();
+            }
         }
         else
         {
-            usbComService();
-            radioToUsbService();
+            uartToRadioService();
         }
-
-        // TODO: when switching between the modes above, you should probably flush the buffers that aren't being used
-
-        //TODO: sleepMode0();
-
-        //TODO: if (usbSuspended())
-        //{
-        //  usbSleep();
-        //}
     }
 }
 
