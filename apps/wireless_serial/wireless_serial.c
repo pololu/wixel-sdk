@@ -1,5 +1,51 @@
 /* wireless_serial:
  *
+ * Pin out:
+ * P0_3 = TX
+ * P0_2 = RX
+ * P1_7 = Radio Transmit Debug Signal
+ * P1_6 = Radio Receive Debug Signal
+ *
+ * == Overview ==
+ * This app allows you to connect two Wixels together to make a wireless,
+ * bidirectional, lossless serial link.  The Wixels must be on the same radio
+ * channel, and all other pairs of Wixels must be at least 2 channels away.
+ *
+ * == Technical Description ==
+ * This device appears to the USB host as a Virtual COM Port, with USB product
+ * ID 0x2200.  It uses the radio_link library to do wireless communication.
+ * There are three operating modes based on how the Wixel is powered:
+ * 1) If the Wixel is powered from USB only, then the it operates in
+ *    USB-to-Radio mode.  Bytes from the USB virtual COM port get sent to the
+ *    radio and vice versa.
+ * 2) If the Wixel is powered from VIN only, then the it operates in
+ *    UART-to-Radio mode.  Bytes from the UART's RX line get sent to the radio
+ *    and bytes from the radio get sent to the UART's TX line.
+ * 3) If the Wixel is powered from both USB and VIN, then the it operates
+ *    in USB-to-UART mode.
+ *
+ * The app can switch between all three of these modes on the fly.
+ *
+ * == Parameters ==
+ *   param_baud_rate : The baud rate to use for the UART, in bits per second.
+ *   param_radio_channel : See description in radio_link.h.
+ *
+ * == Example Uses ==
+ * 1) This application can be used to make a wireless serial link between two
+ * microcontrollers, with no USB involved.  Simply power both Wixels from
+ * VIN and don't plug in USB.
+ *
+ * 2) This application can be used to make a wireless serial link between a
+ * computer and a microcontroller/robot.  You can put the exact same app on both
+ * Wixels, and connect one Wixel to your computer via USB and connect the
+ * other Wixel to your microcontroller and power it with VIN.
+ *
+ * 3) If you are doing option 2, you can plug a USB cable directly in to your
+ *    robot at any time to put your robot's Wixel in to USB-to-UART mode.  This
+ *    would allow you to transfer data faster than using the wireless connection.
+ */
+
+/*
  * TODO: Support for USB CDC ACM control signals.
  * TODO: UART flow control.
  * TODO: Better radio protocol (see TODOs in radio_link.c).
