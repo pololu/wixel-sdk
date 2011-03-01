@@ -37,6 +37,12 @@
 #include <radio_registers.h>
 #include <random.h>
 
+/* PARAMETERS *****************************************************************/
+
+int32 CODE param_radio_channel = 128;
+
+/* PACKET VARIABLES AND DEFINES ***********************************************/
+
 // Compute the max size of on-the-air packets.  This value is stored in the PKTLEN register.
 #define RADIO_MAX_PACKET_SIZE  (RADIO_LINK_PAYLOAD_SIZE + RADIO_LINK_PACKET_HEADER_LENGTH)
 
@@ -106,6 +112,7 @@ void radioLinkInit()
     txSequenceBit = 0;
 
     PKTLEN = RADIO_MAX_PACKET_SIZE;
+    CHANNR = param_radio_channel;
 
     radioMacInit();
     radioMacStrobe();
