@@ -128,7 +128,7 @@ void radioLinkInit()
 // packet has been sent already, so we can do some sort of exponential backoff.
 static uint8 randomDelay()
 {
-	return 1 + (randomNumber() & 3);
+    return 1 + (randomNumber() & 3);
 }
 
 /* TX FUNCTIONS (called by higher-level code in main loop) ********************/

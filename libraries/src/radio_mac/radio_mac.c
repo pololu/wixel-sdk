@@ -98,13 +98,13 @@ ISR(RF, 1)
                 // bad CRCs still result in a RAIDO_MAC_EVENT_RX.
                 return;
             }
-        	if ((MCSM2&7) != 7 && WOREVT1 < MAX_LATENCY_OF_STROBE)
-        	{
-        		// We are currently listening for a packet and the timeout is going to happen
-        		// soon (within 10 ms if MSCM2==1 or 20 ms if MCSMS2==0), so we will not actually issue a RADIO_MAC_EVENT_STROBE
-        		// right now.
-        		return;
-        	}
+            if ((MCSM2&7) != 7 && WOREVT1 < MAX_LATENCY_OF_STROBE)
+            {
+                // We are currently listening for a packet and the timeout is going to happen
+                // soon (within 10 ms if MSCM2==1 or 20 ms if MCSMS2==0), so we will not actually issue a RADIO_MAC_EVENT_STROBE
+                // right now.
+                return;
+            }
         }
 
 
