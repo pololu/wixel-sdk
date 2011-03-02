@@ -23,10 +23,8 @@
 
 #include "radio_mac.h"
 #include <cc2511_map.h>
-#include <string.h>
 #include <dma.h>
 #include <radio_registers.h>
-void delayMicroseconds(uint8 ms);  // for tmphax
 
 #include "random.h"
 
@@ -174,7 +172,6 @@ void radioMacEvent(uint8 event)
     RFIF = ~0x30;  // Clear IRQ_DONE and IRQ_TIMEOUT if they are set.
 
     /** Start up the radio in the new state which was decided above. **/
-    delayMicroseconds(2);
     switch(radioMacState)
     {
     case RADIO_MAC_STATE_RX:
