@@ -144,6 +144,7 @@ ASSEMBLE_COMMAND = $(AS) -glos $(AS_FLAGS) $<
 ARCHIVE_COMMAND  = $(AR) $@ $^
 LINK_COMMAND     = $(CC) $(LD_FLAGS) libraries/xpage/xpage.rel $^
 else
+V=@
 COMPILE_COMMAND  = @echo Compiling  $@ && $(CC) -c $< $(C_FLAGS) -o $@
 ASSEMBLE_COMMAND = @echo Assembling $@ && $(AS) -glos $(AS_FLAGS) $<
 ARCHIVE_COMMAND  = @echo Creating   $@ && $(AR) $@ $^
@@ -158,7 +159,7 @@ endif
 %.rel: %.s
 	$(ASSEMBLE_COMMAND)
 
-$(LIBs): %.lib:
+%.lib:
 	$(ARCHIVE_COMMAND)
 
 #%.hex: %.rel
@@ -166,14 +167,15 @@ $(LIBs): %.lib:
 #	@mv -f $(@:%.hex=%.ihx) $@
 
 %.wxl: %.hex
-	$(ECHO) Pololu Wixel Application - www.pololu.com> $@.tmp
-	$(ECHO) 1.0>> $@.tmp
-	$(ECHO) ====== license>> $@.tmp
-	$(ECHO) ====== cdb>> $@.tmp
-	$(GREP) param $(<:%.hex=%.cdb) >> $@.tmp || echo
-	$(ECHO) ====== hex>> $@.tmp
-	$(PACKIHX) $< >> $@.tmp
-	mv -f $@.tmp $@
+	@echo Packaging  $@
+	$(V)$(ECHO) Pololu Wixel Application - www.pololu.com> $@.tmp
+	$(V)$(ECHO) 1.0>> $@.tmp
+	$(V)$(ECHO) ====== license>> $@.tmp
+	$(V)$(ECHO) ====== cdb>> $@.tmp
+	$(V)$(GREP) param $(<:%.hex=%.cdb) >> $@.tmp || echo
+	$(V)$(ECHO) ====== hex>> $@.tmp
+	$(V)$(PACKIHX) $< >> $@.tmp
+	$(V)mv -f $@.tmp $@
 
 # Include all the dependency files generated during compilation so that Make
 # knows which .rel files to recompile when a .h file changes.
