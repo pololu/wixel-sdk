@@ -14,35 +14,50 @@
  * == Technical Description ==
  * This device appears to the USB host as a Virtual COM Port, with USB product
  * ID 0x2200.  It uses the radio_link library to do wireless communication.
- * There are three operating modes based on how the Wixel is powered:
- * 1) If the Wixel is powered from USB only, then the it operates in
- *    USB-to-Radio mode.  Bytes from the USB virtual COM port get sent to the
- *    radio and vice versa.
- * 2) If the Wixel is powered from VIN only, then the it operates in
- *    UART-to-Radio mode.  Bytes from the UART's RX line get sent to the radio
- *    and bytes from the radio get sent to the UART's TX line.
- * 3) If the Wixel is powered from both USB and VIN, then the it operates
- *    in USB-to-UART mode.
  *
- * The app can switch between all three of these modes on the fly.
+ * There are three basic serial modes that can be selected:
+ * 1) USB-to-Radio: Bytes from the USB virtual COM port get sent to the
+ *    radio and vice versa.
+ * 2) UART-to-Radio: Bytes from the UART's RX line get sent to the radio
+ *    and bytes from the radio get sent to the UART's TX line.
+ * 3) USB-to-UART: Just like a normal USB-to-Serial adapter, bytes from
+ *    the virtual COM port get sent on the UART's TX line and bytes from
+ *    the UART's RX line get sent to the virtual COM port.
+ *
+ * You can select which serial mode you want to use by setting the serial_mode
+ * parameter to the appropriate number (using the numbers above).  Or, you can
+ * leave the serial mode at 0 (which is the default).  If the serial_mode is 0,
+ * then the Wixel will automatically choose a serial mode based on how it is
+ * being powered, and it will switch between the different serial modes on the
+ * fly.
+ *
+ * Power Source | Serial Mode
+ * --------------------------
+ * USB only     | USB-to-Radio
+ * VIN only     | UART-to-Radio
+ * USB and VIN  | USB-to-UART
  *
  * == Parameters ==
- *   param_baud_rate : The baud rate to use for the UART, in bits per second.
- *   param_radio_channel : See description in radio_link.h.
+ *   serial_mode   : Selects the serial mode or auto mode (0-3).
+ *   baud_rate     : The baud rate to use for the UART, in bits per second.
+ *   radio_channel : See description in radio_link.h.
  *
  * == Example Uses ==
  * 1) This application can be used to make a wireless serial link between two
- * microcontrollers, with no USB involved.  Simply power both Wixels from
- * VIN and don't plug in USB.
+ *    microcontrollers, with no USB involved.  To do this, use the UART-to-Radio
+ *    mode on both Wixels.
  *
  * 2) This application can be used to make a wireless serial link between a
- * computer and a microcontroller/robot.  You can put the exact same app on both
- * Wixels, and connect one Wixel to your computer via USB and connect the
- * other Wixel to your microcontroller and power it with VIN.
+ *    computer and a microcontroller.  Use USB-to-Radio mode on the Wixel that
+ *    is connected to the computer and use UART-to-Radio mode on the Wixel
+ *    that is connected to the microcontroller.
  *
- * 3) If you are doing option 2, you can plug a USB cable directly in to your
- *    robot at any time to put your robot's Wixel in to USB-to-UART mode.  This
- *    would allow you to transfer data faster than using the wireless connection.
+ * 3) If you are doing option 2 and using the the auto-detect serial mode
+ *    (serial_mode = 0), then you have the option to (at any time) plug a USB
+ *    cable directly in to the Wixel that is connected to your microcontroller
+ *    to establish a more direct (wired) serial connection with the
+ *    microcontroller.  (You would, of course, also have to switch to the other
+ *    COM port when you do this.)
  */
 
 /*
@@ -54,6 +69,7 @@
  *       In USB-RADIO mode, bauds 0-255 would correspond to radio channels.
  */
 
+/** Dependencies **************************************************************/
 #include <cc2511_map.h>
 #include <board.h>
 #include <random.h>
@@ -66,6 +82,13 @@
 #include <radio_link.h>
 
 #include <uart.h>
+
+/** Parameters ****************************************************************/
+#define SERIAL_MODE_AUTO        0
+#define SERIAL_MODE_USB_RADIO   1
+#define SERIAL_MODE_UART_RADIO  2
+#define SERIAL_MODE_USB_UART    3
+int32 CODE param_serial_mode = SERIAL_MODE_AUTO;
 
 int32 CODE param_baud_rate = 9600;
 
