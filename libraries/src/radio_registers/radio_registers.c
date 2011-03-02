@@ -7,43 +7,34 @@
 #include "radio_registers.h"
 #include <cc2511_map.h>
 
-void tmphaxOldSettings()  // from revision 2409 of the private Pololu repository
-{
-	// TODO: Look at the signal on the spectrum analyzer to choose a good RX filter bandwidth (MDMCFG4).
-	// TODO: try increasing RX filter BW to 1200 kHz because the spectrum analyzer makes it look like the band is
-	// that wide
-
-    // Set the frequency to 2420 MHz.
-    // FREQ[23:0] = 2^16*(fCarrier/fRef) = 2^16*(2420/24) = 0x64D555
-    FREQ2 = 0x64;
-    FREQ1 = 0xD5;
-	FREQ0 = 0x55;
-
-    // MDMCFG0.CHANSPC_M = 0xFF : Channel spacing mantissa.
-    // Channel spacing = (256 + CHANSPC_M)*2^(CHANSPC_E) * f_ref / 2^18
-    //   = (256 + 255)*2^(2) * 24000kHz / 2^18 = 374 kHz
-    // NOTE: The radio's Forward Error Correction feature requires CLKSPD=000.
-	MDMCFG0 = 0x55;  // Modem Configuration
-}
-
 void radioRegistersInit()
 {
-    // TODO: Look at the signal on the spectrum analyzer to choose a good RX filter bandwidth (MDMCFG4).
-    // TODO: try increasing RX filter BW to 1200 kHz because the spectrum analyzer makes it look like the band is
-    // that wide
-
     // Transmit power: one of the highest settings, but not the highest.
     PA_TABLE0 = 0xFE;
 
-    // Set the frequency to 2400.159 MHz.
+    // Set the center frequency of channel 0 to 2403.47 MHz.
+    // Freq = 24/2^16*(0xFREQ) = 2403.47 MHz
     // FREQ[23:0] = 2^16*(fCarrier/fRef) = 2^16*(2400.156/24) = 0x6401AA
     FREQ2 = 0x64;
-    FREQ1 = 0x01;
-    FREQ0 = 0xAA;
+    FREQ1 = 0x25;
+    FREQ0 = 0x00;
+
+    // Note: I had to modify MDMCFG1 from the settings given by
+    // SmartRF Studio to be compatible with the per_test and datasheet
+    // (NUM_PREAMBLE should be 8 at 500 kbps and having it be high is a good idea in general).
+    // MDMCFG1.FEC_EN = 0,1 : 0=Disable,1=Enable Forward Error Correction
+    // MDMCFG1.NUM_PREAMBLE = 100 : Minimum number of preamble bytes is 8.
+    // MDMCFG1.CHANSPC_E = 11 : Channel spacing exponent.
+    // MDMCFG0.CHANSPC_M = 0xFF : Channel spacing mantissa.
+    // Channel spacing = (256 + CHANSPC_M)*2^(CHANSPC_E) * f_ref / 2^18
+    // So the center of channel 255 is
+    //   2403.47 + 255 * ((256 + 0x87)*2^(3) * 24/2^18) = 2476.50 MHz
+    // NOTE: The radio's Forward Error Correction feature requires CLKSPD=000.
+    MDMCFG1 = 0x43;
+    MDMCFG0 = 0x87;  // Modem Configuration
 
     // Controls the FREQ_IF used for RX.
     // This is affected by MDMCFG2.DEM_DCFILT_OFF according to p.212 of datasheet.
-    // TODO: Learn what the correct value should be!
     FSCTRL1 = 0x0A;  // Frequency Synthesizer Control
     FSCTRL0 = 0x00;  // Frequency Synthesizer Control
 
@@ -59,19 +50,6 @@ void radioRegistersInit()
     // MDMCFG2.MOD_FORMAT = 111: MSK modulation
     // MDMCFG2.SYNC_MODE = 111: Strictest requirements for receiving a packet.
     MDMCFG2 = 0x73;  // Modem Configuration
-
-    // Note: I had to modify MDMCFG1 from the settings given by
-    // SmartRF Studio to be compatible with the per_test and datasheet
-    // (NUM_PREAMBLE should be 8 at 500 kbps and having it be high is a good idea in general).
-    // MDMCFG1.FEC_EN = 0,1 : 0=Disable,1=Enable Forward Error Correction
-    // MDMCFG1.NUM_PREAMBLE = 100 : Minimum number of preamble bytes is 8.
-    // MDMCFG1.CHANSPC_E = 11 : Channel spacing exponent.
-    // MDMCFG0.CHANSPC_M = 0xFF : Channel spacing mantissa.
-    // Channel spacing = (256 + CHANSPC_M)*2^(CHANSPC_E) * f_ref / 2^18
-    //   = (256 + 170)*2^(3) * 24000kHz / 2^18 = 312 kHz
-    // NOTE: The radio's Forward Error Correction feature requires CLKSPD=000.
-    MDMCFG1 = 0x43;
-    MDMCFG0 = 0xAA;  // Modem Configuration
 
     //DEVIATN = 0x00;  // Modem Deviation Setting.  No effect because we are using MSK.
     // See Sec 13.9.2.
@@ -93,8 +71,6 @@ void radioRegistersInit()
     AGCCTRL0 = 0xB2;
 
     // Frequency Synthesizer registers that are not fully documented.
-    // TODO: Implement fast channel hopping by storing the results of calibrations
-    // in memory.  See p. 221 of the datasheet. Also change MCSM.FS_AUTOCAL.
     FSCAL3 = 0xEA;
     FSCAL2 = 0x0A;
     FSCAL1 = 0x00;
@@ -109,8 +85,6 @@ void radioRegistersInit()
     // Packet control settings.
     PKTCTRL1 = 0x04;
     PKTCTRL0 = 0x45; // Enable data whitening, CRC, and variable length packets.
-
-    tmphaxOldSettings();
 }
 
 BIT radioCrcPassed()
