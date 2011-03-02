@@ -60,8 +60,12 @@
  *    COM port when you do this.)
  */
 
+// TODO: try harder to enable a pull-up on the RX line.  Right now, we get junk
+// on the RX line from 60 Hz noise if you connect one end of a cable to the RX line.
+
 /*
  * TODO: Support for USB CDC ACM control signals.
+ * TODO: use LEDs to give feedback about sending/receiving bytes.
  * TODO: UART flow control.
  * TODO: Better radio protocol (see TODOs in radio_link.c).
  * TODO: Obey CDC-ACM Set Line Coding commands:
