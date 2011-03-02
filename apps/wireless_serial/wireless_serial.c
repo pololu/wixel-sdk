@@ -1,4 +1,4 @@
-/* wireless_serial:
+/* wireless_serial app:
  *
  * Pin out:
  * P0_3 = TX
@@ -83,6 +83,7 @@
 
 #include <uart.h>
 
+
 /** Parameters ****************************************************************/
 #define SERIAL_MODE_AUTO        0
 #define SERIAL_MODE_USB_RADIO   1
@@ -92,6 +93,8 @@ int32 CODE param_serial_mode = SERIAL_MODE_AUTO;
 
 int32 CODE param_baud_rate = 9600;
 
+
+/** Functions *****************************************************************/
 void updateLeds()
 {
     usbShowStatusWithGreenLed();
@@ -108,6 +111,30 @@ void updateLeds()
     else
     {
         LED_RED(0);
+    }
+}
+
+uint8 currentSerialMode()
+{
+	if ((uint8)param_serial_mode > 0 && (uint8)param_serial_mode <= 3)
+	{
+		return (uint8)param_serial_mode;
+	}
+
+    if (usbPowerPresent())
+    {
+        if (vinPowerPresent())
+        {
+        	return SERIAL_MODE_USB_UART;
+        }
+        else
+        {
+        	return SERIAL_MODE_USB_RADIO;
+        }
+    }
+    else
+    {
+    	return SERIAL_MODE_UART_RADIO;
     }
 }
 
@@ -174,20 +201,11 @@ void main()
         radioComTxService();
         usbComService();
 
-        if (usbPowerPresent())
+        switch(currentSerialMode())
         {
-            if (vinPowerPresent())
-            {
-                usbToUartService();
-            }
-            else
-            {
-                usbToRadioService();
-            }
-        }
-        else
-        {
-            uartToRadioService();
+        case SERIAL_MODE_USB_RADIO:  usbToRadioService();  break;
+        case SERIAL_MODE_UART_RADIO: uartToRadioService(); break;
+        case SERIAL_MODE_USB_UART:   usbToUartService();   break;
         }
     }
 }
