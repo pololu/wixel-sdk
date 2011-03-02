@@ -28,6 +28,8 @@
 
 #include "random.h"
 
+#define MAX_LATENCY_OF_STROBE  10
+
 // The RFST register is how we tell the radio to do something, and these are the
 // command strobes we can write to it:
 #define SFSTXON 0
@@ -86,16 +88,27 @@ ISR(RF, 1)
             return;
         }
 
-        if (PKTSTATUS & (1<<3))  // Check SFD bit (Start of Frame Delimiter)
+        if (radioMacState == RADIO_MAC_STATE_RX && MARCSTATE == 0x0D)
         {
-            // We are currently receiving a packet, so we will wait for the end of that
-            // packet and then issue a RADIO_MAC_EVENT_RX.
-            // ASSUMPTION: There is no automatic address filtering, and packets with
-            // bad CRCs still result in a RAIDO_MAC_EVENT_RX.
-            return;
+            if (PKTSTATUS & (1<<3))  // Check SFD bit (Start of Frame Delimiter)
+            {
+                // We are currently receiving a packet, so we will wait for the end of that
+                // packet and then issue a RADIO_MAC_EVENT_RX.
+                // ASSUMPTION: There is no automatic address filtering, and packets with
+                // bad CRCs still result in a RAIDO_MAC_EVENT_RX.
+                return;
+            }
+        	if ((MCSM2&7) != 7 && WOREVT1 < MAX_LATENCY_OF_STROBE)
+        	{
+        		// We are currently listening for a packet and the timeout is going to happen
+        		// soon (within 10 ms if MSCM2==1 or 20 ms if MCSMS2==0), so we will not actually issue a RADIO_MAC_EVENT_STROBE
+        		// right now.
+        		return;
+        	}
         }
 
-        /*  The code below is necessary because we found that if the radio is in the
+
+        /* The code below is necessary because we found that if the radio is in the
            process of calibrating itself to go in to RX mode, it won't respond
            correctly to an STX strobe (it goes in to RX mode instead of TX).
            We only need to worry about that here, and not in the other events,
@@ -106,7 +119,7 @@ ISR(RF, 1)
             RFST = SIDLE;
         }
 
-        // We are currently listening for packets and nothing is being received at the
+        // We are not currently transmitting and nothing is being received at the
         // moment, so we should stop and issue a RADIO_MAC_EVENT_STROBE now.
         radioMacEvent(RADIO_MAC_EVENT_STROBE);
     }
@@ -194,7 +207,8 @@ void radioMacStrobe()
     S1CON |= 3;
 }
 
-/** Initializes the radio_mac library. **/
+/** Initializes the radio_mac library.
+ *  NOTE: The CHANNR register does not get configured here. **/
 void radioMacInit()
 {
     radioRegistersInit();

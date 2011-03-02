@@ -23,10 +23,9 @@
 
 // Radio MAC events
 #define RADIO_MAC_EVENT_TX                  30    // We finished transmitting the packet.
-#define RADIO_MAC_EVENT_RX_INSTEAD_OF_TX    31    // We were trying to transmit a packet, but the channel was not clear and we received one instead.
-#define RADIO_MAC_EVENT_RX                  32    // We received a packet normally.
-#define RADIO_MAC_EVENT_RX_TIMEOUT          33    // We were trying to receive a packet normally, but the timeout period expired.
-#define RADIO_MAC_EVENT_STROBE              34    // The user set radioMacStrobe=1 in order to get the ISR to run.
+#define RADIO_MAC_EVENT_RX                  31    // We received a packet normally.
+#define RADIO_MAC_EVENT_RX_TIMEOUT          32    // We were trying to receive a packet normally, but the timeout period expired.
+#define RADIO_MAC_EVENT_STROBE              33    // The user set radioMacStrobe=1 in order to get the ISR to run.
 
 void radioMacInit(void);
 
