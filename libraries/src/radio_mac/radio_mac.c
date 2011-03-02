@@ -1,9 +1,3 @@
-// TODO: see if the CC2511 radio module ALWAYS stays in RX mode when it receives a
-// packet with a bad CRC.
-
-// Things to try:
-// TODO: look at radio settings from smartrf_cc2511.h (swrc088c) and try them
-
 /*  NOTE: Calibration of the frequency synthesizer and other RF hardware takes about 800 us and
  *  must be done regularly.  There are several options for when to do the calibration and not.
  *  We configured the radio to automatically calibrate whenever going from the IDLE state to TX
@@ -207,8 +201,6 @@ void radioMacStrobe()
 void radioMacInit()
 {
     radioRegistersInit();
-
-    CHANNR = 0;
 
     // MCSM.FS_AUTOCAL = 1: Calibrate freq when going from IDLE to RX or TX (or FSTXON).
     MCSM0 = 0x14;    // Main Radio Control State Machine Configuration
