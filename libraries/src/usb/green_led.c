@@ -15,7 +15,7 @@ void usbShowStatusWithGreenLed()
     }
     else
     {
-        LED_GREEN(timeMs >> 9 & 1);           // Blink with a period of 1024 ms.
+        LED_GREEN(getMs() >> 9 & 1);           // Blink with a period of 1024 ms.
     }
 }
 

@@ -172,7 +172,7 @@ endif
 	$(V)$(ECHO) 1.0>> $@.tmp
 	$(V)$(ECHO) ====== license>> $@.tmp
 	$(V)$(ECHO) ====== cdb>> $@.tmp
-	$(V)$(GREP) param $(<:%.hex=%.cdb) >> $@.tmp || echo (This app has no params.)
+	$(V)$(GREP) param $(<:%.hex=%.cdb) >> $@.tmp || echo "(This app has no params.)"
 	$(V)$(ECHO) ====== hex>> $@.tmp
 	$(V)$(PACKIHX) $< >> $@.tmp
 	$(V)mv -f $@.tmp $@
