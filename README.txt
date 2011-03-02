@@ -1,4 +1,4 @@
-Pololu Wixel SDK
+Pololu Wixel Software Development Kit (SDK)
 
 This package contains code, utilities, and Makefiles that will
 help you build your own applications for the Pololu Wixel, a
