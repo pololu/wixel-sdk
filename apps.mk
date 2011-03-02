@@ -11,10 +11,10 @@ HEXs += apps/$(1)/$(1).hex
 
 apps/$(1)/$(1).hex : $$(APP_RELS) $$(APP_LIBS)
 	$$(LINK_COMMAND)
-	@mv -f $$(@:%.hex=%.ihx) $$@
+	$$(V)mv -f $$(@:%.hex=%.ihx) $$@
 
 .PHONY : $(1)
-$(1) : apps/$(1)/$(1).hex
+$(1) : apps/$(1)/$(1).wxl
 
 .PHONY : load_$(1)
 load_$(1) : apps/$(1)/$(1).wxl
