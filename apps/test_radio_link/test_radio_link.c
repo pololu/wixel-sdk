@@ -15,7 +15,7 @@ extern volatile uint8 DATA radioLinkRxInterruptIndex;  // The index of the next 
 extern volatile uint8 DATA radioLinkTxMainLoopIndex;   // The index of the next txPacket to write to in the main loop.
 extern volatile uint8 DATA radioLinkTxInterruptIndex;  // The index of the current txPacket we are trying to send on the radio.
 
-void blinkLeds()
+void updateLeds()
 {
     usbShowStatusWithGreenLed();
 
@@ -113,7 +113,7 @@ void main()
     while(1)
     {
         boardService();
-        blinkLeds();
+        updateLeds();
         radioToUsb();
         handleCommands();
         usbComService();
