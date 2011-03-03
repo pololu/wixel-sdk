@@ -2,7 +2,7 @@
 #include <cc2511_types.h>
 #include <usb.h>
 #include <usb_com.h>
-#include <board.h>           // just for wixelStartBootloader()
+#include <board.h>           // just for boardStartBootloader() and serialNumberString
 
 /* CDC ACM Library Configuration **********************************************/
 // Note: USB 2.0 says that the maximum packet size for full-speed bulk endpoints
@@ -199,7 +199,7 @@ uint8 CODE usbStringDescriptorCount = 4;
 DEFINE_STRING_DESCRIPTOR(languages, 1, USB_LANGUAGE_EN_US)
 DEFINE_STRING_DESCRIPTOR(manufacturer, 18, 'P','o','l','o','l','u',' ','C','o','r','p','o','r','a','t','i','o','n')
 DEFINE_STRING_DESCRIPTOR(product, 5, 'W','i','x','e','l')
-uint16 CODE * CODE usbStringDescriptors[] = { languages, manufacturer, product, WIXEL_SERIAL_NUMBER_STRING_ADDR };
+uint16 CODE * CODE usbStringDescriptors[] = { languages, manufacturer, product, serialNumberStringDescriptor };
 
 /* CDC ACM USB callbacks ******************************************************/
 // These functions are called by the low-level USB module (usb.c) when a USB

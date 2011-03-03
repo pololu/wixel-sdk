@@ -4,7 +4,6 @@
 #include <cc2511_types.h>
 
 #define USB_VENDOR_ID_POLOLU 0x1FFB
-#define WIXEL_SERIAL_NUMBER_STRING_ADDR  0x3E6
 #define USB_EP0_PACKET_SIZE 32
 
 /* USB CONSTANTS **************************************************************/

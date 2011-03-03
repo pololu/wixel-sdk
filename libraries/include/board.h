@@ -4,6 +4,9 @@
 #include <cc2511_map.h>
 #include <cc2511_types.h>
 
+extern uint8 CODE serialNumber[4];
+extern uint16 CODE serialNumberStringDescriptor[];
+
 #define LED_GREEN(v)        {((v) ? (P2DIR |= 0x10) : (P2DIR &= ~0x10));}
 #define LED_YELLOW(v)       {((v) ? (P2DIR |= 0x04) : (P2DIR &= ~0x04));}
 #define LED_RED(v)          {((v) ? (P2DIR |= 0x02) : (P2DIR &= ~0x02));}
