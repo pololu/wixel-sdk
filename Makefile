@@ -160,6 +160,7 @@ endif
 	$(ASSEMBLE_COMMAND)
 
 %.lib:
+	$(V)rm $@
 	$(ARCHIVE_COMMAND)
 
 #%.hex: %.rel
