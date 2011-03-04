@@ -39,4 +39,13 @@ void randomSeedFromSerialNumber(void);
 uint8 randomNumber(void);
 
 
+/* Initializes the random number generator using the specified 16-bit seed.
+ * \param seed_msb Any number between 0 and 255.
+ * \param seed_lsb Any number between 0 and 255.
+ *
+ * The parameters to this function determine the sequence of random numbers
+ * produces by the random number generator.
+ */
+void randomSeed(uint8 seed_msb, uint8 seed_lsb);
+
 #endif

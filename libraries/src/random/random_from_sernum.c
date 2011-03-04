@@ -16,11 +16,5 @@ void randomSeedFromSerialNumber(void)
 	// start up with their random number generators in the same state.
 	// So there is no point in reading all 4 bytes of the serial number.
 
-	// See "A note about RNDL" in random_from_adc.c for an explanation of this:
-	RNDL = serialNumber[0];
-	RNDL = serialNumber[1];
-
-    randomNumber();
-    randomNumber();
-    randomNumber();
+	randomSeed(serialNumber[0], serialNumber[1]);
 }

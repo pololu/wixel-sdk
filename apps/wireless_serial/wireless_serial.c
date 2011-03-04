@@ -190,7 +190,7 @@ void main()
     uart0SetBaudRate(param_baud_rate);
 
     radioComInit();
-    randomSeedFromAdc();
+    randomSeedFromSerialNumber();
 
     // Set up P1_6 to be the RX debug signal and P1_7 to be the TX debug signal.
     P1DIR |= (1<<6) | (1<<7);
