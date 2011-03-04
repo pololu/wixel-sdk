@@ -20,10 +20,3 @@ void usbShowStatusWithGreenLed()
         LED_GREEN(timeMs >> 9 & 1);           // Blink with a period of 1024 ms.
     }
 }
-
-// Local Variables: **
-// mode: C **
-// c-basic-offset: 4 **
-// tab-width: 4 **
-// indent-tabs-mode: nil **
-// end: **

@@ -31,10 +31,3 @@ void randomSeed(uint8 seed_msb, uint8 seed_lsb)
     randomNumber();
     randomNumber();
 }
-
-// Local Variables: **
-// mode: C **
-// c-basic-offset: 4 **
-// tab-width: 4 **
-// indent-tabs-mode: nil **
-// end: **

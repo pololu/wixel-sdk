@@ -101,10 +101,3 @@ int8 radioRssi()
 {
     return ((int8)RSSI)/2 - RSSI_OFFSET;
 }
-
-// Local Variables: **
-// mode: C **
-// c-basic-offset: 4 **
-// tab-width: 4 **
-// indent-tabs-mode: nil **
-// end: **
