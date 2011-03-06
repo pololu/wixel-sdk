@@ -6,6 +6,7 @@
 
     .globl _serialNumber
     .globl _serialNumberStringDescriptor
+    .globl _bootloaderDeviceDescriptor
 
 ;; The USB device descriptor of the bootloader is stored at this address:
 _bootloaderDeviceDescriptor = 0x03CC
