@@ -61,13 +61,14 @@ int32 CODE param_radio_channel = 128;
 #define PACKET_TYPE_NAK  (1 << 6) // A NAK packet (with optional data)
 #define PACKET_TYPE_ACK  (2 << 6) // An ACK packet (with optional data)
 
-/*  rxPackets are handled differently because we need to be prepared at all times to
- *  receive a full packet from the other party, even if all we can do is NAK it.
- *  Therefore, we need a total of THREE buffers, so that two can be owned by the
- *  main loop while another is owned by the ISR and ready to receive the next packet.
+/*  rxPackets:
+ *  We need to be prepared at all times to receive a full packet from the other party,
+ *  even if all we can do is NAK it.  Therefore, we need (at least) THREE buffers, so
+ *  that two can be owned by the main loop while another is owned by the ISR and ready
+ *  to receive the next packet.
  *
  *  If a packet is received and the main loop still owns the other two buffers,
- *  we respond with a NAK to the other party.
+ *  we respond with a NAK to the other device.
  *
  *  Ownership of the RX packet buffers is determined from radioLinkRxMainLoopIndex and radioLinkRxInterruptIndex.
  *  The main loop owns all the buffers from radioLinkRxMainLoopIndex to radioLinkRxInterruptIndex-1 inclusive.
@@ -83,13 +84,18 @@ static volatile uint8 XDATA radioLinkRxPacket[RX_PACKET_COUNT][1 + RADIO_MAX_PAC
 volatile uint8 DATA radioLinkRxMainLoopIndex = 0;   // The index of the next rxBuffer to read from the main loop.
 volatile uint8 DATA radioLinkRxInterruptIndex = 0;  // The index of the next rxBuffer to write to when a packet comes from the radio.
 
-/* txPackets are handed the same way. */
+/* txPackets are handled similarly */
 #define TX_PACKET_COUNT 16
 static volatile uint8 XDATA radioLinkTxPacket[TX_PACKET_COUNT][1 + RADIO_MAX_PACKET_SIZE];  // The first byte is the length, 2nd byte is link header.
 volatile uint8 DATA radioLinkTxMainLoopIndex = 0;   // The index of the next txPacket to write to in the main loop.
 volatile uint8 DATA radioLinkTxInterruptIndex = 0;  // The index of the current txPacket we are trying to send on the radio.
 
 uint8 XDATA shortTxPacket[2];
+
+// The number of times the current TX packet has been transmitted.
+// Does NOT overflow.  If we have transmitting the current packet more than 255
+// times, this variable will be 255.
+uint8 DATA radioLinkTxCurrentPacketTries = 0;
 
 
 /* SEQUENCING VARIABLES *******************************************************/
@@ -124,11 +130,14 @@ void radioLinkInit()
 
 // Returns a random delay in units of 0.998 ms (the same units of radioMacRx).
 // This is used to decide how long to wait before retransmitting.
-// Eventually we might want to make this delay depend on the number of times the
-// packet has been sent already, so we can do some sort of exponential backoff.
-static uint8 randomDelay()
+// This is used to decide when to next transmit a queued data packet.
+// If we have already tried sending this packet many times, then this delay
+// will be a lot a longer, in order to avoid overcrowding the airwaves for no
+// reason.
+static uint8 randomTxDelay()
 {
-    return 1 + (randomNumber() & 3);
+	// 200 and 230 were chosen arbitrarily.
+    return (radioLinkTxCurrentPacketTries > 200 ? 230 : 1) + (randomNumber() & 3);
 }
 
 /* TX FUNCTIONS (called by higher-level code in main loop) ********************/
@@ -195,13 +204,22 @@ void radioLinkRxDoneWithPacket(void)
 
 /* FUNCTIONS CALLED IN RF_ISR *************************************************/
 
+static void txDataPacket(uint8 packetType)
+{
+    radioLinkTxPacket[radioLinkTxInterruptIndex][RADIO_LINK_PACKET_TYPE_OFFSET] = packetType | txSequenceBit;
+    radioMacTx(radioLinkTxPacket[radioLinkTxInterruptIndex]);
+    if (radioLinkTxCurrentPacketTries < 255)
+    {
+    	radioLinkTxCurrentPacketTries++;
+    }
+}
+
 static void takeInitiative()
 {
     if (radioLinkTxInterruptIndex != radioLinkTxMainLoopIndex)
     {
         // Try to send the next data packet.
-        radioLinkTxPacket[radioLinkTxInterruptIndex][RADIO_LINK_PACKET_TYPE_OFFSET] = PACKET_TYPE_PING | txSequenceBit;
-        radioMacTx(radioLinkTxPacket[radioLinkTxInterruptIndex]);
+    	txDataPacket(PACKET_TYPE_PING);
     }
     else
     {
@@ -219,7 +237,7 @@ void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
     else if (event == RADIO_MAC_EVENT_TX)
     {
         // We sent a packet, so now lets give the other party a chance to talk.
-        radioMacRx(radioLinkRxPacket[radioLinkRxInterruptIndex], randomDelay());
+        radioMacRx(radioLinkRxPacket[radioLinkRxInterruptIndex], randomTxDelay());
         return;
     }
     else if (event == RADIO_MAC_EVENT_RX)
@@ -230,7 +248,7 @@ void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
         {
             if (radioLinkTxInterruptIndex != radioLinkTxMainLoopIndex)
             {
-                radioMacRx(currentRxPacket, randomDelay());
+                radioMacRx(currentRxPacket, randomTxDelay());
             }
             else
             {
@@ -257,6 +275,9 @@ void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
                 {
                     radioLinkTxInterruptIndex++;
                 }
+
+                // Reset the transmission counter.
+                radioLinkTxCurrentPacketTries = 0;
 
                 // The next packet we transmit will have a different sequence bit.
                 txSequenceBit ^= 1;
@@ -311,8 +332,7 @@ void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
             if (radioLinkTxInterruptIndex != radioLinkTxMainLoopIndex)
             {
                 // Send some data along with the ACK or NAK.
-                radioLinkTxPacket[radioLinkTxInterruptIndex][RADIO_LINK_PACKET_TYPE_OFFSET] = responsePacketType | txSequenceBit;
-                radioMacTx(radioLinkTxPacket[radioLinkTxInterruptIndex]);
+            	txDataPacket(responsePacketType);
             }
             else
             {
