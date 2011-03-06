@@ -20,10 +20,17 @@ extern int32 CODE param_radio_channel;
  *  any other functions in the library. */
 void radioLinkInit(void);
 
-/*! radioLinkTxAvailable: Returns the number of radio packets buffers
-    currently available for sending packets.  This function has no
-    side effects. */
+/*! \return The number of radio packet buffers that are currently free
+ * (available to hold data).
+ *
+ * This function has no side effects. */
 uint8 radioLinkTxAvailable(void);
+
+/*! \return The number of radio packet buffers that are currently busy
+ * (holding a data packet that has not been successfully sent yet).
+ *
+ * This function has no side effects. */
+uint8 radioLinkTxQueued(void);
 
 /*! Returns a pointer to the current packet, or 0 if no packet is available.
  * This function has no side effects.  To populate this packet, you should

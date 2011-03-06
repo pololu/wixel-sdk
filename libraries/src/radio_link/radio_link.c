@@ -150,6 +150,11 @@ uint8 radioLinkTxAvailable(void)
     return (radioLinkTxInterruptIndex - radioLinkTxMainLoopIndex - 1) & (TX_PACKET_COUNT - 1);
 }
 
+uint8 radioLinkTxQueued(void)
+{
+	return (radioLinkTxMainLoopIndex - radioLinkTxInterruptIndex) & (TX_PACKET_COUNT - 1);
+}
+
 uint8 XDATA * radioLinkTxCurrentPacket()
 {
     if (!radioLinkTxAvailable())
