@@ -91,7 +91,7 @@ USB_DESCRIPTOR_DEVICE CODE usbDeviceDescriptor =
     USB_EP0_PACKET_SIZE,    //  Max packet size for Endpoint 0
     USB_VENDOR_ID_POLOLU,   //  Vendor ID
     0x2200,                 //  Product ID (Generic Wixel with one CDC ACM port)
-    0x0100,                 //  Device release number in BCD format
+    0x0000,                 //  Device release number in BCD format
     1,                      //  Index of Manufacturer String Descriptor
     2,                      //  Index of Product String Descriptor
     3,                      //  Index of Serial Number String Descriptor
