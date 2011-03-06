@@ -329,14 +329,7 @@ static void usbStandardDeviceRequestHandler()
                     }
 
                     controlTransferPointer = (uint8 XDATA *)usbStringDescriptors[usbSetupPacket.wValue & 0xFF];
-                    if (controlTransferPointer[1] != USB_DESCRIPTOR_TYPE_STRING)
-                    {
-                        controlTransferBytesLeft = controlTransferPointer[0] >> 1;
-                    }
-                    else
-                    {
-                        controlTransferBytesLeft = controlTransferPointer[0];
-                    }
+                    controlTransferBytesLeft = controlTransferPointer[0];
                     break;
                 }
                 default:
