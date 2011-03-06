@@ -33,7 +33,4 @@ BIT vinPowerPresent();
 void enableUsbPullup();
 void disableUsbPullup();
 
-void delayMicroseconds(uint8 ms);  // defined in delay.asm
-void delayMs(uint16 count);
-
 #endif

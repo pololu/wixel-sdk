@@ -2,8 +2,6 @@
  * See random.h for more information about this library.
  */
 
-// TODO: make sure random number generator doesn't get in to a state with all 1s!
-
 #include <cc2511_map.h>
 #include <random.h>
 #include <board.h>

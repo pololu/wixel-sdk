@@ -40,4 +40,18 @@ extern volatile PDATA uint32 timeMs;
  * increments timeMs. */
 ISR(T4, 1);
 
+/*! \param microseconds  The number of microseconds delay; any value between 0 and 255.
+ *
+ *  This function delays for the specified number of microseconds using
+ *  a simple loop.  If an interrupt occurs during this function, the delay
+ *  will be longer than specified. */
+void delayMicroseconds(uint8 microseconds);
+
+/*! \param milliseconds  The number of microseconds delay; any value between 0 and 65535.
+ *
+ *  This function delays for the specified number of microseconds using
+ *  a simple loop.  If an interrupt occurs during this function, the delay
+ *  will be slightly longer than specified. */
+void delayMs(uint16 milliseconds);
+
 #endif

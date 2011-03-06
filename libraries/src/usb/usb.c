@@ -27,7 +27,7 @@ void usbInit()
 {
 }
 
-// TODO: try using DMA in usbReadFifo and usbWriteFifo and see how that affects the speed of usbComTxSendNonBlocking(x, 128).
+// TODO: try using DMA in usbReadFifo and usbWriteFifo and see how that affects the speed of usbComTxSend(x, 128).
 void usbReadFifo(uint8 endpointNumber, uint8 count, uint8 XDATA * buffer)
 {
     XDATA uint8 * fifo = (XDATA uint8 *)(0xDE20 + (uint8)(endpointNumber<<1));
@@ -373,8 +373,7 @@ static void usbStandardDeviceRequestHandler()
                 {
                     // We have been deconfigured.
 
-                    // NOTE: Once we add non-zero endpoint support to libusb, we will need to make resetNonzeroEndpoints()
-                    // and call it here.  (TODO after bootloader is done).
+                    // TODO: Add resetNonzeroEndpoints() and call it here.
 
                     if (usbDeviceState > USB_STATE_ADDRESS)
                     {

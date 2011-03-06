@@ -32,10 +32,6 @@
 // TODO: make some way for the devices to synchronize their sequence numbers so when a
 //  device starts up, it can guarantee that its first data packet won't be ignored by
 //  the other party?
-// TODO: why does it look like the radio sometimes sends three packets without waiting
-//  for acknowledgement of the 1st or 2nd?  This seems to happen when in the wireless_serial
-//  app for the first 3 packets it sends when it is in USB-to-Radio mode and I try to send
-//  a big block of text via a terminal program.
 
 #include <radio_link.h>
 #include <radio_registers.h>

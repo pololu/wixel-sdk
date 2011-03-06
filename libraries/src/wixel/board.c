@@ -5,8 +5,8 @@
 // TODO: Allow for getting in to bootloader mode when the yellow LED is on
 //    (need to turn it off for a brief time).
 // TODO: add a section of the library for using the watchdog timer
-// TODO: let delayMicroseconds take a 16-bit argument (and TEST it again of course)
-// TODO: WHY does this interrupt only result in a 6 us pulse??
+// TODO: let delayMicroseconds take a 16-bit argument
+// TODO: WHY does this interrupt only result in a 6 us pulse?
 //   ISR(P0INT, 1)
 //   {
 //     P1_0 ^= 1;
@@ -133,21 +133,6 @@ void boardStartBootloaderIfNeeded()
         {
             boardStartBootloader();
         }
-    }
-}
-
-void delayMs(uint16 milliseconds)
-{
-    // TODO: think about how to make this more accurate.
-    // A great way would be to use the compare feature of Timer 4 and then
-    // wait for the right number of compare events to happen, but then we
-    // can't use that channel for PWM in the future.
-    while(milliseconds--)
-    {
-        delayMicroseconds(250);
-        delayMicroseconds(250);
-        delayMicroseconds(250);
-        delayMicroseconds(249); // there's some overhead, so only delay by 249 here
     }
 }
 
