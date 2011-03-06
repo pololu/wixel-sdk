@@ -16,7 +16,7 @@ static uint8 adcReadTemp(void)
 
 void randomSeedFromAdc(void)
 {
-	randomSeed(adcReadTemp(), adcReadTemp());
+    randomSeed(adcReadTemp(), adcReadTemp());
 }
 
 // The function below was commented out because it was not being used and might
@@ -28,7 +28,7 @@ void randomSeedFromAdc(void)
 /*
 void randomRefreshFromAdc()
 {
-	adcReadTemp();
+    adcReadTemp();
 
     while(ADCCON1 & 0x0C);                   // Wait for the last random number to finish.
     RNDL = RNDH ^ ADCL;                      // Add the seed, but don't throw away the randomness in RNDH.

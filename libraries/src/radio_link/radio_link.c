@@ -138,7 +138,7 @@ void radioLinkInit()
 // http://en.wikipedia.org/wiki/Exponential_backoff
 static uint8 randomTxDelay()
 {
-	// 200 and 250 were chosen arbitrarily.
+    // 200 and 250 were chosen arbitrarily.
     return (radioLinkTxCurrentPacketTries > 200 ? 250 : 1) + (randomNumber() & 3);
 }
 
@@ -152,7 +152,7 @@ uint8 radioLinkTxAvailable(void)
 
 uint8 radioLinkTxQueued(void)
 {
-	return (radioLinkTxMainLoopIndex - radioLinkTxInterruptIndex) & (TX_PACKET_COUNT - 1);
+    return (radioLinkTxMainLoopIndex - radioLinkTxInterruptIndex) & (TX_PACKET_COUNT - 1);
 }
 
 uint8 XDATA * radioLinkTxCurrentPacket()
@@ -217,7 +217,7 @@ static void txDataPacket(uint8 packetType)
     radioMacTx(radioLinkTxPacket[radioLinkTxInterruptIndex]);
     if (radioLinkTxCurrentPacketTries < 255)
     {
-    	radioLinkTxCurrentPacketTries++;
+        radioLinkTxCurrentPacketTries++;
     }
 }
 
@@ -226,7 +226,7 @@ static void takeInitiative()
     if (radioLinkTxInterruptIndex != radioLinkTxMainLoopIndex)
     {
         // Try to send the next data packet.
-    	txDataPacket(PACKET_TYPE_PING);
+        txDataPacket(PACKET_TYPE_PING);
     }
     else
     {
@@ -339,7 +339,7 @@ void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
             if (radioLinkTxInterruptIndex != radioLinkTxMainLoopIndex)
             {
                 // Send some data along with the ACK or NAK.
-            	txDataPacket(responsePacketType);
+                txDataPacket(responsePacketType);
             }
             else
             {

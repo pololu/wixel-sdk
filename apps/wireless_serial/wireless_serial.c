@@ -120,25 +120,25 @@ void updateLeds()
 
 uint8 currentSerialMode()
 {
-	if ((uint8)param_serial_mode > 0 && (uint8)param_serial_mode <= 3)
-	{
-		return (uint8)param_serial_mode;
-	}
+    if ((uint8)param_serial_mode > 0 && (uint8)param_serial_mode <= 3)
+    {
+        return (uint8)param_serial_mode;
+    }
 
     if (usbPowerPresent())
     {
         if (vinPowerPresent())
         {
-        	return SERIAL_MODE_USB_UART;
+            return SERIAL_MODE_USB_UART;
         }
         else
         {
-        	return SERIAL_MODE_USB_RADIO;
+            return SERIAL_MODE_USB_RADIO;
         }
     }
     else
     {
-    	return SERIAL_MODE_UART_RADIO;
+        return SERIAL_MODE_UART_RADIO;
     }
 }
 

@@ -16,4 +16,3 @@ _serialNumber = 0x03E3
 
 ;; The Serial Number String Descriptor is stored in the bootloader at this address:
 _serialNumberStringDescriptor = 0x03E6
-

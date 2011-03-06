@@ -22,7 +22,7 @@ void randomSeed(uint8 seed_msb, uint8 seed_lsb)
     // either of these states if it was seeded badly.
     if ((seed_lsb == 0 && seed_msb == 0) || (seed_lsb == 0x03 && seed_msb == 0x80))
     {
-    	seed_lsb = 0xAA;
+        seed_lsb = 0xAA;
     }
 
     RNDL = seed_msb;

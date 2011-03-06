@@ -35,15 +35,15 @@ void updateLeds()
     // and the interrupt that updates timeMs could fire between those two reads.
     if (blinkYellow)
     {
-    	if (timeMs >= nextToggle)
-    	{
-    		LED_YELLOW_TOGGLE();
-    		nextToggle = timeMs + randomNumber();
-    	}
+        if (timeMs >= nextToggle)
+        {
+            LED_YELLOW_TOGGLE();
+            nextToggle = timeMs + randomNumber();
+        }
     }
     else
     {
-    	LED_YELLOW(1);
+        LED_YELLOW(1);
     }
 
     LED_RED(0);
@@ -51,9 +51,9 @@ void updateLeds()
 
 uint8 nibbleToAscii(uint8 nibble)
 {
-	nibble &= 0xF;
-	if (nibble <= 0x9){ return '0' + nibble; }
-	else{ return 'A' + (nibble - 0xA); }
+    nibble &= 0xF;
+    if (nibble <= 0x9){ return '0' + nibble; }
+    else{ return 'A' + (nibble - 0xA); }
 }
 
 void receiveCommands()
@@ -81,31 +81,31 @@ void receiveCommands()
         case '1': randomSeed(0xFF, 0xFF); break;
         case '8': randomSeed(0x80, 0x03); break;
         case 'r':
-        	rand = randomNumber();
+            rand = randomNumber();
 
-        	// Wait for the NEXT random number to finish so we can read RNDH and RNDL.
+            // Wait for the NEXT random number to finish so we can read RNDH and RNDL.
             while(ADCCON1 & 0x0C);
 
-        	response[responseLength++] = ',';
-        	response[responseLength++] = nibbleToAscii(rand >> 4);
-        	response[responseLength++] = nibbleToAscii(rand);
-        	response[responseLength++] = ',';
-        	response[responseLength++] = (rand & 0x80) ? '1' : '0';
-        	response[responseLength++] = (rand & 0x40) ? '1' : '0';
-        	response[responseLength++] = (rand & 0x20) ? '1' : '0';
-        	response[responseLength++] = (rand & 0x10) ? '1' : '0';
-        	response[responseLength++] = (rand & 0x08) ? '1' : '0';
-        	response[responseLength++] = (rand & 0x04) ? '1' : '0';
-        	response[responseLength++] = (rand & 0x02) ? '1' : '0';
-        	response[responseLength++] = (rand & 0x01) ? '1' : '0';
-        	response[responseLength++] = ',';
-        	response[responseLength++] = nibbleToAscii(RNDH >> 4);
-        	response[responseLength++] = nibbleToAscii(RNDH);
-        	response[responseLength++] = nibbleToAscii(RNDL >> 4);
-        	response[responseLength++] = nibbleToAscii(RNDL);
-        	response[responseLength++] = '\r';
-        	response[responseLength++] = '\n';
-        	break;
+            response[responseLength++] = ',';
+            response[responseLength++] = nibbleToAscii(rand >> 4);
+            response[responseLength++] = nibbleToAscii(rand);
+            response[responseLength++] = ',';
+            response[responseLength++] = (rand & 0x80) ? '1' : '0';
+            response[responseLength++] = (rand & 0x40) ? '1' : '0';
+            response[responseLength++] = (rand & 0x20) ? '1' : '0';
+            response[responseLength++] = (rand & 0x10) ? '1' : '0';
+            response[responseLength++] = (rand & 0x08) ? '1' : '0';
+            response[responseLength++] = (rand & 0x04) ? '1' : '0';
+            response[responseLength++] = (rand & 0x02) ? '1' : '0';
+            response[responseLength++] = (rand & 0x01) ? '1' : '0';
+            response[responseLength++] = ',';
+            response[responseLength++] = nibbleToAscii(RNDH >> 4);
+            response[responseLength++] = nibbleToAscii(RNDH);
+            response[responseLength++] = nibbleToAscii(RNDL >> 4);
+            response[responseLength++] = nibbleToAscii(RNDL);
+            response[responseLength++] = '\r';
+            response[responseLength++] = '\n';
+            break;
         default: response[0] = '?';
         }
         usbComTxSend(response, responseLength);
