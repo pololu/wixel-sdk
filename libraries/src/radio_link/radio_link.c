@@ -128,16 +128,18 @@ void radioLinkInit()
     radioMacStrobe();
 }
 
-// Returns a random delay in units of 0.998 ms (the same units of radioMacRx).
+// Returns a random delay in units of 0.922 ms (the same units of radioMacRx).
 // This is used to decide how long to wait before retransmitting.
 // This is used to decide when to next transmit a queued data packet.
-// If we have already tried sending this packet many times, then this delay
-// will be a lot a longer, in order to avoid overcrowding the airwaves for no
-// reason.
+// If we have already tried sending this packet many times, then this function
+// will return a much longer delay, in order to avoid overcrowding the airwaves for
+// no reason.  This is similar to the idea of exponential backoff used in other
+// communications protocols such as Ethernet:
+// http://en.wikipedia.org/wiki/Exponential_backoff
 static uint8 randomTxDelay()
 {
-	// 200 and 230 were chosen arbitrarily.
-    return (radioLinkTxCurrentPacketTries > 200 ? 230 : 1) + (randomNumber() & 3);
+	// 200 and 250 were chosen arbitrarily.
+    return (radioLinkTxCurrentPacketTries > 200 ? 250 : 1) + (randomNumber() & 3);
 }
 
 /* TX FUNCTIONS (called by higher-level code in main loop) ********************/
