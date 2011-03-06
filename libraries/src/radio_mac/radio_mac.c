@@ -227,12 +227,12 @@ void radioMacInit()
 }
 
 // Called by the user from radioMacEventHandler to tell the Mac that it should
-// start trying to receive a packet.  The timeout is in units of .998 ms.
+// start trying to receive a packet.  The timeout is in units of .922 ms.
 void radioMacRx(uint8 XDATA * packet, uint8 timeout)
 {
     if (timeout)
     {
-        MCSM2 = 0x01;   // RX_TIME = 1.  Helps determine the units of the RX timeout period.
+        MCSM2 = 0x00;   // RX_TIME = 1.  Helps determine the units of the RX timeout period.
         WORCTRL = 0;    // WOR_RES = 0.  Helps determine the units of the RX timeout period.
         WOREVT1 = timeout;
         WOREVT0 = 0;
