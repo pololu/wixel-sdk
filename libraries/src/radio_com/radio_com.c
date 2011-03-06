@@ -8,6 +8,17 @@ static uint8 XDATA * DATA rxPointer = 0;
 static uint8 XDATA * DATA txPointer = 0;
 static uint8 XDATA * DATA packetPointer = 0;
 
+// For highest throughput, we want to send as much data in each packet
+// as possible.  But for lower latency, we sometimes need to send packets
+// that are NOT full.
+// This library will only send non-full packets if the number of packets
+// currently queued to be sent is small.  Specifically, that number must
+// not exceed TX_QUEUE_THRESHOLD.
+// A higher threshold means that there will be more under-populated packets
+// at the beginning of a data transfer (which is bad), but slightly reduces
+// the importance of calling radioComTxService often (which can be good).
+#define TX_QUEUE_THRESHOLD  1
+
 void radioComInit()
 {
     radioLinkInit();
@@ -67,7 +78,7 @@ static void radioComSendPacketNow()
 
 void radioComTxService(void)
 {
-    if (txBytesLoaded != 0)
+    if (txBytesLoaded != 0 && radioLinkTxQueued() <= TX_QUEUE_THRESHOLD)
     {
         radioComSendPacketNow();
     }
