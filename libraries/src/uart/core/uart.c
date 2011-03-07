@@ -7,30 +7,57 @@
 #include <cc2511_map.h>
 #include <cc2511_types.h>
 
-#if defined(UART0) || defined(__CDT_PARSER__)
-#define N 0
-#elif defined(UART1)
-#define N 1
-#else
-#error "No UART specified."
+#if defined(__CDT_PARSER__)
+#define UART0
 #endif
 
-#ifdef UART0
-#define ISR_URX()  void ISR_URX0() __interrupt(URX0_VECTOR) __using(1)
-#define ISR_UTX()  void ISR_UTX0() __interrupt(UTX0_VECTOR) __using(1)
-#define uartNRxParityErrorOccurred  uart0RxParityErorrOccurred
-#define uartNRxFramingErrorOccurred uart0RxParityErorrOccurred
-#define uartNRxBufferFullOccurred   uart0RxParityErorrOccurred
+#if defined(UART0)
+#define INTERRUPT_PRIORITY_GROUP    2
+#define ISR_URX()  void ISR_URX0()  __interrupt(URX0_VECTOR) __using(1)
+#define ISR_UTX()  void ISR_UTX0()  __interrupt(UTX0_VECTOR) __using(1)
+#define UTXNIF                      UTX0IF
+#define URXNIF                      URX0IF
+#define URXNIE                      URX0IE
+#define UNCSR                       U0CSR
+#define UNGCR                       U0GCR
+#define UNBAUD                      U0BAUD
+#define UNDBUF                      U0DBUF
+#define BV_UTXNIE                   (1<<2)
+#define uartNRxParityErrorOccurred  uart0RxParityErrorOccurred
+#define uartNRxFramingErrorOccurred uart0RxParityErrorOccurred
+#define uartNRxBufferFullOccurred   uart0RxParityErrorOccurred
 #define uartNRxAvailable            uart0RxAvailable
+#define uartNTxAvailable            uart0TxAvailable
 #define uartNInit                   uart0Init
-#else
+#define uartNSetBaudRate            uart0SetBaudRate
+#define uartNTxSend                 uart0TxSend
+#define uartNRxReceiveByte          uart0RxReceiveByte
+#define uartNTxSend                 uart0TxSend
+#define uartNTxSendByte             uart0TxSendByte
+
+#elif defined(UART1)
+#define INTERRUPT_PRIORITY_GROUP     3
 #define ISR_URX()  void ISR_URX1() __interrupt(URX1_VECTOR) __using(1)
 #define ISR_UTX()  void ISR_UTX1() __interrupt(UTX1_VECTOR) __using(1)
-#define uartNRxParityErrorOccurred   uart1RxParityErorrOccurred
-#define uartNRxFramingErrorOccurred  uart1RxParityErorrOccurred
-#define uartNRxBufferFullOccurred    uart1RxParityErorrOccurred
+#define UTXNIF                       UTX1IF
+#define URXNIF                       URX1IF
+#define URXNIE                       URX1IE
+#define UNCSR                        U1CSR
+#define UNGCR                        U1GCR
+#define UNBAUD                       U1BAUD
+#define UNDBUF                       U1DBUF
+#define BV_UTXNIE                    (1<<3)
+#define uartNRxParityErrorOccurred   uart1RxParityErrorOccurred
+#define uartNRxFramingErrorOccurred  uart1RxParityErrorOccurred
+#define uartNRxBufferFullOccurred    uart1RxParityErrorOccurred
 #define uartNRxAvailable             uart1RxAvailable
+#define uartNTxAvailable             uart1TxAvailable
 #define uartNInit                    uart1Init
+#define uartNSetBaudRate             uart1SetBaudRate
+#define uartNTxSend                  uart1TxSend
+#define uartNRxReceiveByte           uart1RxReceiveByte
+#define uartNTxSend                  uart1TxSend
+#define uartNTxSendByte              uart1TxSendByte
 #endif
 
 static volatile uint8 XDATA uartTxBuffer[256];         // sizeof(uartTxBuffer) must be a power of two
@@ -52,60 +79,53 @@ volatile BIT uartNRxBufferFullOccurred;
 
 void uartNInit(void)
 {
-    /* USART0 UART Alt. 1: RTS = P0_5
-     *                     CTS = P0_4
+    /* USART0 UART Alt. 1:
      *                     TX  = P0_3
      *                     RX  = P0_2
      */
 
-    // set P0 priority
-    P2DIR &= ~0xC0; // P2DIR.PRIP0 (7:6) = 00 (USART0 over USART1)
+    /* USART1 UART Alt. 2:
+     *                     TX  = P1_6
+     *                     RX  = P1_7
+     */
 
-    // set uartN I/O location to P0
-    PERCFG &= ~0x01; // PERCFG.U0CFG (0) = 0 (Alt. 1)
-
-    // Set P0_3/TX to be a "peripheral function" pin instead of GPIO.
-    // Note: We do NOT do that same for P0_2/RX because that seems to have
-    // no benefits, and is actually bad because it disables the internal
-    // pull-up resistor.
-    P0SEL |= (1<<3); // P0SEL.SELP0_3 = 1
-
-    // make sure ADC doesn't use this
-    //ADCCFG &= ~(0x0c); // ADCCFG.ADCCFG[3:2] = 0 (ADC input disabled)
-
-    U0UCR |= 0x80; // U0UCR.FLUSH (7) = 1
-
-    // set tx flag so the interrupt fires when we enable it for the first time
-    UTX0IF = 1;
-
-    // initialize tx buffer
     uartTxBufferMainLoopIndex = 0;
     uartTxBufferInterruptIndex = 0;
-
-    // clear rx flag
-    URX0IF = 0;
-
-    // initialize rx buffer
     uartRxBufferMainLoopIndex = 0;
     uartRxBufferInterruptIndex = 0;
     uartNRxParityErrorOccurred = 0;
     uartNRxFramingErrorOccurred = 0;
     uartNRxBufferFullOccurred = 0;
 
-    // configure USART0 to enable UART and receiver
-    U0CSR |= 0xc0; // U0CSR.MODE (7) = 1 (UART mode); U0CSR.RE (6) = 1 (receiver enabled)
+    // Note: We do NOT set the mode of the RX pin to "peripheral function"
+    // because that seems to have no benefits, and is actually bad because
+    // it disables the internal pull-up resistor.
 
-    // Set the priority of the uartN RX and TX interrupts to be 1 (second lowest priority).
+#ifdef UART0
+    P2DIR &= ~0xC0;  // P2DIR.PRIP0 (7:6) = 00 : USART0 takes priority over USART1.
+    PERCFG &= ~0x01; // PERCFG.U0CFG (0) = 0 (Alt. 1) : USART0 uses alt. location 0.
+    P0SEL |= (1<<3); // TX pin mode = peripheral func.  P0SEL.SELP0_3 = 1
+    U0UCR |= 0x80;   // U0UCR.FLUSH (7) = 1 : Stops the "current operation".
+#else
+    P2SEL |= 0x40;   // USART1 takes priority over USART0 on Port 1.
+    PERCFG |= 0x02;  // PERCFG.U1CFG (1) = 1 (Alt. 2) : USART1 uses alt. location 2.
+    P1SEL |= (1<<6); // TX pin mode = peripheral func.  P1SEL.SELP1_6 = 1
+    U1UCR |= 0x80;   // U0UCR.FLUSH (7) = 1 : Stops the "current operation".
+#endif
+
+    UNCSR |= 0xc0;   // Enable UART mode and enable receiver.  TODO: change '|=' to '='
+
+    // Below, we set the priority of the RX and TX interrupts to be 1 (second lowest priority).
     // They need to be higher than the RF interrupt because that one could take a long time.
-    // This code also sets the priority of the T2 interrupt, because it is grouped with uartN.
-    IP0 |= (1<<2);
-    IP1 &= ~(1<<2);
+    // The UART0 interrupts are grouped with the T2 interrupt, so its priority also gets set.
+    // The UART1 interrupts are grouped with the T3 interrupts, so its prioerity also gets set.
+    IP0 |= (1<<INTERRUPT_PRIORITY_GROUP);
+    IP1 &= ~(1<<INTERRUPT_PRIORITY_GROUP);
 
-    // enable rx interrupt
-    URX0IE = 1;
-
-    // enable interrupts in general
-    EA = 1;
+    UTXNIF = 1; // Set TX flag so the interrupt fires when we enable it for the first time.
+    URXNIF = 0; // Clear RX flag.
+    URXNIE = 1; // Enable Rx interrupt.
+    EA = 1;     // Enable interrupts in general.
 }
 
 void uartNSetBaudRate(uint32 baud)
@@ -127,8 +147,8 @@ void uartNSetBaudRate(uint32 baud)
         baudE++;
         baudMPlus256 /= 2;
     }
-    U0GCR = baudE; // U0GCR.BAUD_E (4:0)
-    U0BAUD = baudMPlus256; // U0BAUD.BAUD_M (7:0) - only the lowest 8 bits of baudMPlus256 are used, so this is effectively baudMPlus256 - 256
+    UNGCR = baudE; // UNGCR.BAUD_E (4:0)
+    UNBAUD = baudMPlus256; // UNBAUD.BAUD_M (7:0) - only the lowest 8 bits of baudMPlus256 are used, so this is effectively baudMPlus256 - 256
 }
 
 uint8 uartNTxAvailable(void)
@@ -149,8 +169,7 @@ void uartNTxSend(const uint8 XDATA * buffer, uint8 size)
         uartTxBufferMainLoopIndex = (uartTxBufferMainLoopIndex + 1) & (sizeof(uartTxBuffer) - 1);
         size--;
 
-        // Enable UART TX interrupt
-        IEN2 |= 0x04; // IEN2.UTX0IE (2)
+        IEN2 |= BV_UTXNIE; // Enable TX interrupt
     }
 }
 
@@ -161,25 +180,24 @@ void uartNTxSendByte(uint8 byte)
     uartTxBuffer[uartTxBufferMainLoopIndex] = byte;
     uartTxBufferMainLoopIndex = (uartTxBufferMainLoopIndex + 1) & (sizeof(uartTxBuffer) - 1);
 
-    // Enable UART TX interrupt
-    IEN2 |= 0x04; // IEN2.UTX0IE (2)
+    IEN2 |= BV_UTXNIE; // Enable TX interrupt
 }
 
-uint8 uartNRxAvaialable(void)
+uint8 uartNRxAvailable(void)
 {
     return UART_RX_BUFFER_USED_BYTES();
 }
 
 uint8 uartNRxReceiveByte(void)
 {
-    // Assumption: uartNRxAvaialable was recently called and it returned a non-zero value.
+    // Assumption: uartNRxAvailable was recently called and it returned a non-zero value.
 
     uint8 byte = uartRxBuffer[uartRxBufferMainLoopIndex];
     uartRxBufferMainLoopIndex = (uartRxBufferMainLoopIndex + 1) & (sizeof(uartRxBuffer) - 1);
     return byte;
 }
 
-ISR_URX()
+ISR_UTX()
 {
     // A byte has just started transmitting on TX and there is room in
     // the UART's hardware buffer for us to add another byte.
@@ -189,31 +207,31 @@ ISR_URX()
         // There more bytes available in our software buffer, so send
         // the next byte.
 
-        UTX0IF = 0;
+        UTXNIF = 0;
 
-        U0DBUF = uartTxBuffer[uartTxBufferInterruptIndex];
+        UNDBUF = uartTxBuffer[uartTxBufferInterruptIndex];
         uartTxBufferInterruptIndex = (uartTxBufferInterruptIndex + 1) & (sizeof(uartTxBuffer) - 1);
     }
     else
     {
-        // There are no more bytes to send in our buffer, so disable this interrupt.
-        IEN2 &= ~0x04; // IEN2.UTX0IE (2) = 0
+        // There are no more bytes to send in our buffer, so disable the TX interrupt.
+        IEN2 &= ~BV_UTXNIE;
     }
 }
 
-ISR_UTX()
+ISR_URX()
 {
-    URX0IF = 0;
+    URXNIF = 0;
 
     // check for frame and parity errors
-    if (!(U0CSR & 0x18)) // U0CSR.FE (4) == 0; U0CSR.ERR (3) == 0
+    if (!(UNCSR & 0x18)) // UNCSR.FE (4) == 0; UNCSR.ERR (3) == 0
     {
         // There were no errors.
 
         if (UART_RX_BUFFER_FREE_BYTES())
         {
             // The software RX buffer has space, so add this new byte to the buffer.
-            uartRxBuffer[uartRxBufferInterruptIndex] = U0DBUF;
+            uartRxBuffer[uartRxBufferInterruptIndex] = UNDBUF;
             uartRxBufferInterruptIndex = (uartRxBufferInterruptIndex + 1) & (sizeof(uartRxBuffer) - 1);
         }
         else
@@ -224,11 +242,11 @@ ISR_UTX()
     }
     else
     {
-        if (U0CSR & 0x10) // U0CSR.FE (4) == 1
+        if (UNCSR & 0x10) // UNCSR.FE (4) == 1
         {
             uartNRxFramingErrorOccurred = 1;
         }
-        if (U0CSR & 0x08) // U0CSR.ERR (3) == 1
+        if (UNCSR & 0x08) // UNCSR.ERR (3) == 1
         {
             uartNRxParityErrorOccurred = 1;
         }
