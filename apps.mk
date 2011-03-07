@@ -18,7 +18,7 @@ $(1) : apps/$(1)/$(1).wxl
 
 .PHONY : load_$(1)
 load_$(1) : apps/$(1)/$(1).wxl
-	$$(WIXELCMD) write $$< -a
+	$$(WIXELCMD) write $$< $$(S) -a 
 
 endef
 
