@@ -7,14 +7,31 @@
 #include <cc2511_map.h>
 #include <cc2511_types.h>
 
-#if defined(UART0)
+#if defined(UART0) || defined(__CDT_PARSER__)
 #define N 0
 #elif defined(UART1)
 #define N 1
+#else
+#error "No UART specified."
 #endif
 
-#define uartNRxParityErrorOccurred  uart##N##RxParityErorrOccurred
-#define uartNRxAvaialble           uart##0##RxAvailable
+#ifdef UART0
+#define ISR_URX()  void ISR_URX0() __interrupt(URX0_VECTOR) __using(1)
+#define ISR_UTX()  void ISR_UTX0() __interrupt(UTX0_VECTOR) __using(1)
+#define uartNRxParityErrorOccurred  uart0RxParityErorrOccurred
+#define uartNRxFramingErrorOccurred uart0RxParityErorrOccurred
+#define uartNRxBufferFullOccurred   uart0RxParityErorrOccurred
+#define uartNRxAvailable            uart0RxAvailable
+#define uartNInit                   uart0Init
+#else
+#define ISR_URX()  void ISR_URX1() __interrupt(URX1_VECTOR) __using(1)
+#define ISR_UTX()  void ISR_UTX1() __interrupt(UTX1_VECTOR) __using(1)
+#define uartNRxParityErrorOccurred   uart1RxParityErorrOccurred
+#define uartNRxFramingErrorOccurred  uart1RxParityErorrOccurred
+#define uartNRxBufferFullOccurred    uart1RxParityErorrOccurred
+#define uartNRxAvailable             uart1RxAvailable
+#define uartNInit                    uart1Init
+#endif
 
 static volatile uint8 XDATA uartTxBuffer[256];         // sizeof(uartTxBuffer) must be a power of two
 static volatile uint8 DATA uartTxBufferMainLoopIndex;  // Index of next byte main loop will write.
@@ -30,10 +47,10 @@ static volatile uint8 DATA uartRxBufferInterruptIndex; // Index of next byte int
 #define UART_RX_BUFFER_USED_BYTES() ((uartRxBufferInterruptIndex - uartRxBufferMainLoopIndex) & (sizeof(uartRxBuffer) - 1))
 
 volatile BIT uartNRxParityErrorOccurred;
-volatile BIT uart0RxFramingErrorOccurred;
-volatile BIT uart0RxBufferFullOccurred;
+volatile BIT uartNRxFramingErrorOccurred;
+volatile BIT uartNRxBufferFullOccurred;
 
-void uart0Init(void)
+void uartNInit(void)
 {
     /* USART0 UART Alt. 1: RTS = P0_5
      *                     CTS = P0_4
@@ -44,7 +61,7 @@ void uart0Init(void)
     // set P0 priority
     P2DIR &= ~0xC0; // P2DIR.PRIP0 (7:6) = 00 (USART0 over USART1)
 
-    // set UART0 I/O location to P0
+    // set uartN I/O location to P0
     PERCFG &= ~0x01; // PERCFG.U0CFG (0) = 0 (Alt. 1)
 
     // Set P0_3/TX to be a "peripheral function" pin instead of GPIO.
@@ -72,15 +89,15 @@ void uart0Init(void)
     uartRxBufferMainLoopIndex = 0;
     uartRxBufferInterruptIndex = 0;
     uartNRxParityErrorOccurred = 0;
-    uart0RxFramingErrorOccurred = 0;
-    uart0RxBufferFullOccurred = 0;
+    uartNRxFramingErrorOccurred = 0;
+    uartNRxBufferFullOccurred = 0;
 
     // configure USART0 to enable UART and receiver
     U0CSR |= 0xc0; // U0CSR.MODE (7) = 1 (UART mode); U0CSR.RE (6) = 1 (receiver enabled)
 
-    // Set the priority of the UART0 RX and TX interrupts to be 1 (second lowest priority).
+    // Set the priority of the uartN RX and TX interrupts to be 1 (second lowest priority).
     // They need to be higher than the RF interrupt because that one could take a long time.
-    // This code also sets the priority of the T2 interrupt, because it is grouped with UART0.
+    // This code also sets the priority of the T2 interrupt, because it is grouped with uartN.
     IP0 |= (1<<2);
     IP1 &= ~(1<<2);
 
@@ -91,7 +108,7 @@ void uart0Init(void)
     EA = 1;
 }
 
-void uart0SetBaudRate(uint32 baud)
+void uartNSetBaudRate(uint32 baud)
 {
     uint32 baudMPlus256;
     uint8 baudE = 0;
@@ -114,14 +131,14 @@ void uart0SetBaudRate(uint32 baud)
     U0BAUD = baudMPlus256; // U0BAUD.BAUD_M (7:0) - only the lowest 8 bits of baudMPlus256 are used, so this is effectively baudMPlus256 - 256
 }
 
-uint8 uart0TxAvailable(void)
+uint8 uartNTxAvailable(void)
 {
     return UART_TX_BUFFER_FREE_BYTES();
 }
 
-void uart0TxSend(const uint8 XDATA * buffer, uint8 size)
+void uartNTxSend(const uint8 XDATA * buffer, uint8 size)
 {
-    // Assumption: uart0TxSend() was recently called and it returned a number at least as big as 'size'.
+    // Assumption: uartNTxSend() was recently called and it returned a number at least as big as 'size'.
     // TODO: after DMA memcpy is implemented, use it to make this function faster
 
     while (size)
@@ -137,9 +154,9 @@ void uart0TxSend(const uint8 XDATA * buffer, uint8 size)
     }
 }
 
-void uart0TxSendByte(uint8 byte)
+void uartNTxSendByte(uint8 byte)
 {
-    // Assumption: uart0TxAvailable() was recently called and it returned a non-zero number.
+    // Assumption: uartNTxAvailable() was recently called and it returned a non-zero number.
 
     uartTxBuffer[uartTxBufferMainLoopIndex] = byte;
     uartTxBufferMainLoopIndex = (uartTxBufferMainLoopIndex + 1) & (sizeof(uartTxBuffer) - 1);
@@ -153,7 +170,7 @@ uint8 uartNRxAvaialable(void)
     return UART_RX_BUFFER_USED_BYTES();
 }
 
-uint8 uart0RxReceiveByte(void)
+uint8 uartNRxReceiveByte(void)
 {
     // Assumption: uartNRxAvaialable was recently called and it returned a non-zero value.
 
@@ -162,7 +179,7 @@ uint8 uart0RxReceiveByte(void)
     return byte;
 }
 
-ISR(UTX0, 1)
+ISR_URX()
 {
     // A byte has just started transmitting on TX and there is room in
     // the UART's hardware buffer for us to add another byte.
@@ -184,7 +201,7 @@ ISR(UTX0, 1)
     }
 }
 
-ISR(URX0, 1)
+ISR_UTX()
 {
     URX0IF = 0;
 
@@ -202,14 +219,14 @@ ISR(URX0, 1)
         else
         {
             // The buffer is full, so discard the received byte and report and overflow error.
-            uart0RxBufferFullOccurred = 1;
+            uartNRxBufferFullOccurred = 1;
         }
     }
     else
     {
         if (U0CSR & 0x10) // U0CSR.FE (4) == 1
         {
-            uart0RxFramingErrorOccurred = 1;
+            uartNRxFramingErrorOccurred = 1;
         }
         if (U0CSR & 0x08) // U0CSR.ERR (3) == 1
         {
