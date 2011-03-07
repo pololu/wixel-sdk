@@ -16,8 +16,9 @@ LD := sdld#         Linker:     creates .hex files from .rel/.lib files)
 PACKIHX := packihx# makes .hex files smaller
 MV := move#         moves files
 CP := cp#           copies files
-ECHO := echo#       prints some text to the standard output
-GREP := grep#       prints lines from a file that match a given pattern
+CAT := cat#         outputs files
+ECHO := echo#       outputs some text to the standard output
+GREP := grep#       outputs lines from a file that match a given pattern
 WIXELCMD := wixelcmd# loads programs on the Wixel
 
 #### Include directories #######################################################
@@ -173,6 +174,7 @@ endif
 	$(V)$(ECHO) Pololu Wixel Application - www.pololu.com> $@.tmp
 	$(V)$(ECHO) 1.0>> $@.tmp
 	$(V)$(ECHO) ====== license>> $@.tmp
+	$(V)$(CAT) LICENSE.txt >> $@.tmp
 	$(V)$(ECHO) ====== cdb>> $@.tmp
 	$(V)$(GREP) param $(<:%.hex=%.cdb) >> $@.tmp || echo (This app has no params.)
 	$(V)$(ECHO) ====== hex>> $@.tmp
