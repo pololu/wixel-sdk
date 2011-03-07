@@ -15,6 +15,7 @@ AR := sdcclib#      Librarian:  creates .lib
 LD := sdld#         Linker:     creates .hex files from .rel/.lib files)
 PACKIHX := packihx# makes .hex files smaller
 MV := move#         moves files
+CP := cp#           copies files
 ECHO := echo#       prints some text to the standard output
 GREP := grep#       prints lines from a file that match a given pattern
 WIXELCMD := wixelcmd# loads programs on the Wixel

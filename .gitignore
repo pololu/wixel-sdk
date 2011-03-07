@@ -26,5 +26,8 @@ apps/*/*
 .cproject
 .project
 
-# Ignore generated docs
 libraries/doc_output
+
+libraries/src/uart/uart0.c
+
+libraries/src/uart/uart1.c
