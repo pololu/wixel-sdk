@@ -3,15 +3,18 @@
  * information on how to use this library.
  */
 
-// TODO: why does the loopback test fail when we have this setup:
-// Computer -> Wixel )))) Wixel with RX tied to TX
-// It works for small transmissions, but if you try to send more than about 140 or so  bytes,
-// a bunch of zeroes are received!  I suspect there might be something wrong with this library,
-// but it could also be a bug in the radio libraries or usbCom.
-
 #include "uart.h"
 #include <cc2511_map.h>
 #include <cc2511_types.h>
+
+#if defined(UART0)
+#define N 0
+#elif defined(UART1)
+#define N 1
+#endif
+
+#define uartNRxParityErrorOccurred  uart##N##RxParityErorrOccurred
+#define uartNRxAvaialble           uart##0##RxAvailable
 
 static volatile uint8 XDATA uartTxBuffer[256];         // sizeof(uartTxBuffer) must be a power of two
 static volatile uint8 DATA uartTxBufferMainLoopIndex;  // Index of next byte main loop will write.
@@ -26,7 +29,7 @@ static volatile uint8 DATA uartRxBufferInterruptIndex; // Index of next byte int
 #define UART_RX_BUFFER_FREE_BYTES() ((uartRxBufferMainLoopIndex - uartRxBufferInterruptIndex - 1) & (sizeof(uartRxBuffer) - 1))
 #define UART_RX_BUFFER_USED_BYTES() ((uartRxBufferInterruptIndex - uartRxBufferMainLoopIndex) & (sizeof(uartRxBuffer) - 1))
 
-volatile BIT uart0RxParityErrorOccurred;
+volatile BIT uartNRxParityErrorOccurred;
 volatile BIT uart0RxFramingErrorOccurred;
 volatile BIT uart0RxBufferFullOccurred;
 
@@ -68,7 +71,7 @@ void uart0Init(void)
     // initialize rx buffer
     uartRxBufferMainLoopIndex = 0;
     uartRxBufferInterruptIndex = 0;
-    uart0RxParityErrorOccurred = 0;
+    uartNRxParityErrorOccurred = 0;
     uart0RxFramingErrorOccurred = 0;
     uart0RxBufferFullOccurred = 0;
 
@@ -145,14 +148,14 @@ void uart0TxSendByte(uint8 byte)
     IEN2 |= 0x04; // IEN2.UTX0IE (2)
 }
 
-uint8 uart0RxAvailable(void)
+uint8 uartNRxAvaialable(void)
 {
     return UART_RX_BUFFER_USED_BYTES();
 }
 
 uint8 uart0RxReceiveByte(void)
 {
-    // Assumption: uart0RxAvailable was recently called and it returned a non-zero value.
+    // Assumption: uartNRxAvaialable was recently called and it returned a non-zero value.
 
     uint8 byte = uartRxBuffer[uartRxBufferMainLoopIndex];
     uartRxBufferMainLoopIndex = (uartRxBufferMainLoopIndex + 1) & (sizeof(uartRxBuffer) - 1);
@@ -210,7 +213,7 @@ ISR(URX0, 1)
         }
         if (U0CSR & 0x08) // U0CSR.ERR (3) == 1
         {
-            uart0RxParityErrorOccurred = 1;
+            uartNRxParityErrorOccurred = 1;
         }
     }
 }
