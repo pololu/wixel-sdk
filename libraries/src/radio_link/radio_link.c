@@ -348,6 +348,11 @@ void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
         }
         else
         {
+        	// TODO: if radioLinkTxCurrentPacketTries > 200 then we should probably just go
+        	// in to RX mode here so we can avoid having this conversation 4 times per second:
+        	// DATA, NAK, DATA, NAK, DATA, NAK, DATA, NAK, DATA, NAK, ...
+        	// (It starts when the sender takes initiative and sends his (failing) data every
+        	// 250ms, and it ends as soon as one packet is lost.)
             takeInitiative();
         }
         return;
