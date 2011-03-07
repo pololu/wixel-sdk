@@ -68,7 +68,7 @@ The CC2511 has two hardware USARTS: USART0 and USART1.
 
 The Wixel SDK has a library named
 <code>uart.lib</code> that supports using USART0 in UART mode to send and receive
-a serial bytes.  For details, see uart.h.
+a serial bytes.  For details, see uart0.h.
 
 **/
 

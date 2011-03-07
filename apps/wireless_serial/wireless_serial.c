@@ -1,10 +1,9 @@
 /* wireless_serial app:
  *
  * Pin out:
- * P0_3 = TX
- * P0_2 = RX
- * P1_7 = Radio Transmit Debug Signal
- * P1_6 = Radio Receive Debug Signal
+ * P1_5 = Radio Transmit Debug Signal
+ * P1_6 = Serial TX (0-3.3V)
+ * P1_7 = Serial RX (0-3.3V, not 5V tolerant)
  *
  * == Overview ==
  * This app allows you to connect two Wixels together to make a wireless,
@@ -85,7 +84,7 @@
 #include <radio_com.h>
 #include <radio_link.h>
 
-#include <uart.h>
+#include <uart1.h>
 
 
 /** Parameters ****************************************************************/
@@ -157,27 +156,27 @@ void usbToRadioService()
 
 void uartToRadioService()
 {
-    while(uart0RxAvailable() && radioComTxAvailable())
+    while(uart1RxAvailable() && radioComTxAvailable())
     {
-        radioComTxSendByte(uart0RxReceiveByte());
+        radioComTxSendByte(uart1RxReceiveByte());
     }
 
-    while(radioComRxAvailable() && uart0TxAvailable())
+    while(radioComRxAvailable() && uart1TxAvailable())
     {
-        uart0TxSendByte(radioComRxReceiveByte());
+        uart1TxSendByte(radioComRxReceiveByte());
     }
 }
 
 void usbToUartService()
 {
-    while(usbComRxAvailable() && uart0TxAvailable())
+    while(usbComRxAvailable() && uart1TxAvailable())
     {
-        uart0TxSendByte(usbComRxReceiveByte());
+        uart1TxSendByte(usbComRxReceiveByte());
     }
 
-    while(uart0RxAvailable() && usbComTxAvailable())
+    while(uart1RxAvailable() && usbComTxAvailable())
     {
-        usbComTxSendByte(uart0RxReceiveByte());
+        usbComTxSendByte(uart1RxReceiveByte());
     }
 }
 
@@ -186,16 +185,15 @@ void main()
     systemInit();
     usbInit();
 
-    uart0Init();
-    uart0SetBaudRate(param_baud_rate);
+    uart1Init();
+    uart1SetBaudRate(param_baud_rate);
 
     radioComInit();
     randomSeedFromSerialNumber();
 
-    // Set up P1_6 to be the RX debug signal and P1_7 to be the TX debug signal.
-    P1DIR |= (1<<6) | (1<<7);
-    IOCFG1 = 0b001000; // P1_6 = Preamble Quality Reached
-    IOCFG2 = 0b011011; // P1_7 = PA_PD (TX mode)
+    // Set up P1_5 to be the radio's TX debug signal.
+    P1DIR |= (1<<5);
+    IOCFG0 = 0b011011; // P1_5 = PA_PD (TX mode)
 
     while(1)
     {

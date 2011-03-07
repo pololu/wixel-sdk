@@ -4,7 +4,4 @@
 #include <cc2511_map.h>
 #include <board.h>
 #include <time.h>
-#include <usb.h>
-#include <usb_com.h>
 #include <dma.h>
-#include <uart.h>

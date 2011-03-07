@@ -3,7 +3,6 @@
  * information on how to use this library.
  */
 
-#include "uart.h"
 #include <cc2511_map.h>
 #include <cc2511_types.h>
 
@@ -12,6 +11,7 @@
 #endif
 
 #if defined(UART0)
+#include <uart0.h>
 #define INTERRUPT_PRIORITY_GROUP    2
 #define ISR_URX()  void ISR_URX0()  __interrupt(URX0_VECTOR) __using(1)
 #define ISR_UTX()  void ISR_UTX0()  __interrupt(UTX0_VECTOR) __using(1)
@@ -36,6 +36,7 @@
 #define uartNTxSendByte             uart0TxSendByte
 
 #elif defined(UART1)
+#include <uart1.h>
 #define INTERRUPT_PRIORITY_GROUP     3
 #define ISR_URX()  void ISR_URX1() __interrupt(URX1_VECTOR) __using(1)
 #define ISR_UTX()  void ISR_UTX1() __interrupt(UTX1_VECTOR) __using(1)
