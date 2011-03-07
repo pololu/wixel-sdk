@@ -44,8 +44,11 @@ void uart0Init(void)
     // set UART0 I/O location to P0
     PERCFG &= ~0x01; // PERCFG.U0CFG (0) = 0 (Alt. 1)
 
-    // enable tx and rx on P0_3 & P0_2
-    P0SEL |= 0x0c; // P0SEL.SELP0[3:2] = 1 (peripheral function)
+    // Set P0_3/TX to be a "peripheral function" pin instead of GPIO.
+    // Note: We do NOT do that same for P0_2/RX because that seems to have
+    // no benefits, and is actually bad because it disables the internal
+    // pull-up resistor.
+    P0SEL |= (1<<3); // P0SEL.SELP0_3 = 1
 
     // make sure ADC doesn't use this
     //ADCCFG &= ~(0x0c); // ADCCFG.ADCCFG[3:2] = 0 (ADC input disabled)
