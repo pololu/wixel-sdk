@@ -119,7 +119,7 @@ void uartNInit(void)
     // Below, we set the priority of the RX and TX interrupts to be 1 (second lowest priority).
     // They need to be higher than the RF interrupt because that one could take a long time.
     // The UART0 interrupts are grouped with the T2 interrupt, so its priority also gets set.
-    // The UART1 interrupts are grouped with the T3 interrupts, so its prioerity also gets set.
+    // The UART1 interrupts are grouped with the T3 interrupts, so its priority also gets set.
     IP0 |= (1<<INTERRUPT_PRIORITY_GROUP);
     IP1 &= ~(1<<INTERRUPT_PRIORITY_GROUP);
 
