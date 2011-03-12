@@ -1,10 +1,13 @@
 /** \mainpage Wixel SDK Documentation
 
+The <a href="http://www.pololu.com/catalog/product/1336">Wixel</a> is
+a wireless development platform created by
+<a href="http://www.pololu.com/">Pololu</a> that is based around the
+<a href="http://focus.ti.com/docs/prod/folders/print/cc2511f32.html">CC2511F32</a>
+chip from Texas Instruments.
 The Pololu Wixel Software Development Kit (SDK) contains code, utilities,
-and Makefiles which will help you build your own applications for the
-<a href="http://www.pololu.com/catalog/product/1336">Pololu Wixel</a>, a
-wireless development platform based around the CC2511F32 chip from
-Texas Instruments.
+and Makefiles which will help you build your own applications for the Wixel.
+
 
 \section downloading Download Instructions
 
