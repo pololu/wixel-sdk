@@ -4,7 +4,7 @@
 #include <usb_com.h>
 #include <stdio.h>
 
-int32 CODE param_blink_period = 500;
+int32 CODE param_blink_period_ms = 500;
 
 void updateLeds()
 {
@@ -16,7 +16,7 @@ void updateLeds()
 
     // NOTE: The code below is bad because it is reading two bytes of timeMs,
     // and the interrupt that updates timeMs could fire between those two reads.
-    if ((uint16)(timeMs - lastToggle) >= param_blink_period)
+    if ((uint16)(timeMs - lastToggle) >= param_blink_period_ms)
     {
         LED_RED(!LED_RED_STATE);
         lastToggle = timeMs;
@@ -33,7 +33,7 @@ void receiveCommands()
         byte = usbComRxReceiveByte();
         if (byte == (uint8)'?')
         {
-            uint8 length = sprintf(response, "? blink period = %d\r\n", (uint16)param_blink_period);
+            uint8 length = sprintf(response, "? blink period = %d ms\r\n", (uint16)param_blink_period_ms);
             usbComTxSend(response, length);
         }
     }
