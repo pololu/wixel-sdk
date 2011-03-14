@@ -6,7 +6,7 @@
 
 int32 CODE param_blink_period_ms = 500;
 
-BIT yellowLedOn = 1;
+BIT yellowLedOn = 0;
 
 void updateLeds()
 {
