@@ -84,7 +84,7 @@ void boardIoInit()
 static void boardDetectVbus()
 {
     static uint8 lastCheck = 128;
-    if ((uint8)(timeMs - lastCheck) > 25)
+    if ((uint8)(getMs() - lastCheck) > 25)
     {
         BIT savedState = (P2DIR >> 4) & 1;
         if (savedState == 0)
@@ -104,7 +104,7 @@ static void boardDetectVbus()
             P2DIR |= (1<<4);  // LED was on previously so turn it back on.
         }
 
-        lastCheck = timeMs;
+        lastCheck = getMs();
     }
 }
 

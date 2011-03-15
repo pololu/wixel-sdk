@@ -20,7 +20,7 @@
 
 void updateLeds()
 {
-    LED_GREEN(timeMs >> 9 & 1);     // Blink the Green LED (only visible w/ USB).
+    LED_GREEN(getMs() >> 9 & 1);    // Blink the Green LED (only visible w/ USB).
     LED_YELLOW(vinPowerPresent());  // Indicate VIN power with the yellow LED.
     LED_RED(usbPowerPresent());     // Indicate USB power with the red LED.
 }

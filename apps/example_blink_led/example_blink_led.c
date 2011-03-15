@@ -18,10 +18,10 @@ void updateLeds()
 
     // NOTE: The code below is bad because it is reading two bytes of timeMs,
     // and the interrupt that updates timeMs could fire between those two reads.
-    if ((uint16)(timeMs - lastToggle) >= param_blink_period_ms)
+    if ((uint16)(getMs() - lastToggle) >= param_blink_period_ms)
     {
         LED_RED(!LED_RED_STATE);
-        lastToggle = timeMs;
+        lastToggle = getMs();
     }
 }
 
@@ -38,8 +38,8 @@ void receiveCommands()
         // Commands for toggling the yellow LED.
         case 'y':
         case 0x81:
-        	yellowLedOn = !yellowLedOn;
-        	break;
+            yellowLedOn = !yellowLedOn;
+            break;
 
         // Commands for getting the blink_period parameter.
         case 'b':
@@ -47,10 +47,10 @@ void receiveCommands()
             usbComTxSend(response, length);
             break;
         case 0x82:
-        	response[0] = param_blink_period_ms & 0xFF;
-        	response[1] = param_blink_period_ms >> 8 & 0xFF;
-        	usbComTxSend(response, 2);
-        	break;
+            response[0] = param_blink_period_ms & 0xFF;
+            response[1] = param_blink_period_ms >> 8 & 0xFF;
+            usbComTxSend(response, 2);
+            break;
         }
     }
 }

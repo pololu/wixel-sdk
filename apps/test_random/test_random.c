@@ -36,10 +36,11 @@ void updateLeds()
     // and the interrupt that updates timeMs could fire between those two reads.
     if (blinkYellow)
     {
-        if (timeMs >= nextToggle)
+        uint32 time = getMs();
+        if (time >= nextToggle)
         {
             LED_YELLOW_TOGGLE();
-            nextToggle = timeMs + randomNumber();
+            nextToggle = time + randomNumber();
         }
     }
     else

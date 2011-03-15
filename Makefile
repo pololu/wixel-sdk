@@ -176,7 +176,7 @@ endif
 	$(V)$(ECHO) ====== license>> $@.tmp
 	$(V)$(CAT) LICENSE.txt >> $@.tmp
 	$(V)$(ECHO) ====== cdb>> $@.tmp
-	$(V)$(GREP) param $(<:%.hex=%.cdb) >> $@.tmp || echo (This app has no params.)
+	$(V)$(GREP) param $(<:%.hex=%.cdb) >> $@.tmp || echo "(This app has no params.)"
 	$(V)$(ECHO) ====== hex>> $@.tmp
 	$(V)$(PACKIHX) $< >> $@.tmp
 	$(V)mv -f $@.tmp $@

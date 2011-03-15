@@ -15,6 +15,16 @@ ISR(T4, 1)
     // T4CC0 ^= 1; // If we do this, then on average the interrupts will occur precisely 1.000 ms apart.
 }
 
+uint32 getMs()
+{
+    uint8 oldT4IE = T4IE;   // store state of timer 4 interrupt (active/inactive?)
+    uint32 time;
+    T4IE = 0;               // disable timer 4 interrupt
+    time = timeMs;          // copy millisecond timer count into a safe variable
+    T4IE = oldT4IE;         // restore timer 4 interrupt to its original state
+    return time;            // return timer count copy
+}
+
 void timeInit()
 {
     T4CC0 = 187;

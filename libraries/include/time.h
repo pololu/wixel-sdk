@@ -24,17 +24,10 @@
  * large factor. */
 void timeInit();
 
-/*! The approximate number of milliseconds since timeInit was called
- * started.  This variable is updated by an interrupt (T4_ISR), so
- * you should NOT read multiple bytes from it: if you do so, the
- * interrupt might fire between two successive byte reads and it
- * might result in a carry between the two bytes, which could result
- * in an incorrect value being read.
- *
- * NOTE: This is not very accurate.  The units of this time
- * measurement are actually closer to 1.00266 milliseconds.  If you need
- * millisecond timing more accurate than that, use Timer 1. */
-extern volatile PDATA uint32 timeMs;
+/*! Returns the number of milliseconds that have elapsed since timeInit()
+ * was called or since resetMs was last called.
+ */
+uint32 getMs();
 
 /*! This interrupt fires once per millisecond (approximately) and
  * increments timeMs. */
