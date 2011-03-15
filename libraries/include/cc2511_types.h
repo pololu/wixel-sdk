@@ -1,3 +1,7 @@
+/*! \file cc2511_types.h
+ * This file provides the definitions of useful data types.
+ */
+
 #ifndef _TYPES_H
 #define _TYPES_H
 

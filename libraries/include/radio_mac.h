@@ -1,8 +1,9 @@
-/* radio_mac.h:
- * Header file for the Radio MAC (Media Access Control) layer.
- * This layer takes care of sending and receiving packets.
- * Later we will probably add other features to it, such as
- * serial-number MAC addresses.
+/*! \file radio_mac.h
+ * The <code>radio_mac.lib</code> library takes care of sending and
+ * receiving packets.  When a radio-related event happens, radio_mac
+ * reports the event to higher-level code by calling radioMacEventHandler
+ * in an ISR, and the higher-level code can decide what to do next by
+ * calling various radioMac functions declared here.
  */
 
 #ifndef _RADIO_MAC_H_
@@ -38,11 +39,12 @@ extern volatile uint8 DATA radioMacState;
 void radioMacTx(uint8 XDATA * packet);
 void radioMacRx(uint8 XDATA * packet, uint8 timeout);
 
-// This function is called by the Mac in an ISR when an important event
-// happens (and puts the MAC in the idle state).  This function should be
-// defined by a higher-level layer.  Ideally this function will call one of the
-// state-changing functions immediately, but it could choose to simply record
-// data about the event and act on it later.
+/*! This function is called by the Mac in an ISR when an important event
+ * happens (and puts the MAC in the idle state).  This function should be
+ * defined by a higher-level layer.  Ideally this function will call one of the
+ * state-changing functions immediately, but it could choose to simply record
+ * data about the event and act on it later.
+ */
 void radioMacEventHandler(uint8 event);
 
 // Error reporting variables

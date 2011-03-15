@@ -1,4 +1,4 @@
-/* radio_com.h
+/*! \file radio_com.h
  * A library that uses radio_link.c to send and receive reliable streams of bytes
  * from another Wixel that is operating on the same radio frequency.
  */

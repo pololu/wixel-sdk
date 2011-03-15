@@ -1,7 +1,8 @@
-// This header file allows your program to access special registers on the
-// CC251xFxx.  The USB-related registers will only work on the CC2511Fxx.
-// This file is based on the CC2510Fx/CC2511Fx datasheet (SWRS055F).
-// Author: David Grayson
+/*! \file cc2511_map.h
+ * This header file allows your program to access special registers on the
+ * CC251xFxx.  The USB-related registers will only work on the CC2511Fxx.
+ * This file is based on the CC2510Fx/CC2511Fx datasheet (SWRS055F).
+ */
 
 #ifndef _CC2511_MAP_H
 #define _CC2511_MAP_H

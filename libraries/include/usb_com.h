@@ -1,5 +1,6 @@
-/* This is the header file for the USB CDC ACM module.
- * This module implements a virtual COM/serial port over USB using the CDC ACM class.
+/*! \file usb_com.h
+ * The <code>usb_com.lib</code> library implements a virtual COM/serial port
+ * over USB using the CDC ACM class.
  */
 
 #ifndef _USB_COM_H
