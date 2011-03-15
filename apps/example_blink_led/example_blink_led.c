@@ -1,4 +1,3 @@
-#include <cc2511_map.h>
 #include <wixel.h>
 #include <usb.h>
 #include <usb_com.h>
