@@ -29,24 +29,6 @@ void timeInit();
  */
 uint32 getMs();
 
-/*! Resets the millisecond counter to zero.
- */
-void resetMs();
-
-// Ben replaced raw access to this volatile global with the safer accessor
-// functions above on 110302
-/*! The approximate number of milliseconds since timeInit was called
- * started.  This variable is updated by an interrupt (T4_ISR), so
- * you should NOT read multiple bytes from it: if you do so, the
- * interrupt might fire between two successive byte reads and it
- * might result in a carry between the two bytes, which could result
- * in an incorrect value being read.
- *
- * NOTE: This is not very accurate.  The units of this time
- * measurement are actually closer to 1.00266 milliseconds.  If you need
- * millisecond timing more accurate than that, use Timer 1. */
-//extern volatile PDATA uint32 timeMs;
-
 /*! This interrupt fires once per millisecond (approximately) and
  * increments timeMs. */
 ISR(T4, 1);

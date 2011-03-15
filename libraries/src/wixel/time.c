@@ -25,14 +25,6 @@ uint32 getMs()
 	return time;			// return timer count copy
 }
 
-void resetMs()
-{
-	uint8 oldT4IE = T4IE;	// store state of timer 4 interrupt (active/inactive?)
-	T4IE = 0;				// disable timer 4 interrupt
-	timeMs = 0;				// clear millisecond timer count
-	T4IE = oldT4IE;			// restore timer 4 interrupt to its original state
-}
-
 void timeInit()
 {
     T4CC0 = 187;
