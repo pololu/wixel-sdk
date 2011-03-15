@@ -24,3 +24,9 @@ $(foreach lib, $(AUTOLIBs), $(eval $(call LIB_template,$(lib))))
 # You can type "make libs" to build all the libraries.
 .PHONY : libs
 libs: $(LIBs)
+
+# You can type "make docs" to build the docs.
+.PHONY : docs
+docs:
+	cd libraries && doxygen
+	cp libraries/docs/docs.html docs/docs.html

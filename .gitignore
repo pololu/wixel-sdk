@@ -26,8 +26,8 @@ apps/*/*
 .cproject
 .project
 
-docs
+/docs
 
-libraries/src/uart/uart0.c
+/libraries/src/uart/uart0.c
 
-libraries/src/uart/uart1.c
+/libraries/src/uart/uart1.c
