@@ -8,33 +8,38 @@ chip from Texas Instruments.
 The Pololu Wixel Software Development Kit (SDK) contains code, utilities,
 and Makefiles which will help you build your own applications for the Wixel.
 
+\section starting Getting Started
 
-\section downloading Download Instructions
+You will need to have a copy of the Wixel SDK,
+<a href="http://sdcc.sourceforge.net/">SDCC</a> version 3.0.0 or later,
+and you will need to have certain GNU utililties available on your path:
+cat, cp, echo, grep, make, mv, and rm.
+For Windows users, we recommend that you install all of these components
+by downloading the Wixel Development Bundle, available from the
+<a href="http://www.pololu.com/docs/0J46">Pololu Wixel User's Guide</a>.
 
-You can get the Wixel SDK either by downloading it or by cloning the
-git repository.
+The Wixel SDK is also available as a
+<a href="http://github.com/pololu/wixel-sdk">git repository hosted on github</a>,
+so you can get it by installing git and running:
+<pre>
+git clone -o pololu git://github.com/pololu/wixel-sdk.git
+</pre>
 
-<!-- TODO: add details here -->
-
-\section start_win Getting Started in Windows
-
-Download and install the latest stable version of the
-<a href="http://sdcc.sourceforge.net/">Small Device C Computer (SDCC)</a>.
-This SDK will not work with SDCC versions prior to 3.0.0.
-
-In order for you to use the Makefile successfully, you will need to
-have certain utilities on your path.  Please download the Pololu Build
-Utilities from Pololu and add them to your path.
-(If you already have all of the needed utilities on your PATH,
-you can skip this step.)
-
-<!-- TODO: linkify "Pololu Build Utilities" -->
-
-\section building_app Building Your App (any platform)
+\section building_app Building Your App
 
 Open a command-line terminal, navigate to the top level directory
 of the SDK, and type "make".  This will build all of the apps in
 the apps folder and all of the libraries that they depend on.
+
+To load your app on to all the Wixels connected to the computer,
+type "make load_APPNAME" where APPNAME is the name of your app's
+folder in the apps directory.
+
+To open your app in the Wixel Configuration Utility,
+type "make open_APPNAME".
+
+Running any of the commands above will rebuild your app if it
+is out of date.
 
 \section sdk_docs Documentation of Wixel SDK Libraries (incomplete!)
 
