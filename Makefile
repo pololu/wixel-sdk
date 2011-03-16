@@ -19,7 +19,8 @@ CP := cp#           copies files
 CAT := cat#         outputs files
 ECHO := echo#       outputs some text to the standard output
 GREP := grep#       outputs lines from a file that match a given pattern
-WIXELCMD := wixelcmd# loads programs on the Wixel
+WIXELCMD := wixelcmd# loads programs on the Wixel (command-line utility)
+WIXELCONFIG := wixelconfig # Wixel Configuration Utility (GUI)
 
 #### Include directories #######################################################
 INCDIRS += libraries/include

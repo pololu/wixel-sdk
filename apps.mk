@@ -20,6 +20,9 @@ $(1) : apps/$(1)/$(1).wxl
 load_$(1) : apps/$(1)/$(1).wxl
 	$$(WIXELCMD) write $$< $$(S) -a 
 
+.PHONY : open_$(1)
+open_$(1) : apps/$(1)/$(1).wxl
+	$$(WIXELCONFIG) $$< 
 endef
 
 # Auto detect the apps, and store the list of app names in the APPs variable.
