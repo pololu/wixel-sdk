@@ -3,7 +3,7 @@
 #include <usb_com.h>
 #include <stdio.h>
 
-int32 CODE param_blink_period_ms = 1000;
+int32 CODE param_blink_period_ms = 2000;
 
 uint32 lastToggle = 0;
 
@@ -15,7 +15,7 @@ void updateLeds()
 
     // NOTE: The code below is bad because it is reading two bytes of timeMs,
     // and the interrupt that updates timeMs could fire between those two reads.
-    if ((uint16)(getMs() - lastToggle) >= param_blink_period_ms)
+    if ((uint16)(getMs() - lastToggle) >= (param_blink_period_ms/2))
     {
         LED_RED(!LED_RED_STATE);
         lastToggle = getMs();
