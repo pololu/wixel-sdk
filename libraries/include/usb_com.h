@@ -35,12 +35,10 @@ void usbComService(void);    // This should be called regularly.
 
 uint8 usbComRxAvailable(void);
 uint8 usbComRxReceiveByte(void);
-uint8 usbComRxReceiveNonBlocking(uint8 XDATA * buffer, uint8 size);
 void usbComRxReceive(const uint8 XDATA * buffer, uint8 size);
 
 uint8 usbComTxAvailable(void);
 void usbComTxSendByte(uint8 byte);
-void usbComTxSendNonBlocking(const uint8 XDATA* buffer, uint8 size);
 void usbComTxSend(const uint8 XDATA * buffer, uint8 size);
 
 #endif

@@ -284,30 +284,15 @@ uint8 usbComRxReceiveByte()
 
 // Assumption: The user has previously called usbComRxAvailable and its return value
 // was greater than or equal to size.
-uint8 usbComRxReceiveNonBlocking(uint8 XDATA* buffer, uint8 size)
+void usbComRxReceive(uint8 XDATA* buffer, uint8 size)
 {
-    uint8 bytesToGet;
-    bytesToGet = usbComRxAvailable();
-    if (bytesToGet >= size)
-    {
-        bytesToGet = size;
-    }
-    if (bytesToGet == 0)
-    {
-        return 0;
-    }
-
-    usbReadFifo(CDC_DATA_ENDPOINT, bytesToGet, buffer);
+    usbReadFifo(CDC_DATA_ENDPOINT, size, buffer);
 
     if (USBCNTL == 0)
     {
         USBCSOL &= ~USBCSOL_OUTPKT_RDY;   // Tell the USB module we are done reading this packet, so it can receive more.
     }
-
-    return bytesToGet;
 }
-
-void usbComRxReceive(const uint8 XDATA * buffer, uint8 size);
 
 
 /* CDC ACM TX Functions *******************************************************/
@@ -375,8 +360,7 @@ uint8 usbComTxAvailable()
 
 // Assumption: The user called usbComTxAvailable() before calling this function,
 // and it returned a number greater than or equal to size.
-// TIMING: David did an experiment on 2011-1-3.  This function took 25us to run when size==8 and 250us when size
-void usbComTxSendNonBlocking(const uint8 XDATA * buffer, uint8 size)
+void usbComTxSend(const uint8 XDATA * buffer, uint8 size)
 {
     uint8 packetSize;
     while(size)
@@ -411,20 +395,5 @@ void usbComTxSendByte(uint8 byte)
     if (inFifoBytesLoaded == CDC_IN_PACKET_SIZE)
     {
         sendPacketNow();
-    }
-}
-
-void usbComTxSend(const uint8 XDATA * buffer, uint8 size)
-{
-    uint8 bytesToSend;
-    while(size)
-    {
-        bytesToSend = usbComTxAvailable();                 // Determine how many bytes we can send in the next call.
-        if (bytesToSend == 0){ continue; }                 // Skip the rest of the loop if we can't send any bytes right now.
-        if (bytesToSend > size){ bytesToSend = size; }     // Don't send more bytes than we need to.
-
-        usbComTxSendNonBlocking(buffer, size);
-        buffer += bytesToSend;
-        size -= bytesToSend;
     }
 }
