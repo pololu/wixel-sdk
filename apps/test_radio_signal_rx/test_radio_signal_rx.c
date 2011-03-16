@@ -116,15 +116,32 @@ void receiveRadioBursts()
 
 void reportResults()
 {
-	if (packetsReceived && (uint16)(getMs() - lastPacketReceivedTime) >= 300 && usbComTxAvailable() >= 64)
-	{
-		uint8 XDATA report[64];
-		uint8 reportLength = sprintf(report, "%3d, %5d, %5d\r\n", packetsReceived, rssiSum/packetsReceived, lqiSum/packetsReceived);
-		usbComTxSendNonBlocking(report, reportLength);
+	static uint16 lastReportSentTime;
 
-		packetsReceived = 0;
+	if (usbComTxAvailable() >= 64)
+	{
+		if (packetsReceived)
+		{
+			if ((uint16)(getMs() - lastPacketReceivedTime) >= 300)
+			{
+				uint8 XDATA report[64];
+				uint8 reportLength = sprintf(report, "%3d, %5d, %5d\r\n", packetsReceived, rssiSum/packetsReceived, lqiSum/packetsReceived);
+				usbComTxSend(report, reportLength);
+
+				lastReportSentTime = (uint16)getMs();
+				packetsReceived = 0;
+			}
+		}
+		else
+		{
+			if ((uint16)(getMs() - lastReportSentTime) >= 1100)
+			{
+				static uint8 CODE noSignal[] = "  0,     0,     0\r\n";
+				usbComTxSend((uint8 XDATA *)noSignal, sizeof(noSignal));
+				lastReportSentTime = (uint16)getMs();
+			}
+		}
 	}
-	// TODO: send a null report if no reports have been sent in the last 1.5 seconds
 }
 
 void main()
