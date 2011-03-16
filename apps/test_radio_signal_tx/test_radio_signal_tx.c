@@ -23,8 +23,8 @@ void updateLeds()
 
 	LED_YELLOW(0);
 
-	// Turn on the red LED if we recently started sending a burst.
-	LED_RED((uint16)(getMs() - lastBurst) < 300);
+	// Turn on the red LED if we are sending a burst.
+	LED_RED((uint16)(packetsSent < 100));
 }
 
 void perTestTxInit()
