@@ -3,7 +3,7 @@
 #include <usb_com.h>
 #include <stdio.h>
 
-int32 CODE param_blink_period_ms = 2000;
+int32 CODE param_blink_period_ms = 500;
 
 uint32 lastToggle = 0;
 
