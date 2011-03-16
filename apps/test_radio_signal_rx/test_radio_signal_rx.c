@@ -24,6 +24,8 @@
  *    a better link than what a low value does), since the value is dependent on the
  *    modulation format."
  *
+ * The radio_channel parameter determines what frequency will be used, and should be the
+ * same in both the transmitter and receiver.
  */
 
 #include <wixel.h>
@@ -31,6 +33,8 @@
 #include <stdio.h>
 #include <usb.h>
 #include <usb_com.h>
+
+int32 CODE param_radio_channel = 128;
 
 // This definition should be the same in both test_radio_signal_tx.c and test_radio_signal_rx.c.
 #define RADIO_PACKET_SIZE 16
@@ -59,7 +63,7 @@ void perTestRxInit()
 {
 	radioRegistersInit();
 
-	CHANNR = 0;
+	CHANNR = param_radio_channel;
 
 	PKTLEN = RADIO_PACKET_SIZE;
 

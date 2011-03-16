@@ -8,6 +8,8 @@
 #include <usb.h>
 #include <usb_com.h>
 
+int32 CODE param_radio_channel = 128;
+
 // This definition should be the same in both test_radio_signal_tx.c and test_radio_signal_rx.c.
 #define RADIO_PACKET_SIZE 16
 
@@ -33,7 +35,7 @@ void perTestTxInit()
 
 	radioRegistersInit();
 
-	CHANNR = 0;
+	CHANNR = param_radio_channel;
 
 	PKTLEN = RADIO_PACKET_SIZE;
 	
