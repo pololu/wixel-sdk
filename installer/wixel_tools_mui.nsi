@@ -9,6 +9,7 @@
 # This installer expects to be passed the variable "STARTDIR" at the command line
 # E.g. "makensis /DSTARTDIR=c:\working\wixel-installer c:\working\wixel-installer\wixel_tools_mui.nsi"
 
+!include FileFunc.nsh
 #Modern UI for fun and profit
 !include MUI.nsh
 
@@ -37,7 +38,7 @@ RequestExecutionLevel admin
 !insertmacro MUI_UNPAGE_FINISH
 
 OutFile "..\..\wixel_dev_bundle_${WIXELTOOLVERSION}.exe"
-InstallDir "$DOCUMENTS\Pololu\"
+InstallDir "$DOCUMENTS\Pololu\wixel-sdk"
 Name "Pololu Wixel Development Bundle"
 !insertmacro MUI_LANGUAGE "English"
 
@@ -54,8 +55,10 @@ LangString DESC_SECTION4 ${LANG_ENGLISH} "Notepad++ is a free source code editor
 Section "Source Code (wixel-sdk)" Section1
 	; SectionIn RO
 	DetailPrint "Now installing the wixel-sdk files"
-	SetOutPath "$INSTDIR\wixel-sdk\"
+	Call SDKexists
+	SetOutPath "$INSTDIR"
 	File /r "${STARTDIR}\wixel-sdk\"
+	
 	; SetOutPath "$INSTDIR\wixel-sdk\installer\"
 	; File "c:\working\kalan\wixel\installer\wixel_tools_mui.nsi"
 	; File "c:\working\kalan\wixel\installer\build_tools.nsi"
@@ -114,4 +117,18 @@ SectionEnd
 
 
 ; Function .onInit
+; ${if} ${FileExists} $Instdir
+	; StrCpy $INSTDIR "$InstDir-${WIXELTOOLVERSION}"
+; ${EndIF}
+; FunctionEnd
 
+Function SDKexists
+${if} ${FileExists} $INSTDIR
+	MessageBox MB_OK "The Wixel Dev Bundle installer has detected a previously-installed version of the Wixel SDK files in $INSTDIR.  To avoid conflicts, the new files will be installed to the backup location: $INSTDIR-${WIXELTOOLVERSION}."
+	StrCpy $INSTDIR "$INSTDIR-${WIXELTOOLVERSION}"
+${andif} ${FileExists} $INSTDIR
+	${GetTime} "" "LS" $0 $1 $2 $3 $4 $5 $6
+	MessageBox MB_OK "The Wixel Dev Bundle installer has detected a previously-installed version of the Wixel-SDK files in the backup location $INSTDIR.  To avoid conflicts, we will now install to $INSTDIR-$2$1$0$4$5$6"
+	StrCpy $INSTDIR "$INSTDIR-$2$1$0$4$5$6"
+${EndIF}
+FunctionEnd
