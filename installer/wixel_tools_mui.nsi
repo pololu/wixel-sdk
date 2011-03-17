@@ -17,7 +17,7 @@ RequestExecutionLevel admin
 
 ; !define STARTDIR=c:\foo\bar
 ; !define SDCC "sdcc-3.0.0-setup.exe"
-!define WIXELTOOLVERSION "110316"
+!define WIXELTOOLVERSION "110317"
 !define SDCCVER "3.0.0"
 !define NPVER "5.8.7"
 !define MUI_HEADERIMAGE

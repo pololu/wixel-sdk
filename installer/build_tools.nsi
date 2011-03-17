@@ -13,7 +13,7 @@
 
 
 #Small installer for the GNU build tools
-!define TOOLSVER "110316"
+!define TOOLSVER "110317"
 !include EnvVarUpdate.nsh
 
 ; !define STARTDIR "c:\foo\bar"
