@@ -15,6 +15,10 @@ First, assemble the following:
 3. The SDCC installer (by default the system expects the SDCC version declared in line 22 of wixel_tools_mui.nsh, e.g. !define SDCCVER "3.0.0")
 4. The notepad++ installer (the system currently expects version 5.8.7, this is declared in line 23)
 5. Place the SDCC and notepad++ installers in the same directory as the wixel-sdk directory, one level above the wixel-sdk files
+6. Download and install doxygen (http://www.stack.nl/~dimitri/doxygen/), which is used to build the documentation files
+7. With doxygen installed, open a command-line window (start->run->cmd) and navigate to your wixel-sdk folder
+8. Type "make docs" at the command line
+
 
 To create the installer:
 (For more info on command line NSIS, see http://nsis.sourceforge.net/Docs/Chapter3.html)
