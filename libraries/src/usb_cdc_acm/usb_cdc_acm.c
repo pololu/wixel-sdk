@@ -3,6 +3,11 @@
 #include <usb.h>
 #include <usb_com.h>
 #include <board.h>           // just for boardStartBootloader() and serialNumberString
+#include <time.h>            // just for timing the start of the bootloader
+
+// NOTE: We could easily remove the dependency on time.h if we added a
+// function called startBootloaderSoon() in board.h that started the bootloader
+// after some delay.
 
 /* CDC ACM Library Configuration **********************************************/
 // Note: USB 2.0 says that the maximum packet size for full-speed bulk endpoints
@@ -77,6 +82,14 @@ static BIT sendEmptyPacketSoon = 0;
 // queued up to be sent.  This will always be less than CDC_IN_PACKET_SIZE because
 // once we've loaded up a full packet we should always send it immediately.
 static uint8 DATA inFifoBytesLoaded = 0;
+
+// True iff we have received a command from the user to enter bootloader mode.
+static BIT startBootloaderSoon = 0;
+
+// The lower 8-bits of the time (in ms) when the request to enter bootloader mode
+// was received.  This allows us to delay for some time before actaully entering
+// bootloader mode.  This variable is only valid when startBootloaderSoon == 1.
+static uint8 XDATA startBootloaderRequestTime;
 
 /* CDC ACM USB Descriptors ****************************************************/
 
@@ -241,7 +254,14 @@ void usbCallbackSetupHandler()
 
 void usbCallbackControlWriteHandler()
 {
+    if (usbComLineCoding.dwDTERate == 333 && !startBootloaderSoon)
+    {
+        // The baud rate has been set to 333.  That is the special signal
+        // sent by the USB host telling us to enter bootloader mode.
 
+        startBootloaderSoon = 1;
+        startBootloaderRequestTime = (uint8)getMs();
+    }
 }
 
 /* CDC ACM RX Functions *******************************************************/
@@ -325,14 +345,16 @@ void usbComService(void)
 
     usbPoll();
 
-    if (usbComLineCoding.dwDTERate == 333)
+    if (startBootloaderSoon && (uint8)(getMs() - startBootloaderRequestTime) > 70)
     {
-        // TODO: we should wait for 100-500 ms before actually going in to bootloader mode,
-        // so that the computer can do a successful GetLineCoding request and SetCommState
-        // does not return an error code.
+        // It has been 50 ms since the user requested that we start the bootloader, so
+        // start it.
 
-        // The baud rate has been set to 333.  That is the special signal
-        // sent by the USB host telling us to enter bootloader mode.
+        // The reason we don't start the bootloader right away when we get the request is
+        // because we want to have time to finish the status phase of the control transfer
+        // so the host knows the request was processed correctly.  Also, the Windows
+        // usbser.sys sends several requests for about 7 ms after the SET_LINE_CODING
+        // request before the operation (SetCommState) finally succeeds.
         boardStartBootloader();
     }
 }
