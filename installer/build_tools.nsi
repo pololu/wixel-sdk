@@ -8,7 +8,7 @@
 ####################
 
 # This installer expects to be passed the variable "STARTDIR" at the command line
-# The directory you point the installer at should directly contain the 
+# The directory you point the installer at should directly contain the executables
 # E.g. "makensis /DSTARTDIR=c:\working\wixel-installer\gnu-build-tools c:\working\wixel-installer\build_tools.nsi"
 
 
@@ -33,7 +33,7 @@ UninstPage instfiles
 
 Section "Main"
 	SetOutPath "$INSTDIR"
-	File /r ${STARTDIR}
+	File ${STARTDIR}\*.*
 	; File /r "c:\working\kalan\wixel\installer\wixel_tools\pololu_build_utilities_windows\"
 	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\pololu_build_utilities" "DisplayName" "Pololu GNU Build Utilities"
 	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\pololu_build_utilities" "UninstallString" "$\"$INSTDIR\Uninstall Pololu GNU Build Utilities.exe$\""
