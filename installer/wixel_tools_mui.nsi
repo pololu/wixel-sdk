@@ -10,6 +10,7 @@
 # E.g. "makensis /DSTARTDIR=c:\working\wixel-installer c:\working\wixel-installer\wixel_tools_mui.nsi"
 
 !include FileFunc.nsh
+!include EnvVarUpdate.nsh
 #Modern UI for fun and profit
 !include MUI.nsh
 
@@ -18,7 +19,7 @@ RequestExecutionLevel admin
 
 ; !define STARTDIR=c:\foo\bar
 ; !define SDCC "sdcc-3.0.0-setup.exe"
-!define WIXELTOOLVERSION "110317"
+!define WIXELTOOLVERSION "110318"
 !define SDCCVER "3.0.0"
 !define NPVER "5.8.7"
 !define MUI_HEADERIMAGE
@@ -29,7 +30,6 @@ RequestExecutionLevel admin
 
 !define MUI_FINISHPAGE_RUN_TEXT "Show the installed wixel-sdk files"
 !define MUI_FINISHPAGE_RUN_FUNCTION "ShowSDKFiles"
-; !insertmacro MUI_LANGUAGEFILE_STRING MUI_TEXT_FINISH_RUN "Show the installed wixel-sdk files after the installer finishes"
 
 !define MUI_FINISHPAGE_RUN
 
@@ -65,23 +65,16 @@ Section "Source Code (wixel-sdk)" Section1
 	Call SDKexists
 	SetOutPath "$INSTDIR"
 	File /r "${STARTDIR}\wixel-sdk\"
+	Var /Global SDKLOC
+	Strcpy $SDKLOC $INSTDIR
 	
-	; SetOutPath "$INSTDIR\wixel-sdk\installer\"
-	; File "c:\working\kalan\wixel\installer\wixel_tools_mui.nsi"
-	; File "c:\working\kalan\wixel\installer\build_tools.nsi"
-	; File "c:\working\kalan\wixel\installer\wixel_tools\wixel-sdk\installer\readme.txt"
 	; DetailPrint "Now writing the uninstaller"
 	; WriteUninstaller "$INSTDIR\uninstall wixel-sdk.exe"
 	; WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\pololu_wixel_sdk" \"DisplayName" "Pololu wixel-sdk"
 	; WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\pololu_wixel_sdk" "UninstallString" "$\"$INSTDIR\uninstall wixel-sdk.exe$\""
 	; WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\pololu_wixel_sdk" "Publisher" "Pololu"
 	; WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\pololu_wixel_sdk" "DisplayVersion" "${WIXELTOOLVERSION}"
-	
-	; DetailPrint "Now installing sdcc..."
-	; SetOutPath "$TEMP"
-	; File "c:\working\kalan\wixel\installer\wixel_tools\${SDCC}"
-	; MessageBox MB_OK "The Wixel Dev Bundle will now launch the installer for SDCC - the small device C compiler"
-	; ExecWait "$TEMP\${SDCC}"
+
 SectionEnd
 
 Section "SDCC ${SDCCVER}" Section2
@@ -90,6 +83,10 @@ Section "SDCC ${SDCCVER}" Section2
 	File "${STARTDIR}\sdcc-${SDCCVER}-setup.exe"
 	MessageBox MB_OK "The Wixel Dev Bundle will now launch the installer for SDCC ${SDCCVER} - the small device C compiler"
 	ExecWait "$TEMP\sdcc-${SDCCVER}-setup.exe"
+	DetailPrint "Now making sure that SDCC's path is set properly..."
+	ReadRegStr $9 HKLM "Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\SDCC" 'InstallLocation'
+	ReadRegStr $9 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SDCC" 'InstallLocation'
+	${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$9\bin"
 SectionEnd
 
 Section "Pololu GNU Build Utilities" Section3
@@ -97,7 +94,7 @@ Section "Pololu GNU Build Utilities" Section3
 	File "${STARTDIR}\Pololu_GNU_build_tools_${WIXELTOOLVERSION}.exe"
 	DetailPrint "Now running the Pololu GNU Build Utilities installer"
 	MessageBox MB_OK "The Wixel Dev Bundle will now launch the installer for the Pololu GNU Build Utilities"
-	ExecWait "$TEMP\Pololu_GNU_build_tools_${WIXELTOOLVERSION}"
+	ExecWait "$TEMP\Pololu_GNU_build_tools_${WIXELTOOLVERSION}"	
 SectionEnd
 
 Section "Notepad++ Text Editor" Section4
@@ -124,9 +121,9 @@ SectionEnd
 
 
 ; Function .onInit
-; ${if} ${FileExists} $Instdir
-	; StrCpy $INSTDIR "$InstDir-${WIXELTOOLVERSION}"
-; ${EndIF}
+	; Var /global UACWORKAROUND
+	; StrCpy $UACWORKAROUND $INSTDIR
+	; messagebox mb_ok "contents of UACWORKAROUND - $UACWORKAROUND"
 ; FunctionEnd
 
 Function SDKexists
@@ -141,5 +138,10 @@ Function SDKexists
 FunctionEnd
 
 Function ShowSDKFiles
+	; ExecShell "open" "$SDKLOC"
 	ExecShell "open" "$INSTDIR"
 FunctionEnd
+
+; Function .oninit
+
+; FunctionEnd
