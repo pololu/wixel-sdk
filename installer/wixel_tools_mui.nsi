@@ -27,6 +27,13 @@ RequestExecutionLevel admin
 !define MUI_FINISHPAGE_NOAUTOCLOSE
 !define MUI_UNFINISHPAGE_NOAUTOCLOSE
 
+!define MUI_FINISHPAGE_RUN_TEXT "Show the installed wixel-sdk files"
+!define MUI_FINISHPAGE_RUN_FUNCTION "ShowSDKFiles"
+; !insertmacro MUI_LANGUAGEFILE_STRING MUI_TEXT_FINISH_RUN "Show the installed wixel-sdk files after the installer finishes"
+
+!define MUI_FINISHPAGE_RUN
+
+
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_DIRECTORY
@@ -39,7 +46,7 @@ RequestExecutionLevel admin
 
 OutFile "..\..\wixel_dev_bundle_${WIXELTOOLVERSION}.exe"
 InstallDir "$DOCUMENTS\Pololu\wixel-sdk"
-Name "Pololu Wixel Development Bundle"
+Name "The Pololu Wixel Development Bundle"
 !insertmacro MUI_LANGUAGE "English"
 
 
@@ -123,12 +130,16 @@ SectionEnd
 ; FunctionEnd
 
 Function SDKexists
-${if} ${FileExists} $INSTDIR
-	MessageBox MB_OK "The Wixel Dev Bundle installer has detected a previously-installed version of the Wixel SDK files in $INSTDIR.  To avoid conflicts, the new files will be installed to the backup location: $INSTDIR-${WIXELTOOLVERSION}."
-	StrCpy $INSTDIR "$INSTDIR-${WIXELTOOLVERSION}"
-${andif} ${FileExists} $INSTDIR
-	${GetTime} "" "LS" $0 $1 $2 $3 $4 $5 $6
-	MessageBox MB_OK "The Wixel Dev Bundle installer has detected a previously-installed version of the Wixel-SDK files in the backup location $INSTDIR.  To avoid conflicts, we will now install to $INSTDIR-$2$1$0$4$5$6"
-	StrCpy $INSTDIR "$INSTDIR-$2$1$0$4$5$6"
-${EndIF}
+	${if} ${FileExists} $INSTDIR
+		MessageBox MB_OK "The Wixel Dev Bundle installer has detected a previously-installed version of the Wixel SDK files in $INSTDIR.  To avoid conflicts, the new files will be installed to the backup location: $INSTDIR-${WIXELTOOLVERSION}."
+		StrCpy $INSTDIR "$INSTDIR-${WIXELTOOLVERSION}"
+	${andif} ${FileExists} $INSTDIR
+		${GetTime} "" "LS" $0 $1 $2 $3 $4 $5 $6
+		MessageBox MB_OK "The Wixel Dev Bundle installer has detected a previously-installed version of the Wixel-SDK files in the backup location $INSTDIR.  To avoid conflicts, we will now install to $INSTDIR-$2$1$0$4$5$6"
+		StrCpy $INSTDIR "$INSTDIR-$2$1$0$4$5$6"
+	${EndIF}
+FunctionEnd
+
+Function ShowSDKFiles
+	ExecShell "open" "$INSTDIR"
 FunctionEnd
