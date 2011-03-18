@@ -77,26 +77,26 @@ void updateLeds()
 
 void executeCommand()
 {
-	switch(commandByte)
-	{
-	case COMMAND_TOGGLE_YELLOW_LED:
-		yellowLedOn ^= 1;
-		break;
-		
-	case COMMAND_GET_X:
-		response[0] = x & 0xFF;
-		response[1] = x >> 8 & 0xFF;
-		usbComTxSend(response, 2);   // Assumption: usbComTxAvailable() returned >= 2 recently.
-		break;
-		
-	case COMMAND_SET_X:
-		x = dataBytes[0] + (dataBytes[1] << 7);
-		break;
+    switch(commandByte)
+    {
+    case COMMAND_TOGGLE_YELLOW_LED:
+        yellowLedOn ^= 1;
+        break;
+        
+    case COMMAND_GET_X:
+        response[0] = x & 0xFF;
+        response[1] = x >> 8 & 0xFF;
+        usbComTxSend(response, 2);   // Assumption: usbComTxAvailable() returned >= 2 recently.
+        break;
+        
+    case COMMAND_SET_X:
+        x = dataBytes[0] + (dataBytes[1] << 7);
+        break;
 
-	case COMMAND_CLEAR_ERROR:
-		serialProtocolError = 0;
-		break;
-	}
+    case COMMAND_CLEAR_ERROR:
+        serialProtocolError = 0;
+        break;
+    }
 }
 
 /** Processes a new byte received from the USB virtual COM port.
@@ -131,14 +131,14 @@ void processByte(uint8 byteReceived)
         // determine how many data bytes to expect.
         switch(commandByte)
         {
-        	case COMMAND_GET_X:
+            case COMMAND_GET_X:
             case COMMAND_TOGGLE_YELLOW_LED:
             case COMMAND_CLEAR_ERROR:
                 dataBytesLeft = 0;
                 break;
 
             case COMMAND_SET_X:
-            	dataBytesLeft = 2;
+                dataBytesLeft = 2;
                 break;
 
             default:
@@ -147,11 +147,11 @@ void processByte(uint8 byteReceived)
                 return;
         }
     
-    	if (dataBytesLeft==0)
-    	{
-    		// We have received a single-byte command.
-        	executeCommand();
-    	}
+        if (dataBytesLeft==0)
+        {
+            // We have received a single-byte command.
+            executeCommand();
+        }
     }
     else if (dataBytesLeft > 0)
     {
@@ -163,31 +163,31 @@ void processByte(uint8 byteReceived)
         
         if (dataBytesLeft==0)
         {
-        	// We have received the last byte of a multi-byte command.
+            // We have received the last byte of a multi-byte command.
             executeCommand();
         }
     }
     else
     {
-    	// We received a byte that is less than 128 and it is not part of
-    	// a binary command.  Maybe it is an ASCII command
+        // We received a byte that is less than 128 and it is not part of
+        // a binary command.  Maybe it is an ASCII command
 
-		uint8 responseLength;
-		uint32 time;
-    	switch(byteReceived)
-    	{
-    	case 't':
-    		time = getMs();
-    		// SDCC's default sprintf doesn't seem to support 32-bit ints, so we will
-    		// split getMs in to two parts and print it in hex.
-    		responseLength = sprintf(response, "time=0x%04x%04x\r\n", (uint16)(time >> 16), (uint16)time);
-    		usbComTxSend(response, responseLength);
-    		break;
+        uint8 responseLength;
+        uint32 time;
+        switch(byteReceived)
+        {
+        case 't':
+            time = getMs();
+            // SDCC's default sprintf doesn't seem to support 32-bit ints, so we will
+            // split getMs in to two parts and print it in hex.
+            responseLength = sprintf(response, "time=0x%04x%04x\r\n", (uint16)(time >> 16), (uint16)time);
+            usbComTxSend(response, responseLength);
+            break;
 
-    	case 'y':
-    		yellowLedOn ^= 1;
-    		break;
-    	}
+        case 'y':
+            yellowLedOn ^= 1;
+            break;
+        }
     }
 }
 

@@ -51,116 +51,116 @@ static uint16 lastPacketReceivedTime = 0;
 
 void updateLeds()
 {
-	usbShowStatusWithGreenLed();
+    usbShowStatusWithGreenLed();
 
-	// Turn on the yellow LED if we are in the middle of receiving a burst.
-	LED_YELLOW(packetsReceived > 0);
+    // Turn on the yellow LED if we are in the middle of receiving a burst.
+    LED_YELLOW(packetsReceived > 0);
 
-	LED_RED(0);
+    LED_RED(0);
 }
 
 void perTestRxInit()
 {
-	radioRegistersInit();
+    radioRegistersInit();
 
-	CHANNR = param_radio_channel;
+    CHANNR = param_radio_channel;
 
-	PKTLEN = RADIO_PACKET_SIZE;
+    PKTLEN = RADIO_PACKET_SIZE;
 
-	MCSM0 = 0x14;    // Auto-calibrate when going from idle to RX or TX.
-	MCSM1 = 0x00;    // Disable CCA.  After RX, go to IDLE.  After TX, go to IDLE.
-	// We leave MCSM2 at its default value.
+    MCSM0 = 0x14;    // Auto-calibrate when going from idle to RX or TX.
+    MCSM1 = 0x00;    // Disable CCA.  After RX, go to IDLE.  After TX, go to IDLE.
+    // We leave MCSM2 at its default value.
 
-	dmaConfig.radio.DC6 = 19; // WORDSIZE = 0, TMODE = 0, TRIG = 19
+    dmaConfig.radio.DC6 = 19; // WORDSIZE = 0, TMODE = 0, TRIG = 19
 
-	dmaConfig.radio.SRCADDRH = XDATA_SFR_ADDRESS(RFD) >> 8;
-	dmaConfig.radio.SRCADDRL = XDATA_SFR_ADDRESS(RFD);
-	dmaConfig.radio.DESTADDRH = (unsigned int)packet >> 8;
-	dmaConfig.radio.DESTADDRL = (unsigned int)packet;
-	dmaConfig.radio.LENL = 1 + PKTLEN + 2;
-	dmaConfig.radio.VLEN_LENH = 0b10000000; // Transfer length is FirstByte+3
-	dmaConfig.radio.DC7 = 0x10; // SRCINC = 0, DESTINC = 1, IRQMASK = 0, M8 = 0, PRIORITY = 0
+    dmaConfig.radio.SRCADDRH = XDATA_SFR_ADDRESS(RFD) >> 8;
+    dmaConfig.radio.SRCADDRL = XDATA_SFR_ADDRESS(RFD);
+    dmaConfig.radio.DESTADDRH = (unsigned int)packet >> 8;
+    dmaConfig.radio.DESTADDRL = (unsigned int)packet;
+    dmaConfig.radio.LENL = 1 + PKTLEN + 2;
+    dmaConfig.radio.VLEN_LENH = 0b10000000; // Transfer length is FirstByte+3
+    dmaConfig.radio.DC7 = 0x10; // SRCINC = 0, DESTINC = 1, IRQMASK = 0, M8 = 0, PRIORITY = 0
 
     DMAARM |= (1<<DMA_CHANNEL_RADIO);  // Arm DMA channel
-	RFST = 2;                          // Switch radio to RX mode.
+    RFST = 2;                          // Switch radio to RX mode.
 }
 
 // RF -> report buffer
 void receiveRadioBursts()
 {
-	if (RFIF & (1<<4))
-	{
-		if (radioCrcPassed())
-		{
-			if (packet[2] != currentBurstId)
-			{
-				currentBurstId = packet[2];
+    if (RFIF & (1<<4))
+    {
+        if (radioCrcPassed())
+        {
+            if (packet[2] != currentBurstId)
+            {
+                currentBurstId = packet[2];
 
-				packetsReceived = 0;
-				rssiSum = 0;
-				lqiSum = 0;
-				crcErrors = 0;
-			}
+                packetsReceived = 0;
+                rssiSum = 0;
+                lqiSum = 0;
+                crcErrors = 0;
+            }
 
-			lastPacketReceivedTime = (uint16)getMs();
-			packetsReceived ++;
-			rssiSum += radioRssi();
-			lqiSum += radioLqi();
-		}
-		else
-		{
-			crcErrors ++;
-		}
+            lastPacketReceivedTime = (uint16)getMs();
+            packetsReceived ++;
+            rssiSum += radioRssi();
+            lqiSum += radioLqi();
+        }
+        else
+        {
+            crcErrors ++;
+        }
 
-		RFIF &= ~(1<<4);                   // Clear IRQ_DONE
-	    DMAARM |= (1<<DMA_CHANNEL_RADIO);  // Arm DMA channel
-		RFST = 2;                          // Switch radio to RX mode.
-	}
+        RFIF &= ~(1<<4);                   // Clear IRQ_DONE
+        DMAARM |= (1<<DMA_CHANNEL_RADIO);  // Arm DMA channel
+        RFST = 2;                          // Switch radio to RX mode.
+    }
 }
 
 void reportResults()
 {
-	static uint16 lastReportSentTime;
+    static uint16 lastReportSentTime;
 
-	if (usbComTxAvailable() >= 64)
-	{
-		if (packetsReceived)
-		{
-			if ((uint16)(getMs() - lastPacketReceivedTime) >= 300)
-			{
-				uint8 XDATA report[64];
-				uint8 reportLength = sprintf(report, "%3d, %5d, %5d\r\n", packetsReceived, rssiSum/packetsReceived, lqiSum/packetsReceived);
-				usbComTxSend(report, reportLength);
+    if (usbComTxAvailable() >= 64)
+    {
+        if (packetsReceived)
+        {
+            if ((uint16)(getMs() - lastPacketReceivedTime) >= 300)
+            {
+                uint8 XDATA report[64];
+                uint8 reportLength = sprintf(report, "%3d, %5d, %5d\r\n", packetsReceived, rssiSum/packetsReceived, lqiSum/packetsReceived);
+                usbComTxSend(report, reportLength);
 
-				lastReportSentTime = (uint16)getMs();
-				packetsReceived = 0;
-			}
-		}
-		else
-		{
-			if ((uint16)(getMs() - lastReportSentTime) >= 1100)
-			{
-				static uint8 CODE noSignal[] = "  0,     0,     0\r\n";
-				usbComTxSend((uint8 XDATA *)noSignal, sizeof(noSignal));
-				lastReportSentTime = (uint16)getMs();
-			}
-		}
-	}
+                lastReportSentTime = (uint16)getMs();
+                packetsReceived = 0;
+            }
+        }
+        else
+        {
+            if ((uint16)(getMs() - lastReportSentTime) >= 1100)
+            {
+                static uint8 CODE noSignal[] = "  0,     0,     0\r\n";
+                usbComTxSend((uint8 XDATA *)noSignal, sizeof(noSignal));
+                lastReportSentTime = (uint16)getMs();
+            }
+        }
+    }
 }
 
 void main()
 {
-	systemInit();
-	usbInit();
-	perTestRxInit();
-	usbInit();
+    systemInit();
+    usbInit();
+    perTestRxInit();
+    usbInit();
 
-	while(1)
-	{
-		boardService();
-		usbComService();
-		updateLeds();
-		receiveRadioBursts();
-		reportResults();
-	}
+    while(1)
+    {
+        boardService();
+        usbComService();
+        updateLeds();
+        receiveRadioBursts();
+        reportResults();
+    }
 }

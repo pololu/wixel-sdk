@@ -21,86 +21,86 @@ static uint16 lastBurst = 0;
 
 void updateLeds()
 {
-	usbShowStatusWithGreenLed();
+    usbShowStatusWithGreenLed();
 
-	LED_YELLOW(0);
+    LED_YELLOW(0);
 
-	// Turn on the red LED if we are sending a burst.
-	LED_RED((uint16)(packetsSent < 100));
+    // Turn on the red LED if we are sending a burst.
+    LED_RED((uint16)(packetsSent < 100));
 }
 
 void perTestTxInit()
 {
-	uint8 i;
+    uint8 i;
 
-	radioRegistersInit();
+    radioRegistersInit();
 
-	CHANNR = param_radio_channel;
+    CHANNR = param_radio_channel;
 
-	PKTLEN = RADIO_PACKET_SIZE;
-	
-	MCSM0 = 0x14;    // Auto-calibrate when going from idle to RX or TX.
-	MCSM1 = 0x00;    // Disable CCA.  After RX, go to IDLE.  After TX, go to IDLE.
-	// We leave MCSM2 at its default value.
+    PKTLEN = RADIO_PACKET_SIZE;
+    
+    MCSM0 = 0x14;    // Auto-calibrate when going from idle to RX or TX.
+    MCSM1 = 0x00;    // Disable CCA.  After RX, go to IDLE.  After TX, go to IDLE.
+    // We leave MCSM2 at its default value.
 
-	IOCFG2 = 0b011011; // put out a PA_PD signal on P1_7 (active low when the radio is in TX mode)
+    IOCFG2 = 0b011011; // put out a PA_PD signal on P1_7 (active low when the radio is in TX mode)
 
-	dmaConfig.radio.DC6 = 19; // WORDSIZE = 0, TMODE = 0, TRIG = 19
+    dmaConfig.radio.DC6 = 19; // WORDSIZE = 0, TMODE = 0, TRIG = 19
 
-	dmaConfig.radio.SRCADDRH = (unsigned int)packet >> 8;
-	dmaConfig.radio.SRCADDRL = (unsigned int)packet;
-	dmaConfig.radio.DESTADDRH = XDATA_SFR_ADDRESS(RFD) >> 8;
-	dmaConfig.radio.DESTADDRL = XDATA_SFR_ADDRESS(RFD);
-	dmaConfig.radio.LENL = 1 + RADIO_PACKET_SIZE;
-	dmaConfig.radio.VLEN_LENH = 0b00100000; // Transfer length is FirstByte+1
-	dmaConfig.radio.DC7 = 0x40; // SRCINC = 1, DESTINC = 0, IRQMASK = 0, M8 = 0, PRIORITY = 0
-	
-	for(i = 1; i < sizeof(packet); i++)
-	{
-		packet[i] = 'A' + i;
-	}
-	packet[0] = RADIO_PACKET_SIZE;
+    dmaConfig.radio.SRCADDRH = (unsigned int)packet >> 8;
+    dmaConfig.radio.SRCADDRL = (unsigned int)packet;
+    dmaConfig.radio.DESTADDRH = XDATA_SFR_ADDRESS(RFD) >> 8;
+    dmaConfig.radio.DESTADDRL = XDATA_SFR_ADDRESS(RFD);
+    dmaConfig.radio.LENL = 1 + RADIO_PACKET_SIZE;
+    dmaConfig.radio.VLEN_LENH = 0b00100000; // Transfer length is FirstByte+1
+    dmaConfig.radio.DC7 = 0x40; // SRCINC = 1, DESTINC = 0, IRQMASK = 0, M8 = 0, PRIORITY = 0
+    
+    for(i = 1; i < sizeof(packet); i++)
+    {
+        packet[i] = 'A' + i;
+    }
+    packet[0] = RADIO_PACKET_SIZE;
 
-	RFST = 4;  // Switch radio to Idle mode.
+    RFST = 4;  // Switch radio to Idle mode.
 }
 
 void sendRadioBursts()
 {
-	uint16 time = (uint16)getMs();
+    uint16 time = (uint16)getMs();
 
-	if ((uint16)(time - lastBurst) > 1000)
-	{
-		lastBurst = time;
+    if ((uint16)(time - lastBurst) > 1000)
+    {
+        lastBurst = time;
 
-		currentBurstId++;
-		packetsSent = 0;
-	}
+        currentBurstId++;
+        packetsSent = 0;
+    }
 
-	if (packetsSent < 100 && (MARCSTATE == 1))
-	{
-		packet[1] = packetsSent & 1;
-		packet[2] = currentBurstId;
-		packet[3] = packetsSent;
-		packetsSent++;
+    if (packetsSent < 100 && (MARCSTATE == 1))
+    {
+        packet[1] = packetsSent & 1;
+        packet[2] = currentBurstId;
+        packet[3] = packetsSent;
+        packetsSent++;
 
-		RFIF &= ~(1<<4);                   // Clear IRQ_DONE
-	    DMAARM |= (1<<DMA_CHANNEL_RADIO);  // Arm DMA channel
-	    RFST = 3;                          // Switch radio to TX
-	}
+        RFIF &= ~(1<<4);                   // Clear IRQ_DONE
+        DMAARM |= (1<<DMA_CHANNEL_RADIO);  // Arm DMA channel
+        RFST = 3;                          // Switch radio to TX
+    }
 
 }
 
 void main()
 {
-	systemInit();
-	usbInit();
-	perTestTxInit();
+    systemInit();
+    usbInit();
+    perTestTxInit();
 
-	while(1)
-	{
-		boardService();
-		updateLeds();
-		usbComService();
-		sendRadioBursts();
-	}
+    while(1)
+    {
+        boardService();
+        updateLeds();
+        usbComService();
+        sendRadioBursts();
+    }
 }
