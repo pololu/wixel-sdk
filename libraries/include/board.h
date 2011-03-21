@@ -83,16 +83,21 @@ void systemInit();
  * - Initializes the P2 register.
  * - Enables pull-down resistors for the red and yellow LED pins and
  *   disables pull-down resistors for the other port 2 pins.
+ *
+ * This function is called by systemInit().
  */
 void boardIoInit();
 
 /*! Initializes the board's clock and conifgures the CPU and the
- * timers to run as fast as possible. */
+ * timers to run as fast as possible.
+ *
+ * This function is called by systemInit().
+ * */
 void boardClockInit();
 
 /*! Takes care of any board-related tasks that need to be performed
  * regularly.
- * Right now all this function does is call boardStartBootloaderIfNeeded
+ * Right now all this function does is call boardStartBootloaderIfNeeded()
  * so you should call this function regularly if you want to be able to
  * jump to the bootloader from the application by shorting P2_2 to 3V3. */
 void boardService();

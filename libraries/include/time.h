@@ -21,7 +21,9 @@
  * every millisecond and enables the Timer 4 interrupt.  Note that you
  * will also have to call boardClockInit, to get the system clock running
  * at the right speed, otherwise the millisecond timing will be off by a
- * large factor. */
+ * large factor.
+ *
+ * This function is called by systemInit(). */
 void timeInit();
 
 /*! Returns the number of milliseconds that have elapsed since timeInit()

@@ -1,9 +1,3 @@
-/*  radio_registers.c:  This file contains the recommended configuration of the CC2511
- *  radio registers.
- *
- *  NOTE: The PKTLEN, MCSM0, MCSM1, MCSM2, CHANNR, and ADDR registers and the DMA do not get configured here.
- */
-
 #include "radio_registers.h"
 #include <cc2511_map.h>
 
@@ -19,8 +13,8 @@ void radioRegistersInit()
     FREQ1 = 0x25;
     FREQ0 = 0x00;
 
-    // Note: I had to modify MDMCFG1 from the settings given by
-    // SmartRF Studio to be compatible with the per_test and datasheet
+    // Note: We had to modify MDMCFG1 from the settings given by
+    // SmartRF Studio to be compatible with the datasheet.
     // (NUM_PREAMBLE should be 8 at 500 kbps and having it be high is a good idea in general).
     // MDMCFG1.FEC_EN = 0,1 : 0=Disable,1=Enable Forward Error Correction
     // MDMCFG1.NUM_PREAMBLE = 100 : Minimum number of preamble bytes is 8.
@@ -62,7 +56,7 @@ void radioRegistersInit()
     FOCCFG = 0x1D;  // Frequency Offset Compensation Configuration
     BSCFG = 0x1C;   // Bit Synchronization Configuration
 
-    // AGC Control: Complicated stuff that David doesn't understand yet.
+    // AGC Control:
     // This affects many things, including:
     //    Carrier Sense Absolute Threshold (Sec 13.10.5).
     //    Carrier Sense Relative Threshold (Sec 13.10.6).
