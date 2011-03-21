@@ -95,6 +95,7 @@ uint8 XDATA shortTxPacket[2];
 uint8 DATA radioLinkTxCurrentPacketTries = 0;
 
 static volatile BIT sendingReset = 0;
+static volatile BIT acceptAnySequenceBit = 0;
 
 /* SEQUENCING VARIABLES *******************************************************/
 /* Each data packet we transmit contains a bit that is either 0 or 1 called the
@@ -122,6 +123,7 @@ void radioLinkInit()
     PKTLEN = RADIO_MAX_PACKET_SIZE;
     CHANNR = param_radio_channel;
 
+    acceptAnySequenceBit = 1;
     radioMacInit();
 
     // Start trying to send a reset packet.
@@ -340,7 +342,7 @@ void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
 
             uint8 responsePacketType = PACKET_TYPE_ACK;
 
-            if (rxSequenceBit != (currentRxPacket[RADIO_LINK_PACKET_TYPE_OFFSET] & 1))
+            if (acceptAnySequenceBit || rxSequenceBit != (currentRxPacket[RADIO_LINK_PACKET_TYPE_OFFSET] & 1))
             {
                 // This packet is NOT a retransmission of the last packet we received.
 
@@ -364,7 +366,9 @@ void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
                     // (This overrides the 1-byte header.)
                     currentRxPacket[RADIO_LINK_PACKET_HEADER_LENGTH] = currentRxPacket[RADIO_LINK_PACKET_LENGTH_OFFSET] - RADIO_LINK_PACKET_HEADER_LENGTH;
 
-                    rxSequenceBit ^= 1;
+                    // Set rxSequenceBit to match the txSequenceBit in the received packet
+					rxSequenceBit = currentRxPacket[RADIO_LINK_PACKET_TYPE_OFFSET] & 1;
+					acceptAnySequenceBit = 0;
 
                     radioLinkRxInterruptIndex = nextradioLinkRxInterruptIndex;
                 }
