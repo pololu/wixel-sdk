@@ -27,7 +27,7 @@
 void timeInit();
 
 /*! Returns the number of milliseconds that have elapsed since timeInit()
- * was called or since resetMs was last called.
+ * was called.
  */
 uint32 getMs();
 
