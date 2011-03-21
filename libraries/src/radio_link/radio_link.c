@@ -297,9 +297,9 @@ void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
         {
             // The packet we received contained an acknowledgment.
 
-        	// If we were sending a Reset packet, stop trying to resend it.
         	if (sendingReset)
         	{
+            	// If we were sending a Reset packet, stop trying to resend it.
         		sendingReset = 0;
 
                 // Reset the transmission counter.
@@ -308,12 +308,12 @@ void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
                 // Make sure the next packet we transmit has a sequence bit of 0.
                 txSequenceBit = 0;
         	}
-
-            // Check to see if there is actually any TX packet that we were sending that
-            // can be acknowledged.  This check should return true unless there is a bug
-            // on the other Wixel.
         	else if (radioLinkTxInterruptIndex != radioLinkTxMainLoopIndex)
             {
+                // Check to see if there is actually any TX packet that we were sending that
+                // can be acknowledged.  This check should return true unless there is a bug
+                // on the other Wixel.
+
                 // Give ownership of the current TX packet back to the main loop by updated radioLinkTxInterruptIndex.
                 if (radioLinkTxInterruptIndex == TX_PACKET_COUNT - 1)
                 {
@@ -354,7 +354,7 @@ void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
                     nextradioLinkRxInterruptIndex = radioLinkRxInterruptIndex + 1;
                 }
 
-                if(nextradioLinkRxInterruptIndex != radioLinkRxMainLoopIndex)
+                if (nextradioLinkRxInterruptIndex != radioLinkRxMainLoopIndex)
                 {
                     // We can accept this packet and send an ACK!
 
