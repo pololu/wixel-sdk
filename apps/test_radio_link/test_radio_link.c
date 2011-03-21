@@ -1,7 +1,6 @@
 // test_radio_link.c: A little program that lets you test the radio_link library.
 
-#include <cc2511_map.h>
-#include <board.h>
+#include <wixel.h>
 #include <usb.h>
 #include <usb_com.h>
 #include <radio_link.h>
