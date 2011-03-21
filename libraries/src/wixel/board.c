@@ -114,14 +114,14 @@ void boardStartBootloader()
 
     DMAARM = 0x9F;      // Disarm all DMA channels.
 
-    delayMs(10);        // Wait to give the USB module time to acknowledge the last request.
+    delayMs(10);        // Probably not necessary anymore.
 
     P0DIR = 0;          // Make all the IO lines be inputs.  That's going to happen later in
     P1DIR = 0;          // the bootloader anyway.  We might as well do it now so that any devices
-    P2DIR = 0;          // such as motors stop running right away.  This also signals to the computer
+    P2DIR = 0;          // such as motors stop running right away.  This also signals to the USB host
                         // that we are disconnecting.
 
-    delayMs(100);
+    delayMs(100);       // Delay to give the USB host a chance to detect that we disconnected.
     __asm ljmp 6 __endasm;
 }
 
