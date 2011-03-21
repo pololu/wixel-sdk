@@ -291,6 +291,8 @@ void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
             shortTxPacket[RADIO_LINK_PACKET_LENGTH_OFFSET] = 1;
             shortTxPacket[RADIO_LINK_PACKET_TYPE_OFFSET] = PACKET_TYPE_ACK;
             radioMacTx(shortTxPacket);
+
+            return;
         }
 
         if ((currentRxPacket[RADIO_LINK_PACKET_TYPE_OFFSET] & PACKET_TYPE_MASK) == PACKET_TYPE_ACK)
