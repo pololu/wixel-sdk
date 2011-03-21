@@ -19,7 +19,7 @@
  *    higher number (closer to zero if negative) is better.
  *
  * 3) The average Link Quality Indicator (LQI) of the packets received.  According to
- *    the CC2511F32 atasheet, the LQI is a metric of the quality of the received signal.
+ *    the CC2511F32 datasheet, the LQI is a metric of the quality of the received signal.
  *    "LQI is best used as a relative measurement of link quality (a high value indicates
  *    a better link than what a low value does), since the value is dependent on the
  *    modulation format."
