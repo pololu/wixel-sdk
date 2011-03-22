@@ -30,5 +30,4 @@ To create the installer:
 	e.g. "makensis /DSTARTDIR=c:\working\main\ c:\working\main\wixel-sdk\installer\Wixel_Tools_MUI.nsi"
 
 Notes:
-1. Wixel_tools_mui.nsi defaults to looking for a build tool installer with the same version number.  See line 16 in build_tools.nsi and line 20 in wixel_tools_mui.nsi
-2. The wixel_tools_mui.nsi script will look for the GNU build tools installer (by default pololu_gnu_build_tools_DATE.exe) in the same directory as the wixel-sdk folder.  If your install script is in a default location (under \wixel-sdk\installer) it should end up there by default.
+1. The wixel_tools_mui.nsi script will look for the GNU build tools installer (by default pololu_gnu_build_tools_DATE.exe) in the same directory as the wixel-sdk folder.  If your install script is in a default location (under \wixel-sdk\installer) it should end up there by default.

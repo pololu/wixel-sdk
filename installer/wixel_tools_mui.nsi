@@ -2,7 +2,7 @@
 #
 # wixel_tools_mui.nsi - installer script for the wixel development bundle
 #
-# Last modified: 110316 by KK
+# Last modified: 110322 by KK
 #
 ####################
 
@@ -18,8 +18,7 @@ SetCompressor /solid lzma
 RequestExecutionLevel admin
 
 ; !define STARTDIR=c:\foo\bar
-; !define SDCC "sdcc-3.0.0-setup.exe"
-!define WIXELTOOLVERSION "110318"
+!define WIXELTOOLVERSION "110322"
 !define SDCCVER "3.0.0"
 !define NPVER "5.8.7"
 !define MUI_HEADERIMAGE
@@ -45,7 +44,7 @@ RequestExecutionLevel admin
 !insertmacro MUI_UNPAGE_FINISH
 
 OutFile "..\..\wixel_dev_bundle_${WIXELTOOLVERSION}.exe"
-InstallDir "$DOCUMENTS\Pololu\wixel-sdk"
+InstallDir "C:\wixel-sdk"
 Name "The Pololu Wixel Development Bundle"
 !insertmacro MUI_LANGUAGE "English"
 
@@ -91,10 +90,10 @@ SectionEnd
 
 Section "Pololu GNU Build Utilities" Section3
 	SetOutPath "$TEMP"
-	File "${STARTDIR}\Pololu_GNU_build_tools_${WIXELTOOLVERSION}.exe"
+	File "${STARTDIR}\Pololu_GNU_build_tools.exe"
 	DetailPrint "Now running the Pololu GNU Build Utilities installer"
 	MessageBox MB_OK "The Wixel Dev Bundle will now launch the installer for the Pololu GNU Build Utilities"
-	ExecWait "$TEMP\Pololu_GNU_build_tools_${WIXELTOOLVERSION}"	
+	ExecWait "$TEMP\Pololu_GNU_build_tools.exe"	
 SectionEnd
 
 Section "Notepad++ Text Editor" Section4
@@ -105,11 +104,11 @@ Section "Notepad++ Text Editor" Section4
 	ExecWait "$TEMP\npp.${NPVER}.Installer.exe"
 SectionEnd
 
-Section "Uninstall"
+; Section "Uninstall"
 
 	; DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\pololu_wixel_sdk"
 	
-SectionEnd
+; SectionEnd
 
 
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
@@ -119,12 +118,6 @@ SectionEnd
 	!insertmacro MUI_DESCRIPTION_TEXT ${Section4} $(DESC_SECTION4)
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
-
-; Function .onInit
-	; Var /global UACWORKAROUND
-	; StrCpy $UACWORKAROUND $INSTDIR
-	; messagebox mb_ok "contents of UACWORKAROUND - $UACWORKAROUND"
-; FunctionEnd
 
 Function SDKexists
 	${if} ${FileExists} $INSTDIR

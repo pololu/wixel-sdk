@@ -3,7 +3,7 @@
 # build_tools.nsi - sub-installer script for the pololu GNU build utils
 # 	designed to be run from within a larger installer
 #
-# Last modified: 110316 by KK
+# Last modified: 110322 by KK
 #
 ####################
 
@@ -13,14 +13,14 @@
 
 
 #Small installer for the GNU build tools
-!define TOOLSVER "110318"
+!define TOOLSVER "110322"
 !include EnvVarUpdate.nsh
 
 ; !define STARTDIR "c:\foo\bar"
 
 SetCompressor /solid lzma
 RequestExecutionLevel admin
-OutFile "..\..\pololu_gnu_build_tools_${TOOLSVER}.exe"
+OutFile "..\..\pololu_gnu_build_tools.exe"
 InstallDir "$PROGRAMFILES\Pololu\GNU Build Utilities\"
 Name "Pololu GNU Build Utilities"
 ShowInstDetails show
