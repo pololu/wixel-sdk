@@ -342,7 +342,7 @@ void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
 
             uint8 responsePacketType = PACKET_TYPE_ACK;
 
-            if (acceptAnySequenceBit || rxSequenceBit != (currentRxPacket[RADIO_LINK_PACKET_TYPE_OFFSET] & 1))
+            if (acceptAnySequenceBit || (rxSequenceBit != (currentRxPacket[RADIO_LINK_PACKET_TYPE_OFFSET] & 1)))
             {
                 // This packet is NOT a retransmission of the last packet we received.
 
@@ -362,13 +362,13 @@ void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
                 {
                     // We can accept this packet and send an ACK!
 
+                    // Set rxSequenceBit to match the sequence bit in the received packet
+					rxSequenceBit = (currentRxPacket[RADIO_LINK_PACKET_TYPE_OFFSET] & 1);
+					acceptAnySequenceBit = 0;
+
                     // Set length byte that will be read by the higher-level code.
                     // (This overrides the 1-byte header.)
                     currentRxPacket[RADIO_LINK_PACKET_HEADER_LENGTH] = currentRxPacket[RADIO_LINK_PACKET_LENGTH_OFFSET] - RADIO_LINK_PACKET_HEADER_LENGTH;
-
-                    // Set rxSequenceBit to match the txSequenceBit in the received packet
-					rxSequenceBit = currentRxPacket[RADIO_LINK_PACKET_TYPE_OFFSET] & 1;
-					acceptAnySequenceBit = 0;
 
                     radioLinkRxInterruptIndex = nextradioLinkRxInterruptIndex;
                 }
