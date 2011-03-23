@@ -4,7 +4,7 @@
 
 #include <cc2511_types.h>
 #include <cc2511_map.h>
-#include "random.h"
+#include <random.h>
 
 static uint8 adcReadTemp(void)
 {

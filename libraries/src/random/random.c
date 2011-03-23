@@ -1,6 +1,6 @@
 #include <cc2511_types.h>
 #include <cc2511_map.h>
-#include "random.h"
+#include <random.h>
 
 /* Returns a new random number.  Warning: this is not reentrant.  It is possible that this function
  * could occasionally return the same random number to an ISR caller as it returns to a main loop

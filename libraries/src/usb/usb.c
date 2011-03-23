@@ -1,4 +1,4 @@
-#include "usb.h"
+#include <usb.h>
 #include <cc2511_map.h>
 #include <cc2511_types.h>
 #include <board.h>

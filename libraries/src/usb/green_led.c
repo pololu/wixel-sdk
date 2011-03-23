@@ -1,6 +1,6 @@
-#include "usb.h"
-#include "board.h"
-#include "time.h"
+#include <usb.h>
+#include <board.h>
+#include <time.h>
 
 // TODO: make the green LED blink when there is USB traffic
 

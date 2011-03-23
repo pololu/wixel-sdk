@@ -9,8 +9,8 @@
 #ifndef _RADIO_LINK
 #define _RADIO_LINK
 
-#include "cc2511_types.h"
-#include "radio_mac.h"
+#include <cc2511_types.h>
+#include <radio_mac.h>
 
 /*! Each packet can contain at most 18 bytes of payload. */
 #define RADIO_LINK_PAYLOAD_SIZE 18

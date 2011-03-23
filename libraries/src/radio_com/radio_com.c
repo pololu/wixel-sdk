@@ -1,5 +1,5 @@
-#include "radio_link.h"
-#include "radio_com.h"
+#include <radio_link.h>
+#include <radio_com.h>
 
 static uint8 DATA txBytesLoaded = 0;
 static uint8 DATA rxBytesLeft = 0;

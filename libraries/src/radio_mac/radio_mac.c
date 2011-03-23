@@ -21,12 +21,12 @@
  *  than a hardcoded constant, but makes this MAC layer much more reusable.
  */
 
-#include "radio_mac.h"
+#include <radio_mac.h>
 #include <cc2511_map.h>
 #include <dma.h>
 #include <radio_registers.h>
 
-#include "random.h"
+#include <random.h>
 
 #define MAX_LATENCY_OF_STROBE  10
 

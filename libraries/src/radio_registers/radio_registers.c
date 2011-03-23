@@ -1,4 +1,4 @@
-#include "radio_registers.h"
+#include <radio_registers.h>
 #include <cc2511_map.h>
 
 void radioRegistersInit()
