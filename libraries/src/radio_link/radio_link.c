@@ -29,10 +29,6 @@
  *  Transport Layer (#4).
  */
 
-// TODO: make some way for the devices to synchronize their sequence numbers so when a
-//  device starts up, it can guarantee that its first data packet won't be ignored by
-//  the other party?
-
 #include <radio_link.h>
 #include <radio_registers.h>
 #include <random.h>
