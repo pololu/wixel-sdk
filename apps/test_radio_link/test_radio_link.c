@@ -7,7 +7,7 @@
 #include <random.h>
 #include <stdio.h>
 
-// These prototypes allow us to access the internals of raido_link.  These are not
+// These prototypes allow us to access the internals of radio_link.  These are not
 // available in radio_link.h because normal applications should never use them.
 extern volatile uint8 DATA radioLinkRxMainLoopIndex;   // The index of the next rxBuffer to read from the main loop.
 extern volatile uint8 DATA radioLinkRxInterruptIndex;  // The index of the next rxBuffer to write to when a packet comes from the radio.
