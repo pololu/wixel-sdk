@@ -52,10 +52,11 @@ int32 CODE param_radio_channel = 128;
 #define RADIO_LINK_PACKET_LENGTH_OFFSET 0
 #define RADIO_LINK_PACKET_TYPE_OFFSET   1
 
-#define PACKET_TYPE_MASK (3 << 6) // These are the bits that determine the packet type.
-#define PACKET_TYPE_PING (0 << 6) // If both bits are zero, it is just a Ping packet (with optional data).
-#define PACKET_TYPE_NAK  (1 << 6) // A NAK packet (with optional data)
-#define PACKET_TYPE_ACK  (2 << 6) // An ACK packet (with optional data)
+#define PACKET_TYPE_MASK  (3 << 6) // These are the bits that determine the packet type.
+#define PACKET_TYPE_PING  (0 << 6) // If both bits are zero, it is just a Ping packet (with optional data).
+#define PACKET_TYPE_NAK   (1 << 6) // A NAK packet (with optional data)
+#define PACKET_TYPE_ACK   (2 << 6) // An ACK packet (with optional data)
+#define PACKET_TYPE_RESET (3 << 6) // A Reset packet (the next packet transmitted by the sender of this packet will have a sequence number of 0)
 
 /*  rxPackets:
  *  We need to be prepared at all times to receive a full packet from the other party,
@@ -93,6 +94,8 @@ uint8 XDATA shortTxPacket[2];
 // times, this variable will be 255.
 uint8 DATA radioLinkTxCurrentPacketTries = 0;
 
+static volatile BIT sendingReset = 0;
+static volatile BIT acceptAnySequenceBit = 0;
 
 /* SEQUENCING VARIABLES *******************************************************/
 /* Each data packet we transmit contains a bit that is either 0 or 1 called the
@@ -120,7 +123,11 @@ void radioLinkInit()
     PKTLEN = RADIO_MAX_PACKET_SIZE;
     CHANNR = param_radio_channel;
 
+    acceptAnySequenceBit = 1;
     radioMacInit();
+
+    // Start trying to send a reset packet.
+    sendingReset = 1;
     radioMacStrobe();
 }
 
@@ -207,6 +214,17 @@ void radioLinkRxDoneWithPacket(void)
 
 /* FUNCTIONS CALLED IN RF_ISR *************************************************/
 
+static void txResetPacket()
+{
+    shortTxPacket[RADIO_LINK_PACKET_LENGTH_OFFSET] = 1;
+    shortTxPacket[RADIO_LINK_PACKET_TYPE_OFFSET] = PACKET_TYPE_RESET;
+    radioMacTx(shortTxPacket);
+    if (radioLinkTxCurrentPacketTries < 255)
+    {
+        radioLinkTxCurrentPacketTries++;
+    }
+}
+
 static void txDataPacket(uint8 packetType)
 {
     radioLinkTxPacket[radioLinkTxInterruptIndex][RADIO_LINK_PACKET_TYPE_OFFSET] = packetType | txSequenceBit;
@@ -219,7 +237,12 @@ static void txDataPacket(uint8 packetType)
 
 static void takeInitiative()
 {
-    if (radioLinkTxInterruptIndex != radioLinkTxMainLoopIndex)
+	if (sendingReset)
+	{
+        // Try to send a reset packet.
+        txResetPacket();
+	}
+	else if (radioLinkTxInterruptIndex != radioLinkTxMainLoopIndex)
     {
         // Try to send the next data packet.
         txDataPacket(PACKET_TYPE_PING);
@@ -260,15 +283,41 @@ void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
             return;
         }
 
+        if ((currentRxPacket[RADIO_LINK_PACKET_TYPE_OFFSET] & PACKET_TYPE_MASK) == PACKET_TYPE_RESET)
+        {
+        	// The other Wixel sent a Reset packet, which means the next packet it sends will have a sequence bit of 0.
+        	// So this Wixel should set its "previously received" sequence bit to 1 so it expects a 0 next.
+        	rxSequenceBit = 1;
+
+        	// Send an ACK
+            shortTxPacket[RADIO_LINK_PACKET_LENGTH_OFFSET] = 1;
+            shortTxPacket[RADIO_LINK_PACKET_TYPE_OFFSET] = PACKET_TYPE_ACK;
+            radioMacTx(shortTxPacket);
+
+            return;
+        }
+
         if ((currentRxPacket[RADIO_LINK_PACKET_TYPE_OFFSET] & PACKET_TYPE_MASK) == PACKET_TYPE_ACK)
         {
             // The packet we received contained an acknowledgment.
 
-            // Check to see if there is actually any TX packet that we were sending that
-            // can be acknowledged.  This check should return true unless there is a bug
-            // on the other Wixel.
-            if (radioLinkTxInterruptIndex != radioLinkTxMainLoopIndex)
+        	if (sendingReset)
+        	{
+            	// If we were sending a Reset packet, stop trying to resend it.
+        		sendingReset = 0;
+
+                // Reset the transmission counter.
+                radioLinkTxCurrentPacketTries = 0;
+
+                // Make sure the next packet we transmit has a sequence bit of 0.
+                txSequenceBit = 0;
+        	}
+        	else if (radioLinkTxInterruptIndex != radioLinkTxMainLoopIndex)
             {
+                // Check to see if there is actually any TX packet that we were sending that
+                // can be acknowledged.  This check should return true unless there is a bug
+                // on the other Wixel.
+
                 // Give ownership of the current TX packet back to the main loop by updated radioLinkTxInterruptIndex.
                 if (radioLinkTxInterruptIndex == TX_PACKET_COUNT - 1)
                 {
@@ -293,7 +342,7 @@ void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
 
             uint8 responsePacketType = PACKET_TYPE_ACK;
 
-            if (rxSequenceBit != (currentRxPacket[RADIO_LINK_PACKET_TYPE_OFFSET] & 1))
+            if (acceptAnySequenceBit || (rxSequenceBit != (currentRxPacket[RADIO_LINK_PACKET_TYPE_OFFSET] & 1)))
             {
                 // This packet is NOT a retransmission of the last packet we received.
 
@@ -309,15 +358,17 @@ void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
                     nextradioLinkRxInterruptIndex = radioLinkRxInterruptIndex + 1;
                 }
 
-                if(nextradioLinkRxInterruptIndex != radioLinkRxMainLoopIndex)
+                if (nextradioLinkRxInterruptIndex != radioLinkRxMainLoopIndex)
                 {
                     // We can accept this packet and send an ACK!
+
+                    // Set rxSequenceBit to match the sequence bit in the received packet
+					rxSequenceBit = (currentRxPacket[RADIO_LINK_PACKET_TYPE_OFFSET] & 1);
+					acceptAnySequenceBit = 0;
 
                     // Set length byte that will be read by the higher-level code.
                     // (This overrides the 1-byte header.)
                     currentRxPacket[RADIO_LINK_PACKET_HEADER_LENGTH] = currentRxPacket[RADIO_LINK_PACKET_LENGTH_OFFSET] - RADIO_LINK_PACKET_HEADER_LENGTH;
-
-                    rxSequenceBit ^= 1;
 
                     radioLinkRxInterruptIndex = nextradioLinkRxInterruptIndex;
                 }
