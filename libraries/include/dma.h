@@ -23,9 +23,9 @@ void dmaInit();
  * for DMA channels 1-4. */
 typedef struct DMA14_CONFIG
 {
-	/*! This is the DMA configuration struct for DMA channel 1,
-	 * which we have chosen to use for transmitting and receiving
-	 * radio packets. */
+    /*! This is the DMA configuration struct for DMA channel 1,
+     * which we have chosen to use for transmitting and receiving
+     * radio packets. */
     volatile DMA_CONFIG radio;
 
     /*! Config struct for DMA channel 2 (unassigned) */

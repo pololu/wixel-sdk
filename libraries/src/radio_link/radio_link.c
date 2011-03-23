@@ -233,12 +233,12 @@ static void txDataPacket(uint8 packetType)
 
 static void takeInitiative()
 {
-	if (sendingReset)
-	{
+    if (sendingReset)
+    {
         // Try to send a reset packet.
         txResetPacket();
-	}
-	else if (radioLinkTxInterruptIndex != radioLinkTxMainLoopIndex)
+    }
+    else if (radioLinkTxInterruptIndex != radioLinkTxMainLoopIndex)
     {
         // Try to send the next data packet.
         txDataPacket(PACKET_TYPE_PING);
@@ -281,11 +281,11 @@ void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
 
         if ((currentRxPacket[RADIO_LINK_PACKET_TYPE_OFFSET] & PACKET_TYPE_MASK) == PACKET_TYPE_RESET)
         {
-        	// The other Wixel sent a Reset packet, which means the next packet it sends will have a sequence bit of 0.
-        	// So this Wixel should set its "previously received" sequence bit to 1 so it expects a 0 next.
-        	rxSequenceBit = 1;
+            // The other Wixel sent a Reset packet, which means the next packet it sends will have a sequence bit of 0.
+            // So this Wixel should set its "previously received" sequence bit to 1 so it expects a 0 next.
+            rxSequenceBit = 1;
 
-        	// Send an ACK
+            // Send an ACK
             shortTxPacket[RADIO_LINK_PACKET_LENGTH_OFFSET] = 1;
             shortTxPacket[RADIO_LINK_PACKET_TYPE_OFFSET] = PACKET_TYPE_ACK;
             radioMacTx(shortTxPacket);
@@ -297,18 +297,18 @@ void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
         {
             // The packet we received contained an acknowledgment.
 
-        	if (sendingReset)
-        	{
-            	// If we were sending a Reset packet, stop trying to resend it.
-        		sendingReset = 0;
+            if (sendingReset)
+            {
+                // If we were sending a Reset packet, stop trying to resend it.
+                sendingReset = 0;
 
                 // Reset the transmission counter.
                 radioLinkTxCurrentPacketTries = 0;
 
                 // Make sure the next packet we transmit has a sequence bit of 0.
                 txSequenceBit = 0;
-        	}
-        	else if (radioLinkTxInterruptIndex != radioLinkTxMainLoopIndex)
+            }
+            else if (radioLinkTxInterruptIndex != radioLinkTxMainLoopIndex)
             {
                 // Check to see if there is actually any TX packet that we were sending that
                 // can be acknowledged.  This check should return true unless there is a bug
@@ -359,8 +359,8 @@ void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
                     // We can accept this packet and send an ACK!
 
                     // Set rxSequenceBit to match the sequence bit in the received packet
-					rxSequenceBit = (currentRxPacket[RADIO_LINK_PACKET_TYPE_OFFSET] & 1);
-					acceptAnySequenceBit = 0;
+                    rxSequenceBit = (currentRxPacket[RADIO_LINK_PACKET_TYPE_OFFSET] & 1);
+                    acceptAnySequenceBit = 0;
 
                     // Set length byte that will be read by the higher-level code.
                     // (This overrides the 1-byte header.)
