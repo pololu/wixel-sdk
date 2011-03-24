@@ -18,6 +18,10 @@
 
 #include <cc2511_map.h>
 #include <cc2511_types.h>
+#include <com.h>
+
+// NOTE: Do not change the value of PARITY_* definitions below;
+// they must match Table 17 in the CDC PSTN Subclass Specification.
 
 /*! Initializes the library.
  *
@@ -34,6 +38,31 @@ void uart0Init();
  * registers instead of using this function.
  */
 void uart0SetBaudRate(uint32 baudrate);
+
+/*! Sets the parity type of the serial port.
+ *
+ * \param parity Should be either PARITY_NONE, PARITY_ODD, PARITY_EVEN, PARITY_MARK,
+ *  or PARITY_SPACE.  These values are consistent with USB CDC ACM protocol
+ *  (see CDC PSTN Subclass Specification, Table 17).
+ */
+void uart0SetParity(uint8 parity);
+
+/*! Sets the number of stop bits to be transmitted and checked for during reception.
+ *
+ * \param stopBits Should be either STOP_BITS_1 or STOP_BITS_2.  These values are
+ * consistent with the USB CDC ACM protocol (see CDC PSTN Subclass Specification,
+ * Table 17).
+ *
+ * The CC2511's UARTs do not actually support 1.5 stop bits, so if the argument to
+ * this function is STOP_BITS_1_5, the UART will be set to 1 stop bit instead.
+ *
+ * The CC2511's UARTs do not support having 2 stop bits very well, because the
+ * the framing error bit (UxCSR.FE) is set 1 bit duration *after* the interrupt
+ * is triggered.  Therefore, if stopBits is set to 2, this library may fail to
+ * detect framing errors from the second stop bit.  Also, the byte received after
+ * the framing error occurred may be thrown out even if that byte is valid.
+ */
+void uart0SetStopBits(uint8 stopBits);
 
 /*! \return The number of bytes available in the TX buffer.
  */

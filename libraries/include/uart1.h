@@ -9,9 +9,12 @@
 
 #include <cc2511_map.h>
 #include <cc2511_types.h>
+#include <com.h>
 
 void uart1Init();
 void uart1SetBaudRate(uint32 baudrate);
+void uart1SetParity(uint8 parity);
+void uart1SetStopBits(uint8 stopBits);
 uint8 uart1TxAvailable(void);
 void uart1TxSendByte(uint8 byte);
 void uart1TxSend(const uint8 XDATA * buffer, uint8 size);

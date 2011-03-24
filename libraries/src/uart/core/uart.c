@@ -31,6 +31,8 @@
 #define uartNTxAvailable            uart0TxAvailable
 #define uartNInit                   uart0Init
 #define uartNSetBaudRate            uart0SetBaudRate
+#define uartNSetParity              uart0SetParity
+#define uartNSetStopBits            uart0SetStopBits
 #define uartNTxSend                 uart0TxSend
 #define uartNRxReceiveByte          uart0RxReceiveByte
 #define uartNTxSend                 uart0TxSend
@@ -57,6 +59,8 @@
 #define uartNTxAvailable             uart1TxAvailable
 #define uartNInit                    uart1Init
 #define uartNSetBaudRate             uart1SetBaudRate
+#define uartNSetParity               uart1SetParity
+#define uartNSetStopBits             uart1SetStopBits
 #define uartNTxSend                  uart1TxSend
 #define uartNRxReceiveByte           uart1RxReceiveByte
 #define uartNTxSend                  uart1TxSend
@@ -112,7 +116,7 @@ void uartNInit(void)
     PERCFG |= 0x02;  // PERCFG.U1CFG (1) = 1 (Alt. 2) : USART1 uses alt. location 2.
 #endif
 
-    UNUCR |= 0x80;   // U0UCR.FLUSH (7) = 1 : Stops the "current operation".
+    UNUCR = 0x82;    // Stops the "current operation" and resets settings to their defaults.
     UNCSR |= 0xc0;   // Enable UART mode and enable receiver.  TODO: change '|=' to '='
 
     // Set the mode of the TX pin to "peripheral function".  This must be done AFTER
@@ -157,6 +161,41 @@ void uartNSetBaudRate(uint32 baud)
     }
     UNGCR = baudE; // UNGCR.BAUD_E (4:0)
     UNBAUD = baudMPlus256; // UNBAUD.BAUD_M (7:0) - only the lowest 8 bits of baudMPlus256 are used, so this is effectively baudMPlus256 - 256
+}
+
+void uartNSetParity(uint8 parity)
+{
+    // parity     D9    BIT9    PARITY
+    // 0 None     x     0       x
+    // 1 Odd      1     1       1
+    // 2 Even     0     1       1
+    // 3 Mark     1     1       0
+    // 4 Space    0     1       0
+
+    uint8 tmp = 0;
+
+    switch(parity)
+    {
+    case PARITY_ODD:   tmp = 0b111 << 3; break;
+    case PARITY_EVEN:  tmp = 0b011 << 3; break;
+    case PARITY_MARK:  tmp = 0b110 << 3; break;
+    case PARITY_SPACE: tmp = 0b010 << 3; break;
+    }
+
+    UNUCR = (UNUCR & 0b01000111) | tmp;
+}
+
+void uartNSetStopBits(uint8 stopBits)
+{
+    if (stopBits == STOP_BITS_2)
+    {
+        UNUCR |= (1<<2);    // 2 stop bits
+    }
+    else
+    {
+        UNUCR &= ~(1<<2);   // 1 stop bit
+        // NOTE: An argument of STOP_BITS_1_5 is treated the same as STOP_BITS_1.
+    }
 }
 
 uint8 uartNTxAvailable(void)
