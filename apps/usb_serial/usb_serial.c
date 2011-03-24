@@ -14,10 +14,8 @@
 /*
  * TODO: Support for USB CDC ACM control signals.
  * TODO: use LEDs to give feedback about USB activity.
- * TODO: UART flow control?
- * TODO: Obey CDC-ACM Set Line Coding commands:
- *       In USB-UART mode this would let the user change the baud rate at run-time.
- *       In USB-RADIO mode, bauds 0-255 would correspond to radio channels.
+ * TODO: UART flow control
+ * TODO: give feedback about framing and parity errors
  */
 
 /** Dependencies **************************************************************/
@@ -28,9 +26,6 @@
 
 #include <usb.h>
 #include <usb_com.h>
-
-#include <radio_com.h>
-#include <radio_link.h>
 
 #include <uart1.h>
 
@@ -58,6 +53,8 @@ void usbToUartService()
 void lineCodingChanged()
 {
     uart1SetBaudRate(usbComLineCoding.dwDTERate);
+    uart1SetParity(usbComLineCoding.bParityType);
+    uart1SetStopBits(usbComLineCoding.bCharFormat);
 }
 
 void main()
