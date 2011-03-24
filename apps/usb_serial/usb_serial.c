@@ -55,13 +55,19 @@ void usbToUartService()
     }
 }
 
+void lineCodingChanged()
+{
+    uart1SetBaudRate(usbComLineCoding.dwDTERate);
+}
+
 void main()
 {
     systemInit();
     usbInit();
+    usbComLineCodingChangeHandler = &lineCodingChanged;
 
     uart1Init();
-    uart1SetBaudRate(9600);
+    lineCodingChanged();
 
     while(1)
     {
