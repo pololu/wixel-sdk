@@ -22,6 +22,7 @@
 #define CDC_DATA_INTERFACE_NUMBER    1
 
 #define CDC_NOTIFICATION_ENDPOINT    1
+#define CDC_NOTIFICATION_FIFO        USBF1   // This must match CDC_NOTIFICATION_ENDPOINT!
 
 #define CDC_DATA_ENDPOINT            4
 #define CDC_DATA_FIFO                USBF4   // This must match CDC_DATA_ENDPOINT!
@@ -66,7 +67,14 @@ static void doNothing();
 
 /* USB COM Variables **********************************************************/
 
-uint8 usbComControlLineState = 0xFF;
+// TODO: look at usb-to-serial adapters and figure out good default values for usbComControlLineState (RTS and CTS)
+uint8 usbComControlLineState = 0;
+
+uint8 usbComSerialState = ACM_SERIAL_STATE_RING_SIGNAL;
+
+// The last state we reported to the computer, or 0xFF if we have not reported
+// a state yet.
+static uint8 lastReportedSerialState = 0xFF;
 
 ACM_LINE_CODING XDATA usbComLineCoding =
 {
@@ -228,6 +236,9 @@ void usbCallbackInitEndpoints()
     usbInitEndpointIn(CDC_NOTIFICATION_ENDPOINT, 8);
     usbInitEndpointOut(CDC_DATA_ENDPOINT, CDC_OUT_PACKET_SIZE);
     usbInitEndpointIn(CDC_DATA_ENDPOINT, CDC_IN_PACKET_SIZE);
+
+    // Force an update to be sent to the computer.
+    lastReportedSerialState = 0xFF;
 }
 
 // Implements all the control transfers that are required by D1 of the
@@ -343,13 +354,12 @@ static void sendPacketNow()
 
 void usbComService(void)
 {
-    USBINDEX = CDC_DATA_ENDPOINT;
-
     // Send a packet now if there is data loaded in the FIFO waiting to be sent OR
     //
     // Typical USB systems wait for a short or empty packet before forwarding the data
     // up to the software that requested it, so this is necessary.  However, we only transmit
     // an empty packet if there are no packets currently loaded in the FIFO.
+    USBINDEX = CDC_DATA_ENDPOINT;
     if (inFifoBytesLoaded || ( sendEmptyPacketSoon && !(USBCSIL & USBCSIL_PKT_PRESENT) ) )
     {
         sendPacketNow();
@@ -357,6 +367,45 @@ void usbComService(void)
 
     usbPoll();
 
+    // Notify the computer of the current serial state if necessary.
+    USBINDEX = CDC_NOTIFICATION_ENDPOINT;
+    if (usbComSerialState != lastReportedSerialState && !(USBCSIL & USBCSIL_INPKT_RDY))
+    {
+        // The serial state has changed since the last time we sent it.
+        // AND we are ready to send it to the USB host, so send it.
+        // See PSTN Section 6.5.4, SerialState for an explanation of this packet.
+
+        CDC_NOTIFICATION_FIFO = 0b10100001;   // bRequestType: Direction=IN, Type=Class, Sender=Interface
+        CDC_NOTIFICATION_FIFO = ACM_NOTIFICATION_SERIAL_STATE; // bRequest
+
+        // wValue is zero.
+        CDC_NOTIFICATION_FIFO = 0;
+        CDC_NOTIFICATION_FIFO = 0;
+
+        // wIndex is the number of the interface this notification comes from.
+        CDC_NOTIFICATION_FIFO = CDC_CONTROL_INTERFACE_NUMBER;
+        CDC_NOTIFICATION_FIFO = 0;
+
+        // wLength is 2 because the data part has two bytes
+        CDC_NOTIFICATION_FIFO = 2;
+        CDC_NOTIFICATION_FIFO = 0;
+
+        // Data
+        CDC_NOTIFICATION_FIFO = usbComSerialState;
+        CDC_NOTIFICATION_FIFO = 0;
+
+        USBCSIL |= USBCSIL_INPKT_RDY;
+
+        //usbComSerialState |= ACM_SERIAL_STATE_RING_SIGNAL;
+
+        // As specified in PSTN 1.20 Section 6.5.4, we clear the "irregular" signals.
+        //usbComSerialState &= ~(ACM_SERIAL_STATE_BREAK | ACM_SERIAL_STATE_RING_SIGNAL |
+        //        ACM_SERIAL_STATE_FRAMING | ACM_SERIAL_STATE_PARITY | ACM_SERIAL_STATE_OVERRUN);
+
+        lastReportedSerialState = usbComSerialState;
+    }
+
+    // Start bootloader if necessary.
     if (startBootloaderSoon && (uint8)(getMs() - startBootloaderRequestTime) > 70)
     {
         // It has been 50 ms since the user requested that we start the bootloader, so
