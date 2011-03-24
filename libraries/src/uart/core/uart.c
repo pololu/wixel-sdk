@@ -20,6 +20,7 @@
 #define URXNIE                      URX0IE
 #define UNCSR                       U0CSR
 #define UNGCR                       U0GCR
+#define UNUCR                       U0UCR
 #define UNBAUD                      U0BAUD
 #define UNDBUF                      U0DBUF
 #define BV_UTXNIE                   (1<<2)
@@ -45,6 +46,7 @@
 #define URXNIE                       URX1IE
 #define UNCSR                        U1CSR
 #define UNGCR                        U1GCR
+#define UNUCR                        U1UCR
 #define UNBAUD                       U1BAUD
 #define UNDBUF                       U1DBUF
 #define BV_UTXNIE                    (1<<3)
@@ -105,16 +107,21 @@ void uartNInit(void)
 #ifdef UART0
     P2DIR &= ~0xC0;  // P2DIR.PRIP0 (7:6) = 00 : USART0 takes priority over USART1.
     PERCFG &= ~0x01; // PERCFG.U0CFG (0) = 0 (Alt. 1) : USART0 uses alt. location 0.
-    P0SEL |= (1<<3); // TX pin mode = peripheral func.  P0SEL.SELP0_3 = 1
-    U0UCR |= 0x80;   // U0UCR.FLUSH (7) = 1 : Stops the "current operation".
 #else
     P2SEL |= 0x40;   // USART1 takes priority over USART0 on Port 1.
     PERCFG |= 0x02;  // PERCFG.U1CFG (1) = 1 (Alt. 2) : USART1 uses alt. location 2.
-    P1SEL |= (1<<6); // TX pin mode = peripheral func.  P1SEL.SELP1_6 = 1
-    U1UCR |= 0x80;   // U0UCR.FLUSH (7) = 1 : Stops the "current operation".
 #endif
 
+    UNUCR |= 0x80;   // U0UCR.FLUSH (7) = 1 : Stops the "current operation".
     UNCSR |= 0xc0;   // Enable UART mode and enable receiver.  TODO: change '|=' to '='
+
+    // Set the mode of the TX pin to "peripheral function".  This must be done AFTER
+    // enabling the UART, or else we get a tiny glitch on the TX line.
+#ifdef UART0
+    P0SEL |= (1<<3); // P0SEL.SELP0_3 = 1
+#else
+    P1SEL |= (1<<6); // P1SEL.SELP1_6 = 1
+#endif
 
     // Below, we set the priority of the RX and TX interrupts to be 1 (second lowest priority).
     // They need to be higher than the RF interrupt because that one could take a long time.
