@@ -24,11 +24,13 @@ typedef struct ACM_LINE_CODING
     unsigned char bDataBits;
 } ACM_LINE_CODING;
 
+typedef void (HandlerFunction)(void);
 
 /* Prototypes defined by the CDC ACM module ***********************************/
 
 extern uint8 usbComControlLineState;
 extern ACM_LINE_CODING XDATA usbComLineCoding;
+extern HandlerFunction * usbComLineCodingChangeHandler;
 
 void usbComInit(void);
 void usbComService(void);    // This should be called regularly.

@@ -61,6 +61,9 @@
 #define ACM_NOTIFICATION_RESPONSE_AVAILABLE 0x01
 #define ACM_NOTIFICATION_SERIAL_STATE 0x20
 
+/* Private Prototypes *********************************************************/
+static void doNothing();
+
 /* USB COM Variables **********************************************************/
 
 uint8 usbComControlLineState = 0xFF;
@@ -72,6 +75,8 @@ ACM_LINE_CODING XDATA usbComLineCoding =
     0,        // bParityType = 0: no parity
     8,        // bDataBits = 8
 };
+
+HandlerFunction * usbComLineCodingChangeHandler = doNothing;
 
 // This bit is true if we need to send an empty (zero-length) packet of data to
 // the computer soon.  Every data transfer needs to be ended with a packet that
@@ -252,8 +257,15 @@ void usbCallbackSetupHandler()
     }
 }
 
+static void doNothing(void)
+{
+    // Do nothing.
+}
+
 void usbCallbackControlWriteHandler()
 {
+    usbComLineCodingChangeHandler();
+
     if (usbComLineCoding.dwDTERate == 333 && !startBootloaderSoon)
     {
         // The baud rate has been set to 333.  That is the special signal
