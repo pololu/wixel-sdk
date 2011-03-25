@@ -10,7 +10,7 @@ int32 CODE param_report_period_ms = 100;
 
 int32 CODE param_input_mode = 0;
 
-uint8 XDATA response[64];
+uint8 XDATA report[64];
 
 void updateLeds()
 {
@@ -19,13 +19,13 @@ void updateLeds()
     LED_RED(0);
 }
 
-void reportSender()
+void sendReportIfNeeded()
 {
-	static uint16 lastReport;
+	static uint32 lastReport;
 	uint8 i;
 	uint16 result[6];
 
-	if (getMs() - lastReport >= param_report_period_ms && usbComTxAvailable() >= sizeof(response))
+	if (getMs() - lastReport >= param_report_period_ms && usbComTxAvailable() >= sizeof(report))
 	{
 		uint8 reportLength;
 		lastReport = (uint16)getMs();
@@ -35,16 +35,10 @@ void reportSender()
 		    result[i] = adcRead(i);
 		}
 
-		reportLength = sprintf(response, "%4d, %4d, %4d, %4d, %4d, %4d\r\n",
+		reportLength = sprintf(report, "%4d, %4d, %4d, %4d, %4d, %4d\r\n",
 		        result[0], result[1], result[2], result[3], result[4], result[5]);
-		usbComTxSend(response, reportLength);
+		usbComTxSend(report, reportLength);
 	}
-}
-
-void processByte(uint8 byte)
-{
-	// TODO: add commands for doing extra ADC conversions
-	byte;
 }
 
 void analogInputsInit()
@@ -79,6 +73,6 @@ void main()
         boardService();
         updateLeds();
         usbComService();
-        reportSender();
+        sendReportIfNeeded();
     }
 }
