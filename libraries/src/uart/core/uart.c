@@ -25,8 +25,8 @@
 #define UNDBUF                      U0DBUF
 #define BV_UTXNIE                   (1<<2)
 #define uartNRxParityErrorOccurred  uart0RxParityErrorOccurred
-#define uartNRxFramingErrorOccurred uart0RxParityErrorOccurred
-#define uartNRxBufferFullOccurred   uart0RxParityErrorOccurred
+#define uartNRxFramingErrorOccurred uart0RxFramingErrorOccurred
+#define uartNRxBufferFullOccurred   uart0RxBufferFullOccurred
 #define uartNRxAvailable            uart0RxAvailable
 #define uartNTxAvailable            uart0TxAvailable
 #define uartNInit                   uart0Init
@@ -53,8 +53,8 @@
 #define UNDBUF                       U1DBUF
 #define BV_UTXNIE                    (1<<3)
 #define uartNRxParityErrorOccurred   uart1RxParityErrorOccurred
-#define uartNRxFramingErrorOccurred  uart1RxParityErrorOccurred
-#define uartNRxBufferFullOccurred    uart1RxParityErrorOccurred
+#define uartNRxFramingErrorOccurred  uart1RxFramingErrorOccurred
+#define uartNRxBufferFullOccurred    uart1RxBufferFullOccurred
 #define uartNRxAvailable             uart1RxAvailable
 #define uartNTxAvailable             uart1TxAvailable
 #define uartNInit                    uart1Init

@@ -59,8 +59,8 @@ void uart0SetParity(uint8 parity);
  * The CC2511's UARTs do not support having 2 stop bits very well, because the
  * the framing error bit (UxCSR.FE) is set 1 bit duration *after* the interrupt
  * is triggered.  Therefore, if stopBits is set to 2, this library may fail to
- * detect framing errors from the second stop bit.  Also, the byte received after
- * the framing error occurred may be thrown out even if that byte is valid.
+ * detect framing errors from the second stop bit.  Also, the next byte received
+ * after the framing error occurred may be thrown out even if that byte is valid.
  */
 void uart0SetStopBits(uint8 stopBits);
 
