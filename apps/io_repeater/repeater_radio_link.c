@@ -1,34 +1,3 @@
-/* radio_link.c:
- *  This layer uses radio_mac.c in order to provide reliable ordered delivery and reception of
- *  a series of data packets between this device and another.  This is the layer that takes care
- *  of Ping/ACK/NAK packets, and handles the details of timing (however, the timing details
- *  are dependent on the performance/configuration of the MAC layer, so if the MAC layer
- *  changes then the timing details here may have to change.)
- *
- *  This layer defines the RF packet memory buffers used, and controls access to those buffers.
- *
- *  This layer also takes care of presence detection by sending out regular Ping packets even
- *  if there is no data packet to transmit.
- *
- *  This is the layer that restricts us to only talk to one device.  (If you wanted to make a
- *  network with more than 2 devices, you would have to replace this layer with something more
- *  complicated that has addressing.)
- *
- *  Similarly, this layer also restricts us to only having one logical data pipe.  If you wanted
- *  to send some extra data that doesn't get NAKed, or gets NAKed at different times then the
- *  regular data, you would need to replace this layer with something more complicated that
- *  keeps track of different streams and schedules them in a reasonable way.
- *
- *  There is a distinction here between RF packets and data packets:  an RF packet is what gets
- *  transmitted by the radio.  A data packet is a piece of data that needs to be sent to the
- *  other device, and it might correspond to several RF packets because there are retries and
- *  ACKs.
- *
- *  This layer does not correspond cleanly to any of the layers in the OSI Model.
- *  It combines portions of the Data Link Layer (#2), Network Layer (#3), and
- *  Transport Layer (#4).
- */
-
 #include "repeater_radio_link.h"
 #include <radio_registers.h>
 #include <random.h>

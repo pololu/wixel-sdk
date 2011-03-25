@@ -1,3 +1,5 @@
+// TODO: get rid of this layer because io_repeater should deal directly with packets
+
 #include "repeater_radio_link.h"
 #include "repeater_radio_com.h"
 
