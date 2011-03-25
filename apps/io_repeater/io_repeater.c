@@ -11,7 +11,7 @@
 #include "repeater_radio_link.h"
 
 #define PIN_COUNT 15
-#define MAX_TX_INTERVAL 20 // maximum time between transmissions (ms)
+#define MAX_TX_INTERVAL 10 // maximum time between transmissions (ms)
 
 #define IS_INPUT(port, pin) (P##port##Links[pin] < 0)
 #define IS_OUTPUT(port, pin) (P##port##Links[pin] > 0)
@@ -167,6 +167,7 @@ void configurePins(void)
     }
 }
 
+// read the states of input pins on this Wixel into a buffer
 void readPins(uint8 XDATA * buf)
 {
     uint8 i;
@@ -177,6 +178,7 @@ void readPins(uint8 XDATA * buf)
     }
 }
 
+// set the states of output pins on this Wixel based on values from a buffer
 void setPins(uint8 XDATA * buf, uint8 pinCount)
 {
     uint8 i, j;
@@ -198,7 +200,7 @@ void setPins(uint8 XDATA * buf, uint8 pinCount)
 
 void main(void)
 {
-    uint8 lastTx = 0, nextTx = 0;
+    uint8 lastTx = 0;
 
     systemInit();
     usbInit();
@@ -214,19 +216,21 @@ void main(void)
         boardService();
         usbComService();
 
+        // receive pin states from another Wixel and set our output pins
         if (rxEnabled && (rxBuf = repeaterRadioLinkRxCurrentPacket()))
         {
             setPins(rxBuf + 1, *rxBuf);
             repeaterRadioLinkRxDoneWithPacket();
         }
-        if (txEnabled && (txBuf = repeaterRadioLinkTxCurrentPacket()) && (uint8)(getMs() - lastTx) > nextTx)
+
+        // read our input pins and transmit pin states to other Wixel(s)
+        if (txEnabled && (uint8)(getMs() - lastTx) > MAX_TX_INTERVAL && (txBuf = repeaterRadioLinkTxCurrentPacket()))
         {
             readPins(txBuf + 1);
             *txBuf = inPinCount;
             repeaterRadioLinkTxSendPacket();
 
             lastTx = getMs();
-            nextTx = MAX_TX_INTERVAL - (randomNumber() / 32);
         }
     }
 }
