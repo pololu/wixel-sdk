@@ -396,11 +396,9 @@ void usbComService(void)
 
         USBCSIL |= USBCSIL_INPKT_RDY;
 
-        //usbComSerialState |= ACM_SERIAL_STATE_RING_SIGNAL;
-
         // As specified in PSTN 1.20 Section 6.5.4, we clear the "irregular" signals.
-        //usbComSerialState &= ~(ACM_SERIAL_STATE_BREAK | ACM_SERIAL_STATE_RING_SIGNAL |
-        //        ACM_SERIAL_STATE_FRAMING | ACM_SERIAL_STATE_PARITY | ACM_SERIAL_STATE_OVERRUN);
+        usbComSerialState &= ~(ACM_SERIAL_STATE_BREAK | ACM_SERIAL_STATE_RING_SIGNAL |
+                ACM_SERIAL_STATE_FRAMING | ACM_SERIAL_STATE_PARITY | ACM_SERIAL_STATE_OVERRUN);
 
         lastReportedSerialState = usbComSerialState;
     }
