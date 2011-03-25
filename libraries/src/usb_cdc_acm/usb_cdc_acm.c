@@ -189,7 +189,7 @@ CODE struct CONFIG1 {
         USB_DESCRIPTOR_TYPE_ENDPOINT,
         USB_ENDPOINT_ADDRESS_IN | CDC_NOTIFICATION_ENDPOINT,  // bEndpointAddress
         USB_TRANSFER_TYPE_INTERRUPT,                     // bmAttributes
-        8,                                               // wMaxPacketSize
+        10,                                              // wMaxPacketSize
         1,                                               // bInterval
     },
     {
@@ -233,7 +233,7 @@ uint16 CODE * CODE usbStringDescriptors[] = { languages, manufacturer, product, 
 
 void usbCallbackInitEndpoints()
 {
-    usbInitEndpointIn(CDC_NOTIFICATION_ENDPOINT, 8);
+    usbInitEndpointIn(CDC_NOTIFICATION_ENDPOINT, 10);
     usbInitEndpointOut(CDC_DATA_ENDPOINT, CDC_OUT_PACKET_SIZE);
     usbInitEndpointIn(CDC_DATA_ENDPOINT, CDC_IN_PACKET_SIZE);
 
