@@ -1,5 +1,5 @@
-; This guarantees that the four param chunks of the key and IV are contiguous
-; in memory.
+; This defines the params and maps each port grouping into an array for easier
+; access.
 
     .module pin_params
     .globl _P0Links
@@ -9,7 +9,7 @@
 
 _P0Links:
 G$param_P0_0_link$0$0 == .
-    .byte 0,0,0,0
+    .byte 0xFF,0xFF,0xFF,0xFF ; -1
 G$param_P0_1_link$0$0 == .
     .byte 0,0,0,0
 G$param_P0_2_link$0$0 == .
@@ -43,4 +43,4 @@ _P2Links:
 G$_P2_0_link_RESERVED$0$0 == .
     .byte 0,0,0,0
 G$param_P2_1_link$0$0 == .
-    .byte 0,0,0,0
+    .byte 1,0,0,0

@@ -8,11 +8,10 @@
 #include <random.h>
 #include <time.h>
 
-#include "repeater_radio_com.h"
 #include "repeater_radio_link.h"
 
 #define PIN_COUNT 15
-#define MAX_TX_INTERVAL 10 // maximum time between transmissions (ms)
+#define MAX_TX_INTERVAL 20 // maximum time between transmissions (ms)
 
 #define IS_INPUT(port, pin) (P##port##Links[pin] < 0)
 #define IS_OUTPUT(port, pin) (P##port##Links[pin] > 0)
@@ -23,10 +22,9 @@
 #define PIN_LINK_OFFSET 0
 #define PIN_LINK_MASK 0x7F
 #define PIN_VAL_OFFSET 7
-#define PIN_VAL_MASK 0x80
 
-uint8 XDATA rxBuf[PIN_COUNT];
-uint8 XDATA txBuf[PIN_COUNT];
+uint8 XDATA * rxBuf;
+uint8 XDATA * txBuf;
 
 typedef struct PORTPIN
 {
@@ -34,10 +32,10 @@ typedef struct PORTPIN
     uint8 pin;
 } PORTPIN;
 
-PORTPIN inPins[PIN_COUNT];
+PORTPIN XDATA inPins[PIN_COUNT];
 uint8 inPinCount = 0;
 
-PORTPIN outPins[PIN_COUNT];
+PORTPIN XDATA outPins[PIN_COUNT];
 uint8 outPinCount = 0;
 
 static BIT rxEnabled = 0;
@@ -56,57 +54,43 @@ void updateLeds()
 {
     usbShowStatusWithGreenLed();
 
-    //LED_YELLOW(vinPowerPresent());
+    LED_YELLOW(vinPowerPresent());
 }
 
-uint8 pinLink(PORTPIN * portpin)
+uint8 pinLink(PORTPIN XDATA * portpin)
+{
+    int8 link;
+
+    switch(portpin->port)
+    {
+        case 1:  link = P1Links[portpin->pin]; break;
+        case 2:  link = P2Links[portpin->pin]; break;
+        default: link = P0Links[portpin->pin]; break;
+    }
+    return ABS(link);
+}
+
+// TODO: move general digital I/O functions to a library
+
+BIT pinVal(PORTPIN XDATA * portpin)
 {
     switch(portpin->port)
     {
-        case 1:
-            return ABS(P1Links[portpin->pin]);
-        case 2:
-            return ABS(P2Links[portpin->pin]);
-        default:
-            return ABS(P0Links[portpin->pin]);
+        case 1:  return (P1 >> portpin->pin) & 1;
+        case 2:  return (P2 >> portpin->pin) & 1;
+        default: return (P0 >> portpin->pin) & 1;
     }
 }
 
-BIT pinVal(PORTPIN * portpin)
+void setPinVal(PORTPIN XDATA * portpin, BIT val)
 {
+    uint8 pin = portpin->pin;
+
     switch(portpin->port)
     {
-        case 1:  return (P1 >> portpin->pin) & 0x1;
-        case 2:  return (P2 >> portpin->pin) & 0x1;
-        default: return (P0 >> portpin->pin) & 0x1;
-    }
-}
-
-void setPinVal(PORTPIN * portpin, uint8 val)
-{
-    if (val)
-    {
-        switch(portpin->port)
-        {
-            case 1:
-                P1 |= (1 << portpin->pin); return;
-            case 2:
-                P2 |= (1 << portpin->pin); return;
-            default:
-                P0 |= (1 << portpin->pin); return;
-        }
-    }
-    else
-    {
-        switch(portpin->port)
-        {
-            case 1:
-                P1 &= ~(1 << portpin->pin); return;
-            case 2:
-                P2 &= ~(1 << portpin->pin); return;
-            default:
-                P0 &= ~(1 << portpin->pin); return;
-        }
+        case 1:  P1 = (P1 & ~(1 << pin)) | (val << pin); return;
+        case 2:  P2 = (P2 & ~(1 << pin)) | (val << pin); return;
+        default: P0 = (P0 & ~(1 << pin)) | (val << pin); return;
     }
 }
 
@@ -123,6 +107,7 @@ void configurePins(void)
         {
             P0DIR |= (1 << i);
             rxEnabled = 1;
+
             outPins[outPinCount].port = 0;
             outPins[outPinCount].pin = i;
             outPinCount++;
@@ -130,9 +115,9 @@ void configurePins(void)
         else if (IS_INPUT(0, i))
         {
             txEnabled = 1;
+
             inPins[inPinCount].port = 0;
             inPins[inPinCount].pin = i;
-            txBuf[inPinCount] = (pinLink(&inPins[inPinCount]) & PIN_LINK_MASK) << PIN_LINK_OFFSET;
             inPinCount++;
         }
     }
@@ -144,6 +129,7 @@ void configurePins(void)
         {
             P1DIR |= (1 << i);
             rxEnabled = 1;
+
             outPins[outPinCount].port = 1;
             outPins[outPinCount].pin = i;
             outPinCount++;
@@ -151,9 +137,9 @@ void configurePins(void)
         else if (IS_INPUT(1, i))
         {
             txEnabled = 1;
+
             inPins[inPinCount].port = 1;
             inPins[inPinCount].pin = i;
-            txBuf[inPinCount] = (pinLink(&inPins[inPinCount]) & PIN_LINK_MASK) << PIN_LINK_OFFSET;
             inPinCount++;
         }
     }
@@ -165,6 +151,7 @@ void configurePins(void)
         {
             P2DIR |= (1 << i);
             rxEnabled = 1;
+
             outPins[outPinCount].port = 2;
             outPins[outPinCount].pin = i;
             outPinCount++;
@@ -172,43 +159,38 @@ void configurePins(void)
         else if (IS_INPUT(2, i))
         {
             txEnabled = 1;
+
             inPins[inPinCount].port = 2;
             inPins[inPinCount].pin = i;
-            txBuf[inPinCount] = (pinLink(&inPins[inPinCount]) & PIN_LINK_MASK) << PIN_LINK_OFFSET;
             inPinCount++;
         }
     }
 }
 
-uint8 readPins(uint8 XDATA * buf)
+void readPins(uint8 XDATA * buf)
 {
-    uint8 i, changed = 0;
+    uint8 i;
 
     for (i = 0; i < inPinCount; i++)
     {
-        BIT val;
-        val = pinVal(&inPins[i]);
-
-        if ((buf[i] >> PIN_VAL_OFFSET & 1) != val)
-        {
-            buf[i] = (buf[i] & PIN_LINK_MASK) | (val << PIN_VAL_OFFSET);
-            changed = 1;
-        }
+        buf[i] = (pinLink(&inPins[i]) << PIN_LINK_OFFSET) | (pinVal(&inPins[i]) << PIN_VAL_OFFSET);
     }
-    return changed;
 }
 
 void setPins(uint8 XDATA * buf, uint8 pinCount)
 {
     uint8 i, j;
 
+    // loop over all bytes in packet
     for (i = 0; i < pinCount; i++)
     {
+        // loop over all output pins
         for (j = 0; j < outPinCount; j++)
         {
-            if (pinLink(&outPins[j]) == (buf[i] & PIN_LINK_MASK) >> PIN_LINK_OFFSET)
+            // check if this output pin's link matches the link in this packet
+            if (pinLink(&outPins[j]) == ((buf[i] >> PIN_LINK_OFFSET) & PIN_LINK_MASK))
             {
-                setPinVal(&outPins[j], (buf[i] & PIN_VAL_MASK) >> PIN_VAL_OFFSET);
+                setPinVal(&outPins[j], (buf[i] >> PIN_VAL_OFFSET) & 1);
             }
         }
     }
@@ -216,40 +198,35 @@ void setPins(uint8 XDATA * buf, uint8 pinCount)
 
 void main(void)
 {
-    uint8 lastTx = 0, rxPinCount;
+    uint8 lastTx = 0, nextTx = 0;
 
     systemInit();
     usbInit();
 
-    radioComInit();
+    repeaterRadioLinkInit();
     randomSeedFromSerialNumber();
 
     configurePins();
 
     while(1)
     {
-        if (txEnabled)
-        {
-            LED_YELLOW(1);
-        }
-        else
-        {
-            LED_YELLOW(0);
-        }
-
         updateLeds();
         boardService();
         usbComService();
 
-        if (rxEnabled && radioComRxAvailable())
+        if (rxEnabled && (rxBuf = repeaterRadioLinkRxCurrentPacket()))
         {
-            rxPinCount = radioComRxReceivePacket(rxBuf, PIN_COUNT);
-            setPins(rxBuf, rxPinCount);
+            setPins(rxBuf + 1, *rxBuf);
+            repeaterRadioLinkRxDoneWithPacket();
         }
-        if (txEnabled && radioComTxAvailable() && (readPins(txBuf) || ((uint8)(getMs() - lastTx) > MAX_TX_INTERVAL)))
+        if (txEnabled && (txBuf = repeaterRadioLinkTxCurrentPacket()) && (uint8)(getMs() - lastTx) > nextTx)
         {
-            radioComTxSendPacket(txBuf, inPinCount);
+            readPins(txBuf + 1);
+            *txBuf = inPinCount;
+            repeaterRadioLinkTxSendPacket();
+
             lastTx = getMs();
+            nextTx = MAX_TX_INTERVAL - (randomNumber() / 32);
         }
     }
 }

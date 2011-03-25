@@ -1,3 +1,5 @@
+// TODO: make this a standard library (radio_packets?)
+
 #include "repeater_radio_link.h"
 #include <radio_registers.h>
 #include <random.h>
@@ -40,18 +42,18 @@ int32 CODE param_radio_channel = 128;
  */
 #define RX_PACKET_COUNT  3
 static volatile uint8 XDATA radioLinkRxPacket[RX_PACKET_COUNT][1 + RADIO_MAX_PACKET_SIZE + 2];  // The first byte is the length, 2nd byte is link header.
-volatile uint8 DATA radioLinkRxMainLoopIndex = 0;   // The index of the next rxBuffer to read from the main loop.
-volatile uint8 DATA radioLinkRxInterruptIndex = 0;  // The index of the next rxBuffer to write to when a packet comes from the radio.
+static volatile uint8 DATA radioLinkRxMainLoopIndex = 0;   // The index of the next rxBuffer to read from the main loop.
+static volatile uint8 DATA radioLinkRxInterruptIndex = 0;  // The index of the next rxBuffer to write to when a packet comes from the radio.
 
 /* txPackets are handled similarly */
 #define TX_PACKET_COUNT 16
 static volatile uint8 XDATA radioLinkTxPacket[TX_PACKET_COUNT][1 + RADIO_MAX_PACKET_SIZE];  // The first byte is the length, 2nd byte is link header.
-volatile uint8 DATA radioLinkTxMainLoopIndex = 0;   // The index of the next txPacket to write to in the main loop.
-volatile uint8 DATA radioLinkTxInterruptIndex = 0;  // The index of the current txPacket we are trying to send on the radio.
+static volatile uint8 DATA radioLinkTxMainLoopIndex = 0;   // The index of the next txPacket to write to in the main loop.
+static volatile uint8 DATA radioLinkTxInterruptIndex = 0;  // The index of the current txPacket we are trying to send on the radio.
 
 /* GENERAL FUNCTIONS **********************************************************/
 
-void radioLinkInit()
+void repeaterRadioLinkInit()
 {
     PKTLEN = RADIO_MAX_PACKET_SIZE;
     CHANNR = param_radio_channel;
@@ -62,27 +64,27 @@ void radioLinkInit()
 
 // Returns a random delay in units of 0.922 ms (the same units of radioMacRx).
 // This is used to decide when to next transmit a queued data packet.
-static uint8 randomTxDelay()
+static uint8 repeaterRandomTxDelay()
 {
     return 1 + (randomNumber() & 3);
 }
 
 /* TX FUNCTIONS (called by higher-level code in main loop) ********************/
 
-uint8 radioLinkTxAvailable(void)
+uint8 repeaterRadioLinkTxAvailable(void)
 {
     // Assumption: TX_PACKET_COUNT is a power of 2
     return (radioLinkTxInterruptIndex - radioLinkTxMainLoopIndex - 1) & (TX_PACKET_COUNT - 1);
 }
 
-uint8 radioLinkTxQueued(void)
+uint8 repeaterRadioLinkTxQueued(void)
 {
     return (radioLinkTxMainLoopIndex - radioLinkTxInterruptIndex) & (TX_PACKET_COUNT - 1);
 }
 
-uint8 XDATA * radioLinkTxCurrentPacket()
+uint8 XDATA * repeaterRadioLinkTxCurrentPacket()
 {
-    if (!radioLinkTxAvailable())
+    if (!repeaterRadioLinkTxAvailable())
     {
         return 0;
     }
@@ -90,7 +92,7 @@ uint8 XDATA * radioLinkTxCurrentPacket()
     return radioLinkTxPacket[radioLinkTxMainLoopIndex] + RADIO_LINK_PACKET_HEADER_LENGTH;
 }
 
-void radioLinkTxSendPacket(void)
+void repeaterRadioLinkTxSendPacket(void)
 {
     // Now we set the length byte.
     radioLinkTxPacket[radioLinkTxMainLoopIndex][0] = radioLinkTxPacket[radioLinkTxMainLoopIndex][RADIO_LINK_PACKET_HEADER_LENGTH] + RADIO_LINK_PACKET_HEADER_LENGTH;
@@ -112,17 +114,16 @@ void radioLinkTxSendPacket(void)
 
 /* RX FUNCTIONS (called by higher-level code in main loop) ********************/
 
-uint8 XDATA * radioLinkRxCurrentPacket(void)
+uint8 XDATA * repeaterRadioLinkRxCurrentPacket(void)
 {
     if (radioLinkRxMainLoopIndex == radioLinkRxInterruptIndex)
     {
         return 0;
     }
-
     return radioLinkRxPacket[radioLinkRxMainLoopIndex] + RADIO_LINK_PACKET_HEADER_LENGTH;
 }
 
-void radioLinkRxDoneWithPacket(void)
+void repeaterRadioLinkRxDoneWithPacket(void)
 {
     if (radioLinkRxMainLoopIndex == RX_PACKET_COUNT - 1)
     {
@@ -136,18 +137,18 @@ void radioLinkRxDoneWithPacket(void)
 
 /* FUNCTIONS CALLED IN RF_ISR *************************************************/
 
-static void txDataPacket()
+static void repeaterTxDataPacket()
 {
     radioLinkTxPacket[radioLinkTxInterruptIndex][RADIO_LINK_PACKET_TYPE_OFFSET] = PACKET_TYPE_PING;
     radioMacTx(radioLinkTxPacket[radioLinkTxInterruptIndex]);
 }
 
-static void takeInitiative()
+static void repeaterTakeInitiative()
 {
    if (radioLinkTxInterruptIndex != radioLinkTxMainLoopIndex)
     {
         // Try to send the next data packet.
-        txDataPacket();
+       repeaterTxDataPacket();
     }
     else
     {
@@ -159,7 +160,7 @@ void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
 {
     if (event == RADIO_MAC_EVENT_STROBE)
     {
-        takeInitiative();
+        repeaterTakeInitiative();
         return;
     }
     else if (event == RADIO_MAC_EVENT_TX)
@@ -175,7 +176,7 @@ void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
         }
 
         // We sent a packet, so now lets give the other party a chance to talk.
-        radioMacRx(radioLinkRxPacket[radioLinkRxInterruptIndex], randomTxDelay());
+        radioMacRx(radioLinkRxPacket[radioLinkRxInterruptIndex], repeaterRandomTxDelay());
         return;
     }
     else if (event == RADIO_MAC_EVENT_RX)
@@ -186,7 +187,7 @@ void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
         {
             if (radioLinkTxInterruptIndex != radioLinkTxMainLoopIndex)
             {
-                radioMacRx(currentRxPacket, randomTxDelay());
+                radioMacRx(currentRxPacket, repeaterRandomTxDelay());
             }
             else
             {
@@ -223,12 +224,12 @@ void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
             }
         }
 
-        takeInitiative();
+        repeaterTakeInitiative();
         return;
     }
     else if (event == RADIO_MAC_EVENT_RX_TIMEOUT)
     {
-        takeInitiative();
+        repeaterTakeInitiative();
         return;
     }
 }

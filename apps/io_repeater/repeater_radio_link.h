@@ -18,19 +18,19 @@ extern int32 CODE param_radio_channel;
 /*! Initializes the radio_link library and the lower-level
  *  libraries that it radio_link depends on.  This must be called before
  *  any other functions in the library. */
-void radioLinkInit(void);
+void repeaterRadioLinkInit(void);
 
 /*! \return The number of radio packet buffers that are currently free
  * (available to hold data).
  *
  * This function has no side effects. */
-uint8 radioLinkTxAvailable(void);
+uint8 repeaterRadioLinkTxAvailable(void);
 
 /*! \return The number of radio packet buffers that are currently busy
  * (holding a data packet that has not been successfully sent yet).
  *
  * This function has no side effects. */
-uint8 radioLinkTxQueued(void);
+uint8 repeaterRadioLinkTxQueued(void);
 
 /*! Returns a pointer to the current packet, or 0 if no packet is available.
  * This function has no side effects.  To populate this packet, you should
@@ -52,8 +52,8 @@ uint8 radioLinkTxQueued(void);
  *   }
  * </pre>
  */
-uint8 XDATA * radioLinkTxCurrentPacket(void);
-void radioLinkTxSendPacket(void);
+uint8 XDATA * repeaterRadioLinkTxCurrentPacket(void);
+void repeaterRadioLinkTxSendPacket(void);
 
 /*! Returns a pointer to the current RX packet (the earliest packet received
  * by radio_link which has not been processed yet by higher-level code).
@@ -63,7 +63,7 @@ void radioLinkTxSendPacket(void);
  * done reading the packet, you should call radioLinkRxDoneWithPacket.
  * This frees the current packet buffer so it can receive another packet.
  */
-uint8 XDATA * radioLinkRxCurrentPacket(void);  // returns 0 if no packet is available.
-void radioLinkRxDoneWithPacket(void);
+uint8 XDATA * repeaterRadioLinkRxCurrentPacket(void);  // returns 0 if no packet is available.
+void repeaterRadioLinkRxDoneWithPacket(void);
 
 #endif
