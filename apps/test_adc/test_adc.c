@@ -19,10 +19,10 @@ void reportSender()
 	if ((uint16)(getMs() - lastReport) >= 500 && usbComTxAvailable() >= sizeof(response))
 	{
 		uint8 reportLength;
-		uint8 result;
+		uint16 result;
 		lastReport = (uint16)getMs();
 		result = adcRead(0);
-		reportLength = sprintf(response, "%d\r\n", result);
+		reportLength = sprintf(response, "%d  %02x%02x\r\n", result, ADCH, ADCL);
 		usbComTxSend(response, reportLength);
 	}
 }
@@ -56,5 +56,6 @@ void main()
         updateLeds();
         usbComService();
         processBytesFromUsb();
+        reportSender();
     }
 }
