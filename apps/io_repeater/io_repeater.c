@@ -72,16 +72,13 @@ uint8 pinLink(PORTPIN * portpin)
     }
 }
 
-uint8 pinVal(PORTPIN * portpin)
+BIT pinVal(PORTPIN * portpin)
 {
     switch(portpin->port)
     {
-        case 1:
-            return (P1 >> portpin->pin) & 0x1;
-        case 2:
-            return (P2 >> portpin->pin) & 0x1;
-        default:
-            return (P0 >> portpin->pin) & 0x1;
+        case 1:  return (P1 >> portpin->pin) & 0x1;
+        case 2:  return (P2 >> portpin->pin) & 0x1;
+        default: return (P0 >> portpin->pin) & 0x1;
     }
 }
 
@@ -189,14 +186,12 @@ uint8 readPins(uint8 XDATA * buf)
 
     for (i = 0; i < inPinCount; i++)
     {
-        if (pinVal(&inPins[i]) && !((buf[i] & PIN_VAL_MASK) >> PIN_VAL_OFFSET))
+        BIT val;
+        val = pinVal(&inPins[i]);
+
+        if ((buf[i] >> PIN_VAL_OFFSET & 1) != val)
         {
-            buf[i] |= (1 << PIN_VAL_OFFSET);
-            changed = 1;
-        }
-        else if (!pinVal(&inPins[i]) && ((buf[i] & PIN_VAL_MASK) >> PIN_VAL_OFFSET))
-        {
-            buf[i] &= ~(1 << PIN_VAL_OFFSET);
+            buf[i] = (buf[i] & PIN_LINK_MASK) | (val << PIN_VAL_OFFSET);
             changed = 1;
         }
     }
