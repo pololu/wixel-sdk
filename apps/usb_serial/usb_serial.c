@@ -2,10 +2,10 @@
  *
  * == Pinout ==
  *
- * P1_0 = DTR: general purpose output pin controlled by computer
- * P1_1 = RTS: general purpose output pin controlled by computer
- * P1_2 = DSR: general purpose input pin reported to computer
- * P1_3 = CD: general purpose input pin reported to computer
+ * P1_0 = nDTR: general purpose output pin controlled by computer
+ * P1_1 = nRTS: general purpose output pin controlled by computer
+ * P1_2 = nDSR: general purpose input pin reported to computer
+ * P1_3 = nCD: general purpose input pin reported to computer
  * (P1_4: Reserved for CT flow control line in future version.)
  * (P1_5: Reserved for RT flow control line in future version.)
  * P1_6 = TX:  transmits data from computer
