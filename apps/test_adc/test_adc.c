@@ -3,6 +3,13 @@
 #include <usb_com.h>
 #include <stdio.h>
 
+// TODO: use VT100 commands to make a cool bar graph display
+// TODO: add temperature and VDD readings
+
+int32 CODE param_report_period_ms = 100;
+
+int32 CODE param_input_mode = 0;
+
 uint8 XDATA response[64];
 
 void updateLeds()
@@ -15,14 +22,21 @@ void updateLeds()
 void reportSender()
 {
 	static uint16 lastReport;
+	uint8 i;
+	uint16 result[6];
 
-	if ((uint16)(getMs() - lastReport) >= 500 && usbComTxAvailable() >= sizeof(response))
+	if (getMs() - lastReport >= param_report_period_ms && usbComTxAvailable() >= sizeof(response))
 	{
 		uint8 reportLength;
-		uint16 result;
 		lastReport = (uint16)getMs();
-		result = adcRead(0);
-		reportLength = sprintf(response, "%d  %02x%02x\r\n", result, ADCH, ADCL);
+
+		for(i = 0; i < 6; i++)
+		{
+		    result[i] = adcRead(i);
+		}
+
+		reportLength = sprintf(response, "%4d, %4d, %4d, %4d, %4d, %4d\r\n",
+		        result[0], result[1], result[2], result[3], result[4], result[5]);
 		usbComTxSend(response, reportLength);
 	}
 }
@@ -33,15 +47,24 @@ void processByte(uint8 byte)
 	byte;
 }
 
-/** Checks for new bytes available on the USB virtual COM port
- * and processes all that are available. */
-void processBytesFromUsb()
+void analogInputsInit()
 {
-    uint8 bytesLeft = usbComRxAvailable();
-    while(bytesLeft && usbComTxAvailable() >= sizeof(response))
+    switch(param_input_mode)
     {
-        processByte(usbComRxReceiveByte());
-        bytesLeft--;
+    case 1: // Enable pull-up resistors for all pins on Port 0.
+        // This shouldn't be necessary because the pull-ups are enabled by default.
+        P2INP &= ~(1<<5);  // PDUP0 = 0: Pull-ups on Port 0.
+        P0INP = 0;
+        break;
+
+    case -1: // Enable pull-down resistors for all pins on Port 0.
+        P2INP |= (1<<5);   // PDUP0 = 1: Pull-downs on Port 0.
+        P0INP = 0;         // This line should not be necessary because P0SEL is 0 on reset.
+        break;
+
+    default: // Disable pull-ups and pull-downs for all pins on Port 0.
+        P0INP = 0x3F;
+        break;
     }
 }
 
@@ -49,13 +72,13 @@ void main()
 {
     systemInit();
     usbInit();
+    analogInputsInit();
 
     while(1)
     {
         boardService();
         updateLeds();
         usbComService();
-        processBytesFromUsb();
         reportSender();
     }
 }
