@@ -18,7 +18,7 @@ void updateLeds()
     {
         LED_RED(!LED_RED_STATE);
         lastToggle = getMs();
-        sendRGB(1,32,64);
+        sendRGB(1023,1023,1023);
     }
 }
 
@@ -48,6 +48,12 @@ void sendRGB(uint16 r, uint16 g, uint16 b)
     sendBit(0);
     while(mask)
     {
+        sendBit((mask & b) ? 1 : 0);
+        mask >>= 1;
+    }
+    mask = 512;
+    while(mask)
+    {
         sendBit((mask & r) ? 1 : 0);
         mask >>= 1;
     }
@@ -55,12 +61,6 @@ void sendRGB(uint16 r, uint16 g, uint16 b)
     while(mask)
     {
         sendBit((mask & g) ? 1 : 0);
-        mask >>= 1;
-    }
-    mask = 512;
-    while(mask)
-    {
-        sendBit((mask & b) ? 1 : 0);
         mask >>= 1;
     }
 
