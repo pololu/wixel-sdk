@@ -6,6 +6,7 @@
 int32 CODE param_blink_period_ms = 500;
 
 uint32 lastToggle = 0;
+void sendRGB(uint16 r, uint16 g, uint16 b);
 
 void updateLeds()
 {
@@ -17,15 +18,17 @@ void updateLeds()
     {
         LED_RED(!LED_RED_STATE);
         lastToggle = getMs();
+        sendRGB(1,32,64);
     }
 }
 
 void toggleLatch()
 {
     delayMs(1);
-    P1_5 = 1;
+    P1_7 = 1;
     delayMs(1);
-    P1_5 = 0;
+    P1_7 = 0;
+    delayMs(1);
 }
 
 void sendBit(BIT value)
@@ -78,8 +81,6 @@ void main()
 
     while(1)
     {
-        sendRGB(1,1,1);
-
         boardService();
         updateLeds();
         usbComService();
