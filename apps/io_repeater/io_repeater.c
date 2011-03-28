@@ -61,11 +61,12 @@ uint8 pinLink(PORTPIN XDATA * portpin)
 {
     int8 link;
 
-    switch(portpin->port)
+    switch (portpin->port)
     {
-        case 1:  link = P1Links[portpin->pin]; break;
-        case 2:  link = P2Links[portpin->pin]; break;
-        default: link = P0Links[portpin->pin]; break;
+    case 0: link = P0Links[portpin->pin]; break;
+    case 1: link = P1Links[portpin->pin]; break;
+    case 2: link = P2Links[portpin->pin]; break;
+    default: return 0; // invalid
     }
     return ABS(link);
 }
@@ -74,24 +75,53 @@ uint8 pinLink(PORTPIN XDATA * portpin)
 
 BIT pinVal(PORTPIN XDATA * portpin)
 {
-    switch(portpin->port)
+    switch (portpin->port)
     {
-        case 1:  return (P1 >> portpin->pin) & 1;
-        case 2:  return (P2 >> portpin->pin) & 1;
-        default: return (P0 >> portpin->pin) & 1;
+    case 0: return (P0 >> portpin->pin) & 1;
+    case 1: return (P1 >> portpin->pin) & 1;
+    case 2: return (P2 >> portpin->pin) & 1;
     }
+    return 0;
 }
 
 void setPinVal(PORTPIN XDATA * portpin, BIT val)
 {
     uint8 pin = portpin->pin;
 
-    switch(portpin->port)
+    switch (portpin->port)
     {
-        case 1:  P1 = (P1 & ~(1 << pin)) | (val << pin); return;
-        case 2:  P2 = (P2 & ~(1 << pin)) | (val << pin); return;
-        default: P0 = (P0 & ~(1 << pin)) | (val << pin); return;
+    case 0:
+        switch (portpin->pin)
+        {
+        case 0: P0_0 = val; return;
+        case 1: P0_1 = val; return;
+        case 2: P0_2 = val; return;
+        case 3: P0_3 = val; return;
+        case 4: P0_4 = val; return;
+        case 5: P0_5 = val; return;
+        case 6: P0_6 = val; return;
+        case 7: P0_7 = val; return;
+        }
+        return;
+    case 1:
+        switch (portpin->pin)
+        {
+        case 0: P1_0 = val; return;
+        case 1: P1_1 = val; return;
+        case 2: P1_2 = val; return;
+        case 3: P1_3 = val; return;
+        case 4: P1_4 = val; return;
+        case 5: P1_5 = val; return;
+        }
+        return;
+    case 2:
+        switch (portpin->pin)
+        {
+        case 1: P2_1 = val; return;
+        }
+        return;
     }
+    return;
 }
 
 void configurePins(void)
