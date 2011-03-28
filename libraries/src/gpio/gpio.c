@@ -43,7 +43,7 @@ void setDigitalInput(uint8 pin, BIT pulled) __reentrant
     PIN_SWITCH(SET_DIGITAL_INPUT);
 }
 
-BIT isDigitalInputHigh(uint8 pin) __reentrant
+BIT isPinHigh(uint8 pin) __reentrant
 {
     PIN_SWITCH(IS_DIGITAL_INPUT_HIGH);
     return 0;
