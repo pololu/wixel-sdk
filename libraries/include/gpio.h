@@ -4,7 +4,7 @@
  *
  * The <code>gpio.lib</code> library provides functions for using the CC2511's pins
  * as general purpose inputs or outputs (GPIO).  Every pin on the CC2511 that has a
- * name starting with P can be configured as a <i>digital input</i> or <i>digital output</i>.
+ * name starting with <i>P</i> can be configured as a <i>digital input</i> or <i>digital output</i>.
  *
  * The functions in this library allow for simpler programmatic approaches to working
  * with digital I/O since you no longer have to deal with a multitude of pin-specific
@@ -19,9 +19,9 @@
  *
  * \section pinparam The pin parameter
  *
- * Most of the functions in this section of the library take a pin number as their first
- * argument.  These numbers are computed by taking the port number times ten and adding
- * it to the pin number, as shown in the table below.
+ * Most of the functions in this library take a pin number as their first
+ * argument.  These numbers are computed by multiplying the port number by ten
+ * and adding it to the pin number, as shown in the table below.
  *
  * <table>
  * <caption>CC2511 Pins</caption>
