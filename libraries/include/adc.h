@@ -1,6 +1,6 @@
 /*! \file adc.h
  * The <code>adc.lib</code> library provides functions for using the CC2511's
- * Analog-to-Digital Converter (ADC).  The ADC allows you to measure several
+ * Analog-to-Digital Converter (ADC).  The ADC can measure several
  * different things, including voltages on any of the six Port 0 pins, the
  * voltage on the VDD line (the 3V3 pin on the Wixel), and the temperature.
  *
@@ -26,17 +26,18 @@
  *
  * \section channelparam The channel parameter
  *
- * Most functions in this library require a channel parameter, which
- * allows you to specify which channel to use.
+ * Most functions in this library require a channel parameter to
+ * specify which channel to use.  The value of this parameter should
+ * be one of the channel numbers in the table above.
  *
- * You can also use bitwise OR operator (|) to specify advanced options
+ * You can also use the bitwise OR operator (|) to specify advanced options
  * in the channel parameter:
  * - By default, VDD is used as a reference but you can use the internal
- *   1.25 V source as a reference by specifying ADC_REFERENCE_INTERNAL
+ *   1.25 V source as a reference by specifying #ADC_REFERENCE_INTERNAL
  *   in the channel parameter.
  * - By default, the maximum ADC resolution (12 bits) is used, but you can
- *   specify a different resolution by specifying ADC_BITS_10, ADC_BITS_9, or
- *   ADC_BITS_7 in the channel parameter.
+ *   use a different resolution by specifying #ADC_BITS_10, #ADC_BITS_9, or
+ *   #ADC_BITS_7 in the channel parameter.
  *
  */
 
