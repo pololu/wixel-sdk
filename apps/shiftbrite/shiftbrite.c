@@ -105,14 +105,53 @@ int32 restrictRange(int32 value, int32 min, int32 max)
     return value;
 }
 
-void shiftbriteService()
+void shiftbriteProcessByte(char c)
 {
     static char rgb[12]; // big enough to hold 4 hex digits times three colors
     static uint8 i = 0;
-    uint8 input_bits = restrictRange(param_input_bits,1,16); // allow up to 16 bits = 4 hex digits
-    uint8 hex_chars_per_color = ((input_bits-1) >> 2) + 1; // 1-4 bits = 1; 5-8 bits = 2; etc.
-    int8 shift = 10 - input_bits; // amount to shift to create the output
-    
+    static const uint8 input_bits = restrictRange(param_input_bits,1,16); // allow up to 16 bits = 4 hex digits
+    static const uint8 hex_chars_per_color = ((input_bits-1) >> 2) + 1; // 1-4 bits = 1; 5-8 bits = 2; etc.
+    static const int8 shift = 10 - input_bits; // amount to shift to create the output
+
+    if(c == '\r' || c == '\n')
+    {
+        i = 0;
+        LED_YELLOW(1);
+        toggleLatch();
+    }
+    else
+    {
+
+        rgb[i] = c;
+        i++;
+        
+        if(i == hex_chars_per_color*3)
+        {
+
+            i = 0;
+
+            if(shift > 0)
+            {
+                sendRGB(
+                    hex(rgb,                      hex_chars_per_color) << shift,
+                    hex(rgb+hex_chars_per_color,  hex_chars_per_color) << shift,
+                    hex(rgb+hex_chars_per_color*2,hex_chars_per_color) << shift
+                    );
+            }
+            else
+            {
+                sendRGB(
+                    hex(rgb,                      hex_chars_per_color) >> -shift,
+                    hex(rgb+hex_chars_per_color,  hex_chars_per_color) >> -shift,
+                    hex(rgb+hex_chars_per_color*2,hex_chars_per_color) >> -shift
+                    );
+            }
+        }
+    }
+}
+
+void shiftbriteService()
+{
     while(radioComRxAvailable())
     {
         char c = radioComRxReceiveByte();
@@ -120,38 +159,8 @@ void shiftbriteService()
         {
             radioComTxSendByte(c);
         }
-        if(c == '\r' || c == '\n')
-        {
-            i = 0;
-            LED_YELLOW(1);
-            toggleLatch();
-            break;
-        }
-        rgb[i] = c;
-        i++;
+        shiftbriteProcessByte(c);
     }
-    
-    if(i == hex_chars_per_color*3)
-    {
-        i = 0;
-        
-        if(shift > 0)
-        {
-            sendRGB(
-                hex(rgb,                      hex_chars_per_color) << shift,
-                hex(rgb+hex_chars_per_color,  hex_chars_per_color) << shift,
-                hex(rgb+hex_chars_per_color*2,hex_chars_per_color) << shift
-                );
-        }
-        else
-        {
-            sendRGB(
-                hex(rgb,                      hex_chars_per_color) >> -shift,
-                hex(rgb+hex_chars_per_color,  hex_chars_per_color) >> -shift,
-                hex(rgb+hex_chars_per_color*2,hex_chars_per_color) >> -shift
-                );
-        }
-    }	
 }
 
 void shiftbriteInit()
