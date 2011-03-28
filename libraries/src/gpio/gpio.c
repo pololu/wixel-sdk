@@ -23,9 +23,55 @@
 	    case 23: operation(2,3); break; \
 	    case 24: operation(2,4); break; }
 
-#define SET_DIGITAL_OUTPUT(port, pin) { P##port##_##pin = value; P##port##DIR |= (1<<pin); }
+#define SET_DIGITAL_OUTPUT(port, pin) { \
+    P##port##_##pin = value; \
+    P##port##SEL &= ~(1<<pin); \
+	P##port##DIR |= (1<<pin); }
+
+#define SET_DIGITAL_INPUT(port, pin) { \
+    if (pulled){ P##port##INP &= ~(1<<pin); } else { P##port##INP |= (1<<pin); } \
+	P##port##DIR &= ~(1<<pin); \
+	P##port##SEL &= ~(1<<pin); }
+
+#define IS_DIGITAL_INPUT_HIGH(port, pin) { return P##port##_##pin; }
+
+#define SET_PERIPHERAL_OUTPUT(port, pin){ P##port##SEL |= (1<<pin); P##port##DIR |= (1<<pin); }
 
 void setDigitalOutput(uint8 pin, BIT value) __reentrant
 {
-	PIN_SWITCH(SET_DIGITAL_OUTPUT);
+    PIN_SWITCH(SET_DIGITAL_OUTPUT);
+}
+
+void setDigitalInput(uint8 pin, BIT pulled) __reentrant
+{
+    PIN_SWITCH(SET_DIGITAL_INPUT);
+}
+
+BIT isDigitalInputHigh(uint8 pin) __reentrant
+{
+    PIN_SWITCH(IS_DIGITAL_INPUT_HIGH);
+    return 0;
+}
+
+void setPeripheralOutput(uint8 pin) __reentrant
+{
+    PIN_SWITCH(SET_PERIPHERAL_OUTPUT);
+}
+
+void setPort0PullType(BIT pullType) __reentrant
+{
+    if (pullType){ P2INP &= ~(1<<5); }
+    else { P2INP |= (1<<5); }
+}
+
+void setPort1PullType(BIT pullType) __reentrant
+{
+    if (pullType){ P2INP &= ~(1<<6); }
+    else { P2INP |= (1<<6); }
+}
+
+void setPort2PullType(BIT pullType) __reentrant
+{
+    if (pullType){ P2INP &= ~(1<<7); }
+    else { P2INP |= (1<<7); }
 }
