@@ -4,13 +4,17 @@
 #include <stdio.h>
 
 // TODO: use VT100 commands to make a cool bar graph display
-// TODO: add temperature and VDD readings
+// TODO: add VDD readings
 
 int32 CODE param_report_period_ms = 100;
 
 int32 CODE param_input_mode = 0;
 
-uint8 XDATA report[64];
+int32 CODE param_use_vt100 = 1;
+
+uint8 XDATA report[1024];
+uint16 reportLength = 0;
+uint16 reportBytesSent = 0;
 
 void updateLeds()
 {
@@ -21,24 +25,47 @@ void updateLeds()
 
 void sendReportIfNeeded()
 {
-	static uint32 lastReport;
-	uint8 i;
-	uint16 result[6];
+    static uint32 lastReport;
+    uint8 i, bytesToSend;
+    uint16 result[6];
 
-	if (getMs() - lastReport >= param_report_period_ms && usbComTxAvailable() >= sizeof(report))
-	{
-		uint8 reportLength;
-		lastReport = (uint16)getMs();
+    if (getMs() - lastReport >= param_report_period_ms && reportLength == 0)
+    {
+        lastReport = getMs();
 
-		for(i = 0; i < 6; i++)
-		{
-		    result[i] = adcRead(i);
-		}
+        for(i = 0; i < 6; i++)
+        {
+            result[i] = adcRead(i);
+        }
 
-		reportLength = sprintf(report, "%4d, %4d, %4d, %4d, %4d, %4d\r\n",
-		        result[0], result[1], result[2], result[3], result[4], result[5]);
-		usbComTxSend(report, reportLength);
-	}
+        if (param_use_vt100)
+        {
+            reportLength = sprintf(report, "\x1B[1;1H%4d, %4d, %4d, %4d, %4d, %4d\r\n",
+                    result[0], result[1], result[2], result[3], result[4], result[5]);
+        }
+        else
+        {
+            reportLength = sprintf(report, "%4d, %4d, %4d, %4d, %4d, %4d\r\n",
+                    result[0], result[1], result[2], result[3], result[4], result[5]);
+        }
+    }
+
+    if (reportLength > 0)
+    {
+        bytesToSend = usbComTxAvailable();
+        if (bytesToSend > reportLength - reportBytesSent)
+        {
+            // Send the last part of the report.
+            usbComTxSend(report+reportBytesSent, reportLength - reportBytesSent);
+            reportLength = 0;
+        }
+        else
+        {
+            usbComTxSend(report+reportBytesSent, bytesToSend);
+            reportBytesSent += bytesToSend;
+        }
+    }
+
 }
 
 void analogInputsInit()
