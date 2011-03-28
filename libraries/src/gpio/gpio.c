@@ -2,28 +2,30 @@
 #include <cc2511_map.h>
 #include <gpio.h>
 
+#define PIN_SWITCH(operation) switch(pin) { \
+	    case 0:  operation(0,0); break; \
+        case 1:  operation(0,1); break; \
+        case 2:  operation(0,2); break; \
+	    case 3:  operation(0,3); break; \
+        case 4:  operation(0,4); break; \
+        case 5:  operation(0,5); break; \
+	    case 10: operation(1,0); break; \
+	    case 11: operation(1,1); break; \
+	    case 12: operation(1,2); break; \
+	    case 13: operation(1,3); break; \
+	    case 14: operation(1,4); break; \
+	    case 15: operation(1,5); break; \
+	    case 16: operation(1,6); break; \
+	    case 17: operation(1,7); break; \
+	    case 20: operation(2,0); break; \
+	    case 21: operation(2,1); break; \
+	    case 22: operation(2,2); break; \
+	    case 23: operation(2,3); break; \
+	    case 24: operation(2,4); break; }
+
+#define SET_DIGITAL_OUTPUT(port, pin) { P##port##_##pin = value; P##port##DIR |= (1<<pin); }
+
 void setDigitalOutput(uint8 pin, BIT value) __reentrant
 {
-	switch(pin)
-	{
-	case 0:  P0_0 = value; P0DIR |= (1<<0); return;
-	case 1:  P0_1 = value; P0DIR |= (1<<1); return;
-	case 2:  P0_2 = value; P0DIR |= (1<<2); return;
-	case 3:  P0_3 = value; P0DIR |= (1<<3); return;
-	case 4:  P0_4 = value; P0DIR |= (1<<4); return;
-	case 5:  P0_5 = value; P0DIR |= (1<<5); return;
-	case 10: P1_0 = value; P1DIR |= (1<<0); return;
-	case 11: P1_1 = value; P1DIR |= (1<<1); return;
-	case 12: P1_2 = value; P1DIR |= (1<<2); return;
-	case 13: P1_3 = value; P1DIR |= (1<<3); return;
-	case 14: P1_4 = value; P1DIR |= (1<<4); return;
-	case 15: P1_5 = value; P1DIR |= (1<<5); return;
-	case 16: P1_6 = value; P1DIR |= (1<<6); return;
-	case 17: P1_7 = value; P1DIR |= (1<<7); return;
-	case 20: P2_0 = value; P2DIR |= (1<<0); return;
-	case 21: P2_1 = value; P2DIR |= (1<<1); return;
-	case 22: P2_2 = value; P2DIR |= (1<<2); return;
-	case 23: P2_3 = value; P2DIR |= (1<<3); return;
-	case 24: P2_4 = value; P2DIR |= (1<<4); return;
-	}
+	PIN_SWITCH(SET_DIGITAL_OUTPUT);
 }
