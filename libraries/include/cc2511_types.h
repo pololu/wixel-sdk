@@ -81,6 +81,7 @@ typedef __bit BIT;
 #define __interrupt(x)
 #define __at(x)
 #define __using(x)
+#define __reentrant
 #define CODE
 #define XDATA
 #define DATA
