@@ -10,7 +10,7 @@ uint16 adcRead(uint8 channel)
 
     if (ADCH & 0x80)
     {
-    	// Despite what the datasheet says, the result was negative.
+        // Despite what the datasheet says, the result was negative.
         return 0;
     }
     else
@@ -24,7 +24,7 @@ uint16 adcRead(uint8 channel)
 
 int16 adcReadDifferential(uint8 channel)
 {
-	ADCIF = 0;               // Clear the flag.
+    ADCIF = 0;               // Clear the flag.
     ADCCON3 = 0b10110000 ^ channel;
     while(!ADCIF){};         // Wait for the reading to finish.
 
