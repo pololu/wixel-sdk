@@ -1,44 +1,74 @@
+#include <cc2511_map.h>
+#include <board.h>
+#include <random.h>
+#include <time.h>
+#include <radio_com.h>
+#include <radio_link.h>
 #include <wixel.h>
 #include <usb.h>
 #include <usb_com.h>
 #include <stdio.h>
+#include <random.h>
 
-int32 CODE param_blink_period_ms = 500;
+#define SHIFTBRITE_LATCH P1_7
+#define SHIFTBRITE_DATA P1_6
+#define SHIFTBRITE_CLOCK P1_5
+#define SHIFTBRITE_DISABLE P1_4
 
-uint32 lastToggle = 0;
-void sendRGB(uint16 r, uint16 g, uint16 b);
+// parameters
+int32 CODE param_input_bits = 8;
+int32 CODE param_echo_on = 1;
 
-void updateLeds()
+uint32 lastSend = 0;
+
+// converts 0-9, a-f, or A-F into the corresponding hex value
+uint8 hexCharToByte(char c)
 {
-    usbShowStatusWithGreenLed();
-
-    LED_YELLOW(0);
-
-    if ((uint16)(getMs() - lastToggle) >= (param_blink_period_ms/2))
+    if(c >= '0' && c <= '9')
     {
-        LED_RED(!LED_RED_STATE);
-        lastToggle = getMs();
-        sendRGB(1023,1023,1023);
+        return c-'0';
     }
+    if(c >= 'a' && c <= 'f')
+    {
+        return c-'a'+10;
+    }
+    if(c >= 'A' && c <= 'F')
+    {
+        return c-'A'+10;
+    }
+    return 0; // default
+}
+
+// coverts a string of hex digits into the corresponding hex value
+uint16 hex(char *s, uint8 len)
+{
+    uint16 ret = 0;
+    uint8 i;
+    for(i=0;i<len;i++)
+    {
+        ret <<= 4;
+        ret += hexCharToByte(s[i]);
+    }
+    return ret;
 }
 
 void toggleLatch()
 {
-    delayMs(1);
-    P1_7 = 1;
-    delayMs(1);
-    P1_7 = 0;
-    delayMs(1);
+    SHIFTBRITE_LATCH = 1;
+    delayMicroseconds(1);
+    SHIFTBRITE_LATCH = 0;
+    delayMicroseconds(1);
+    SHIFTBRITE_DISABLE = 0; // enable shiftbrites
 }
 
 void sendBit(BIT value)
 {
-    P1_6 = value;
-    delayMs(1);
-    P1_5 = 1;
-    delayMs(1);
-    P1_5 = 0;
-    delayMs(1);
+    SHIFTBRITE_DATA = value;
+    delayMicroseconds(1);
+    SHIFTBRITE_CLOCK = 1;
+    delayMicroseconds(1);
+    SHIFTBRITE_CLOCK = 0;
+    delayMicroseconds(1);
 }
 
 void sendRGB(uint16 r, uint16 g, uint16 b)
@@ -63,26 +93,100 @@ void sendRGB(uint16 r, uint16 g, uint16 b)
         sendBit((mask & g) ? 1 : 0);
         mask >>= 1;
     }
+}
 
-    toggleLatch();
+// limits value to lie between min and max
+int32 restrictRange(int32 value, int32 min, int32 max)
+{
+    if(value < min)
+        return min;
+    if(value > max)
+        return max;
+    return value;
+}
+
+void shiftbriteService()
+{
+    static char rgb[12]; // big enough to hold 4 hex digits times three colors
+    static uint8 i = 0;
+    uint8 input_bits = restrictRange(param_input_bits,1,16); // allow up to 16 bits = 4 hex digits
+    uint8 hex_chars_per_color = ((input_bits-1) >> 2) + 1; // 1-4 bits = 1; 5-8 bits = 2; etc.
+    int8 shift = 10 - input_bits; // amount to shift to create the output
+    
+    while(radioComRxAvailable())
+    {
+        char c = radioComRxReceiveByte();
+        if(radioComTxAvailable() && param_echo_on)
+        {
+            radioComTxSendByte(c);
+        }
+        if(c == '\r' || c == '\n')
+        {
+            i = 0;
+            LED_YELLOW(1);
+            toggleLatch();
+            break;
+        }
+        rgb[i] = c;
+        i++;
+    }
+    
+    if(i == hex_chars_per_color*3)
+    {
+        i = 0;
+        
+        if(shift > 0)
+        {
+            sendRGB(
+                hex(rgb,                      hex_chars_per_color) << shift,
+                hex(rgb+hex_chars_per_color,  hex_chars_per_color) << shift,
+                hex(rgb+hex_chars_per_color*2,hex_chars_per_color) << shift
+                );
+        }
+        else
+        {
+            sendRGB(
+                hex(rgb,                      hex_chars_per_color) >> -shift,
+                hex(rgb+hex_chars_per_color,  hex_chars_per_color) >> -shift,
+                hex(rgb+hex_chars_per_color*2,hex_chars_per_color) >> -shift
+                );
+        }
+    }	
+}
+
+void shiftbriteInit()
+{
+    SHIFTBRITE_DISABLE = 1; // disable shiftbrites until a valid color is sent
+    SHIFTBRITE_CLOCK = 0; // clock low
+    SHIFTBRITE_LATCH = 0; // prevent unintended latching
+    P1DIR |= (1<<4); // P1_4 = Disable !Enable
+    P1DIR |= (1<<5); // P1_5 = Clock
+    P1DIR |= (1<<6); // P1_6 = Data
+    P1DIR |= (1<<7); // P1_7 = Latch
+}
+
+void updateLeds()
+{
+    usbShowStatusWithGreenLed();
 }
 
 void main()
 {
     systemInit();
     usbInit();
+    shiftbriteInit();
 
-    P1DIR |= (1<<4); // P1_4 = !Enable
-    P1DIR |= (1<<5); // P1_5 = Clock
-    P1DIR |= (1<<6); // P1_6 = Data
-    P1DIR |= (1<<7); // P1_7 = Latch
-    P1_4 = 0; // enable shiftbrites
-    P1_5 = 0; // clock low
-
+    radioComInit();
+    randomSeedFromSerialNumber();
+    
     while(1)
     {
         boardService();
         updateLeds();
+
+        radioComTxService();
         usbComService();
+        
+        shiftbriteService();
     }
 }
