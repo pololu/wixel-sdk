@@ -6,21 +6,42 @@
 // TODO: use VT100 commands to make a cool bar graph display
 // TODO: add VDD readings
 
-int32 CODE param_report_period_ms = 100;
+int32 CODE param_report_period_ms = 40;
 
 int32 CODE param_input_mode = 0;
 
 int32 CODE param_use_vt100 = 1;
 
 uint8 XDATA report[1024];
-uint16 reportLength = 0;
-uint16 reportBytesSent = 0;
+uint16 DATA reportLength = 0;
+uint16 DATA reportBytesSent = 0;
 
 void updateLeds()
 {
     usbShowStatusWithGreenLed();
     LED_YELLOW(0);
     LED_RED(0);
+}
+
+// This gets called by puts and printf, to populate the report buffer.
+// The result is sent to USB later.
+void putchar(char c)
+{
+    report[reportLength] = c;
+    reportLength++;
+}
+
+// value should be between 0 and 63 inclusive.
+void printBar(const char * name, uint16 adcResult)
+{
+    uint8 i, width;
+    printf("%-4s %4d |", name, adcResult);
+    width = adcResult >> 5;
+    for(i = 0; i < width; i++){ putchar('#'); }
+    for(; i < 63; i++){ putchar(' '); }
+    putchar('|');
+    putchar('\r');
+    putchar('\n');
 }
 
 void sendReportIfNeeded()
@@ -32,6 +53,7 @@ void sendReportIfNeeded()
     if (getMs() - lastReport >= param_report_period_ms && reportLength == 0)
     {
         lastReport = getMs();
+        reportBytesSent = 0;
 
         for(i = 0; i < 6; i++)
         {
@@ -40,8 +62,13 @@ void sendReportIfNeeded()
 
         if (param_use_vt100)
         {
-            reportLength = sprintf(report, "\x1B[1;1H%4d, %4d, %4d, %4d, %4d, %4d\r\n",
-                    result[0], result[1], result[2], result[3], result[4], result[5]);
+            printf("\x1B[0;0H");  // VT100 command for "go to 0,0"
+            printBar("P0_0", result[0]);
+            printBar("P0_1", result[1]);
+            printBar("P0_2", result[2]);
+            printBar("P0_3", result[3]);
+            printBar("P0_4", result[4]);
+            printBar("P0_5", result[5]);
         }
         else
         {
