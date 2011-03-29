@@ -16,7 +16,7 @@ int32 CODE param_input_mode = 0;
  * 1 = Print a bar graph (requires you to use a terminal program that supports VT100 commands)
  * 0 = Print the 7 readings on a single line, separated by commas.
  */
-int32 CODE param_bargraph = 1;
+int32 CODE param_bar_graph = 1;
 
 /*! Specifies the number of milliseconds to wait between reports
  * to the computer.
@@ -88,7 +88,7 @@ void sendReportIfNeeded()
             result[i] = adcRead(i);
         }
 
-        if (param_use_vt100)
+        if (param_bar_graph)
         {
             printf("\x1B[0;0H");  // VT100 command for "go to 0,0"
             printBar("P0_0", result[0]);
