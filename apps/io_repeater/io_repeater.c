@@ -1,20 +1,39 @@
 /** Dependencies **************************************************************/
 #include <cc2511_map.h>
 #include <board.h>
-
 #include <usb.h>
 #include <usb_com.h>
-
 #include <random.h>
 #include <time.h>
+#include <gpio.h>
 
 #include "repeater_radio_link.h"
 
-#define PIN_COUNT 15
 #define MAX_TX_INTERVAL 10 // maximum time between transmissions (ms)
 
-#define IS_INPUT(port, pin) (P##port##Links[pin] < 0)
-#define IS_OUTPUT(port, pin) (P##port##Links[pin] > 0)
+#define PIN_COUNT 15
+static uint8 CODE portPinMin[3] = {0, 0, 1};  // lowest pin in each port
+static uint8 CODE portPinMax[3] = {5, 7, 1}; // highest pin in each port
+
+// macros to determine whether a pin is an input or output based on its link param
+#define IS_INPUT(pin)  (pinLink(pin) < 0)
+#define IS_OUTPUT(pin) (pinLink(pin) > 0)
+
+// list and count of input pins
+static uint8 XDATA inPins[PIN_COUNT];
+static uint8 inPinCount = 0;
+
+// list and count of output pins
+static uint8 XDATA outPins[PIN_COUNT];
+static uint8 outPinCount = 0;
+
+// only tx if we have at least one input; only rx if we have at least one output
+static BIT txEnabled = 0;
+static BIT rxEnabled = 0;
+
+// pointers to link packets
+static uint8 XDATA * txBuf;
+static uint8 XDATA * rxBuf;
 
 // In each byte of a buffer:
 // bit 7 = pin value
@@ -23,176 +42,82 @@
 #define PIN_LINK_MASK 0x7F
 #define PIN_VAL_OFFSET 7
 
-uint8 XDATA * rxBuf;
-uint8 XDATA * txBuf;
-
-typedef struct PORTPIN
-{
-    uint8 port;
-    uint8 pin;
-} PORTPIN;
-
-PORTPIN XDATA inPins[PIN_COUNT];
-uint8 inPinCount = 0;
-
-PORTPIN XDATA outPins[PIN_COUNT];
-uint8 outPinCount = 0;
-
-static BIT rxEnabled = 0;
-static BIT txEnabled = 0;
-
-#define ABS(x) (((x) < 0) ? -(x) : (x))
-
 /** Parameters ****************************************************************/
-// defined in pin_params.s
-extern int32 XDATA P0Links[6];
-extern int32 XDATA P1Links[8];
-extern int32 XDATA P2Links[2];
+int32 CODE param_P0_0_link = -1;
+int32 CODE param_P0_1_link = 0;
+int32 CODE param_P0_2_link = 0;
+int32 CODE param_P0_3_link = 0;
+int32 CODE param_P0_4_link = 0;
+int32 CODE param_P0_5_link = 0;
+int32 CODE param_P1_0_link = 0;
+int32 CODE param_P1_1_link = 0;
+int32 CODE param_P1_2_link = 0;
+int32 CODE param_P1_3_link = 0;
+int32 CODE param_P1_4_link = 0;
+int32 CODE param_P1_5_link = 0;
+int32 CODE param_P1_6_link = 0;
+int32 CODE param_P1_7_link = 0;
+int32 CODE param_P2_1_link = 1; // red LED
 
 /** Functions *****************************************************************/
 void updateLeds()
 {
     usbShowStatusWithGreenLed();
 
-    LED_YELLOW(vinPowerPresent());
+    //LED_YELLOW(vinPowerPresent());
 }
 
-uint8 pinLink(PORTPIN XDATA * portpin)
+int8 pinLink(uint8 pin)
 {
-    int8 link;
-
-    switch (portpin->port)
+    switch(pin)
     {
-    case 0: link = P0Links[portpin->pin]; break;
-    case 1: link = P1Links[portpin->pin]; break;
-    case 2: link = P2Links[portpin->pin]; break;
-    default: return 0; // invalid
-    }
-    return ABS(link);
-}
-
-// TODO: move general digital I/O functions to a library
-
-BIT pinVal(PORTPIN XDATA * portpin)
-{
-    switch (portpin->port)
-    {
-    case 0: return (P0 >> portpin->pin) & 1;
-    case 1: return (P1 >> portpin->pin) & 1;
-    case 2: return (P2 >> portpin->pin) & 1;
+    case 0:  return param_P0_0_link;
+    case 1:  return param_P0_1_link;
+    case 2:  return param_P0_2_link;
+    case 3:  return param_P0_3_link;
+    case 4:  return param_P0_4_link;
+    case 5:  return param_P0_5_link;
+    case 10: return param_P1_0_link;
+    case 11: return param_P1_1_link;
+    case 12: return param_P1_2_link;
+    case 13: return param_P1_3_link;
+    case 14: return param_P1_4_link;
+    case 15: return param_P1_5_link;
+    case 16: return param_P1_6_link;
+    case 17: return param_P1_7_link;
+    case 21: return param_P2_1_link;
     }
     return 0;
 }
 
-void setPinVal(PORTPIN XDATA * portpin, BIT val)
-{
-    uint8 pin = portpin->pin;
-
-    switch (portpin->port)
-    {
-    case 0:
-        switch (portpin->pin)
-        {
-        case 0: P0_0 = val; return;
-        case 1: P0_1 = val; return;
-        case 2: P0_2 = val; return;
-        case 3: P0_3 = val; return;
-        case 4: P0_4 = val; return;
-        case 5: P0_5 = val; return;
-        case 6: P0_6 = val; return;
-        case 7: P0_7 = val; return;
-        }
-        return;
-    case 1:
-        switch (portpin->pin)
-        {
-        case 0: P1_0 = val; return;
-        case 1: P1_1 = val; return;
-        case 2: P1_2 = val; return;
-        case 3: P1_3 = val; return;
-        case 4: P1_4 = val; return;
-        case 5: P1_5 = val; return;
-        }
-        return;
-    case 2:
-        switch (portpin->pin)
-        {
-        case 1: P2_1 = val; return;
-        }
-        return;
-    }
-    return;
-}
-
 void configurePins(void)
 {
-    uint8 i;
-
+    uint8 port, pin, gpioPin;
+    LED_YELLOW(0);
     inPinCount = outPinCount = 0;
 
-    // port 0 pins
-    for (i = 0; i <= 5; i++)
+    // Set all pulled pins to high
+    // TODO: make this user-configurable
+    setPort0PullType(HIGH);
+    setPort1PullType(HIGH);
+    setPort2PullType(LOW); // pulling port 2 high will cause problems (triggers bootloader entry)
+
+    for (port = 0; port <= 2; port++)
     {
-        if (IS_OUTPUT(0, i))
+        for(pin = portPinMin[port]; pin <= portPinMax[port]; pin++)
         {
-            P0DIR |= (1 << i);
-            rxEnabled = 1;
-
-            outPins[outPinCount].port = 0;
-            outPins[outPinCount].pin = i;
-            outPinCount++;
-        }
-        else if (IS_INPUT(0, i))
-        {
-            txEnabled = 1;
-
-            inPins[inPinCount].port = 0;
-            inPins[inPinCount].pin = i;
-            inPinCount++;
-        }
-    }
-
-    // port 1 pins
-    for (i = 0; i <= 7; i++)
-    {
-        if (IS_OUTPUT(1, i))
-        {
-            P1DIR |= (1 << i);
-            rxEnabled = 1;
-
-            outPins[outPinCount].port = 1;
-            outPins[outPinCount].pin = i;
-            outPinCount++;
-        }
-        else if (IS_INPUT(1, i))
-        {
-            txEnabled = 1;
-
-            inPins[inPinCount].port = 1;
-            inPins[inPinCount].pin = i;
-            inPinCount++;
-        }
-    }
-
-    // port 2 pins
-    for (i = 1; i <= 1; i++)
-    {
-        if (IS_OUTPUT(2, i))
-        {
-            P2DIR |= (1 << i);
-            rxEnabled = 1;
-
-            outPins[outPinCount].port = 2;
-            outPins[outPinCount].pin = i;
-            outPinCount++;
-        }
-        else if (IS_INPUT(2, i))
-        {
-            txEnabled = 1;
-
-            inPins[inPinCount].port = 2;
-            inPins[inPinCount].pin = i;
-            inPinCount++;
+            gpioPin = port * 10 + pin;
+            if (IS_OUTPUT(gpioPin))
+            {
+                setDigitalOutput(gpioPin, LOW);
+                rxEnabled = 1;
+                outPins[outPinCount++] = gpioPin;
+            }
+            else if (IS_INPUT(gpioPin))
+            {
+                txEnabled = 1;
+                inPins[inPinCount++] = gpioPin;
+            }
         }
     }
 }
@@ -200,29 +125,28 @@ void configurePins(void)
 // read the states of input pins on this Wixel into a buffer
 void readPins(uint8 XDATA * buf)
 {
-    uint8 i;
+    uint8 pin;
 
-    for (i = 0; i < inPinCount; i++)
+    for (pin = 0; pin < inPinCount; pin++)
     {
-        buf[i] = (pinLink(&inPins[i]) << PIN_LINK_OFFSET) | (pinVal(&inPins[i]) << PIN_VAL_OFFSET);
+        buf[pin] = (-pinLink(inPins[pin]) << PIN_LINK_OFFSET) | (isDigitalInputHigh(inPins[pin]) << PIN_VAL_OFFSET);
     }
 }
 
 // set the states of output pins on this Wixel based on values from a buffer
-void setPins(uint8 XDATA * buf, uint8 pinCount)
+void setPins(uint8 XDATA * buf, uint8 byteCount)
 {
-    uint8 i, j;
+    uint8 byte, pin;
 
     // loop over all bytes in packet
-    for (i = 0; i < pinCount; i++)
+    for (byte = 0; byte < byteCount; byte++)
     {
-        // loop over all output pins
-        for (j = 0; j < outPinCount; j++)
+        for (pin = 0; pin < outPinCount; pin++)
         {
             // check if this output pin's link matches the link in this packet
-            if (pinLink(&outPins[j]) == ((buf[i] >> PIN_LINK_OFFSET) & PIN_LINK_MASK))
+            if ((uint8)pinLink(outPins[pin]) == ((buf[byte] >> PIN_LINK_OFFSET) & PIN_LINK_MASK))
             {
-                setPinVal(&outPins[j], (buf[i] >> PIN_VAL_OFFSET) & 1);
+                setDigitalOutput(outPins[pin], (buf[byte] >> PIN_VAL_OFFSET) & 1);
             }
         }
     }
