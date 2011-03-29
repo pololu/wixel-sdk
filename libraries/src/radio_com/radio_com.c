@@ -11,6 +11,11 @@ static uint8 XDATA * DATA rxPointer = 0;
 static uint8 XDATA * DATA txPointer = 0;
 static uint8 XDATA * DATA packetPointer = 0;
 
+static uint8 radioComRxSignals = 0;
+static uint8 radioComTxSignals = 0;
+static uint8 lastTxSignals = 0; // The last TX signals sent to the lower-level code.
+static uint8 lastRxSignals = 0; // The last RX signals sent to the higher-level code.
+
 // For highest throughput, we want to send as much data in each packet
 // as possible.  But for lower latency, we sometimes need to send packets
 // that are NOT full.
@@ -27,6 +32,65 @@ void radioComInit()
     radioLinkInit();
 }
 
+/** RX FUNCTIONS **************************************************************/
+
+static void receiveMorePackets(void)
+{
+    uint8 XDATA * packet;
+
+    if (rxBytesLeft != 0)
+    {
+        // There are bytes available.  The higher-level code should
+        // call radioComRxReceiveByte to get them.
+        return;
+    }
+
+    if (radioComRxSignals != lastRxSignals)
+    {
+        // The higher-level code needs to call radioComRxSignals before
+        // we feed it any more data.
+        return;
+    }
+
+    // Each iteration of this loop processes one packet received on the radio.
+    // This loop stops when we are out of packets or when we received a packet
+    // that contains some information that the higher-level code needs to process.
+    while(packet = radioLinkRxCurrentPacket())
+    {
+        switch(radioLinkRxCurrentPayloadType())
+        {
+        case PAYLOAD_TYPE_DATA:
+            // We received some data.  Populate rxPointer and rxBytesLeft.
+            // The data can be retreived with radioComRxAvailable and racioComRxReceiveByte().
+
+            // Assumption: radioLink doesn't ever return zero-length packets,
+            // so rxBytesLeft is non-zero now and we don't have to worry about
+            // discard zero-length packets in radio_com.c.
+            rxBytesLeft = packet[0];  // Read the packet length.
+            rxPointer = packet+1;              // Make rxPointer point to the data.
+            return;
+
+        case PAYLOAD_TYPE_CONTROL_SIGNALS:
+            // We received a command to set the control signals.
+            radioComRxSignals = packet[1];
+
+            radioLinkRxDoneWithPacket();
+
+            if (radioComRxSignals != lastRxSignals)
+            {
+                // The higher-level code has not seen these values for the control
+                // signals yet, so stop processing packets.
+                // The higher-level code can access these values by calling radioComRxControlSignals().
+                return;
+            }
+
+            // It was a redundant command so don't do anything special.
+            // Keep processing packets.
+            break;
+        }
+    }
+}
+
 // NOTE: This function only returns the number of bytes available in the CURRENT PACKET.
 // It doesn't look at all the packets received, and it doesn't count the data that is
 // queued on the other Wixel.  Therefore, it is never recommended to write some kind of
@@ -34,25 +98,7 @@ void radioComInit()
 // never reach that value.
 uint8 radioComRxAvailable(void)
 {
-    if (rxBytesLeft != 0)
-    {
-        return rxBytesLeft;
-    }
-
-    rxPointer = radioLinkRxCurrentPacket();
-
-    if (rxPointer == 0)
-    {
-        return 0;
-    }
-
-    rxBytesLeft = rxPointer[0];  // Read the packet length.
-    rxPointer += 1;              // Make rxPointer point to the data.
-
-    // Assumption: radioLink doesn't ever return zero-length packets,
-    // so rxBytesLeft is non-zero now and we don't have to worry about
-    // discard zero-length packets in radio_com.c.
-
+    receiveMorePackets();
     return rxBytesLeft;
 }
 
@@ -72,28 +118,87 @@ uint8 radioComRxReceiveByte(void)
     return tmp;
 }
 
-static void radioComSendPacketNow()
+uint8 radioComRxControlSignals(void)
+{
+    receiveMorePackets();
+    lastRxSignals = radioComRxSignals;
+    return lastRxSignals;
+}
+
+/** TX FUNCTIONS **************************************************************/
+
+static void radioComSendDataNow()
 {
     *packetPointer = txBytesLoaded;
     radioLinkTxSendPacket(PAYLOAD_TYPE_DATA);
     txBytesLoaded = 0;
 }
 
+static void radioComSendControlSignalsNow()
+{
+    // Assumption: txBytesLoaded is 0 (we are not in the middle of populating a data packet)
+    // Assumption: radioLinkTxAvailable() >= 1
+
+    uint8 XDATA * packet;
+
+    packet = radioLinkTxCurrentPacket();
+    packet[0] = 1;   // Payload length is one byte.
+    packet[1] = radioComTxSignals;
+    lastTxSignals = radioComTxSignals;
+    radioLinkTxSendPacket(PAYLOAD_TYPE_CONTROL_SIGNALS);
+}
+
 void radioComTxService(void)
 {
-    if (txBytesLoaded != 0 && radioLinkTxQueued() <= TX_QUEUE_THRESHOLD)
+    if (radioComTxSignals != lastTxSignals)
     {
-        radioComSendPacketNow();
+        // We want to send the control signals ASAP.
+
+        // NOTE: The if statement below could probably be moved to radioComTxControlSignals()
+        // and then you could add the assumption here that txBytesLoaded is 0
+        // (we are not in the middle of populating a data packet).
+        if (txBytesLoaded != 0)
+        {
+            // There is normal data that needs to be sent before the control signals,
+            // so send it now.
+            radioComSendDataNow();
+        }
+
+        if (radioLinkTxAvailable())
+        {
+            radioComSendControlSignalsNow();
+        }
+    }
+    else
+    {
+        // We don't need to send control signals ASAP, so we use the normal policy
+        // for sending data: only send a non-full packet if the number of packets
+        // queued in the lower level drops below the TX_QUEUE_THRESHOLD.
+
+        if (txBytesLoaded != 0 && radioLinkTxQueued() <= TX_QUEUE_THRESHOLD)
+        {
+            radioComSendDataNow();
+        }
     }
 }
 
-
 uint8 radioComTxAvailable(void)
 {
-    // Assumption: If txBytesLoaded is non-zero, radioLinkTxAvailable will be non-zero,
-    // so the subtraction below does not overflow.
-    // Assumption: The multiplication below does not overflow ever.
-    return radioLinkTxAvailable()*RADIO_LINK_PAYLOAD_SIZE - txBytesLoaded;
+    if (radioComTxSignals != lastTxSignals)
+    {
+        // We want to send the control signals ASAP, but have not yet been able to
+        // queue a packet for them.  Return 0 because we don't want to accept any
+        // more data bytes until we queue up those control signals.  This is part of
+        // the plan to ensure that everything is processed in the right order.
+        return 0;
+    }
+    else
+    {
+        // Assumption: If txBytesLoaded is non-zero, radioLinkTxAvailable will be non-zero,
+        // so the subtraction below does not overflow.
+        // Assumption: The multiplication below does not overflow ever.
+        return radioLinkTxAvailable()*RADIO_LINK_PAYLOAD_SIZE - txBytesLoaded;
+    }
 }
 
 void radioComTxSendByte(uint8 byte)
@@ -110,8 +215,13 @@ void radioComTxSendByte(uint8 byte)
 
     if (txBytesLoaded == RADIO_LINK_PAYLOAD_SIZE)
     {
-        radioComSendPacketNow();
+        radioComSendDataNow();
     }
 }
 
-void radioComTxSend(const uint8 XDATA * buffer, uint8 size);
+// If we are in the middle of building a packet, send it.
+void radioComTxControlSignals(uint8 controlSignals)
+{
+    radioComTxSignals = controlSignals;
+    radioComTxService();
+}

@@ -17,4 +17,7 @@ uint8 radioComTxAvailable(void);
 void radioComTxSendByte(uint8 byte);
 void radioComTxSend(const uint8 XDATA * buffer, uint8 size);
 
+void radioComTxControlSignals(uint8 controlSignals);
+uint8 radioComRxControlSignals();
+
 #endif /* RADIO_COM_H_ */
