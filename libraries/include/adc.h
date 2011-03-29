@@ -120,8 +120,39 @@ diff2 = adcReadDifferential(9 | ADC_REFERENCE_INTERNAL | ADC_BITS_7);
  */
 int16 adcReadDifferential(uint8 channel);
 
+/*! Reads the voltage of the VDD (3V3) line using the internal voltage
+ * reference and returns the voltage of VDD in units of millivolts (mV). */
 uint16 adcReadVddMillivolts();
-int16 adcConvertToMillivolts(int16 adcResult);
+
+/*! Sets the calibration parameter that is used by adcConvertToMillivolts().
+ * \param vddMillivolts The voltage of the VDD line in units of millivolts.
+ *
+ * If your VDD is going to drop below 3.3 V, and you want to measure a
+ * voltage in units of millivolts (as opposed to the raw ADC units)
+ * you should run the following code regularly:
+ *
+\code
+adcSetMillivoltCalibration(adcReadVddMillivolts());
+\endcode
+ */
 void adcSetMillivoltCalibration(uint16 vddMillivolts);
+
+/*! Converts an ADC result to millivolts.
+ *
+ * \param adcResult An ADC result between -2048 and 2047 that was
+ *  measured using VDD as a reference.  You can obtain such a
+ *  measurement by calling adcRead() or adcReadDifferential().
+ *
+ * \return The voltage in units of millivolts.
+ *
+ * By default, this function assumes that your VDD is at 3300 mV.
+ * If you expect your VDD to go above or below that, or you want
+ * more accurate results, you should use adcSetMillivoltCalibration().
+ *
+ * This function only applies to AD conversions where VDD was used as
+ * a reference.  If you used the internal 1.25 V reference instead, you
+ * can convert your result to millivolts by multiplying it by
+ * 1250 and then dividing it by 2047. */
+int16 adcConvertToMillivolts(int16 adcResult);
 
 #endif

@@ -16,6 +16,5 @@ void adcSetMillivoltCalibration(uint16 vddMillivolts)
 
 int16 adcConvertToMillivolts(int16 adcResult)
 {
-    uint32 temp = adcResult * (unsigned long)millivoltCalibration;
-    return (temp + 1023) / 2047;
+    return ((int32)adcResult * millivoltCalibration + 1023) / 2047;
 }
