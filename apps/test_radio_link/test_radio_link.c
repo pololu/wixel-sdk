@@ -46,7 +46,7 @@ void radioToUsb()
 
     if (usbComTxAvailable() < packet[0]*2 + 30){ return; }
 
-    length = sprintf(buffer, "RX: ");
+    length = sprintf(buffer, "RX: %2d ", radioLinkRxCurrentPayloadType());
     for (i = 0; i < packet[0]; i++)
     {
         buffer[length++] = nibbleToAscii(packet[1+i] >> 4);
@@ -65,6 +65,8 @@ void handleCommands()
     uint8 XDATA txNotAvailable[] = "TX not available!\r\n";
     uint8 XDATA response[128];
     uint8 responseLength;
+    static uint8 payloadType = 0;
+
     if (usbComRxAvailable() && usbComTxAvailable() >= 50)
     {
         uint8 byte = usbComRxReceiveByte();
@@ -88,9 +90,17 @@ void handleCommands()
                 packet[1] = byte;
                 packet[2] = byte + 1;
                 packet[3] = byte + 2;
-                radioLinkTxSendPacket(0);
-                responseLength = sprintf(response, "TX: %02x%02x%02x\r\n", packet[1], packet[2], packet[3]);
+                radioLinkTxSendPacket(payloadType);
+                responseLength = sprintf(response, "TX: %2d %02x%02x%02x\r\n", payloadType, packet[1], packet[2], packet[3]);
                 usbComTxSend(response, responseLength);
+                if (payloadType == RADIO_LINK_MAX_PAYLOAD_TYPE)
+                {
+                    payloadType = 0;
+                }
+                else
+                {
+                    payloadType++;
+                }
             }
         }
     }
