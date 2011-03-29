@@ -1,7 +1,7 @@
 /*! \file radio_link.h
- * <code>radio_link.lib</code> is a library provides reliable, ordered delivery
- * and reception of a series of data packets between
- * this device and another on the same frequency.  This is the layer that takes
+ * <code>radio_link.lib</code> is a library that provides reliable, ordered delivery
+ * and reception of a series of data packets between two Wixels on the same frequency.
+ * This is the layer that takes
  * care of Ping/ACK/NAK packets, and handles the details of timing.  This library
  * depends on <code>radio_mac.lib</code>.
  */
@@ -61,6 +61,9 @@ uint8 radioLinkTxQueued(void);
  * </pre>
  */
 uint8 XDATA * radioLinkTxCurrentPacket(void);
+
+/*! Sends the current TX packet.  See radioLinkTxCurrentPacket() for
+ * details. */
 void radioLinkTxSendPacket(void);
 
 /*! Returns a pointer to the current RX packet (the earliest packet received
@@ -68,10 +71,13 @@ void radioLinkTxSendPacket(void);
  * Returns 0 if there is no RX packet available.
  * The RX packet has the same format as the TX packet: the length of the
  * payload is at offset 0 and the data starts at offset 1.  When you are
- * done reading the packet, you should call radioLinkRxDoneWithPacket.
+ * done reading the packet, you should call radioLinkRxDoneWithPacket().
  * This frees the current packet buffer so it can receive another packet.
  */
 uint8 XDATA * radioLinkRxCurrentPacket(void);  // returns 0 if no packet is available.
+
+/*! Frees the current RX packet buffer so that you can move on to processing
+ * the next one.  See radioLinkRxCurrentPacket() for details. */
 void radioLinkRxDoneWithPacket(void);
 
 #endif
