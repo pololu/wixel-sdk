@@ -88,7 +88,7 @@ void handleCommands()
                 packet[1] = byte;
                 packet[2] = byte + 1;
                 packet[3] = byte + 2;
-                radioLinkTxSendPacket();
+                radioLinkTxSendPacket(0);
                 responseLength = sprintf(response, "TX: %02x%02x%02x\r\n", packet[1], packet[2], packet[3]);
                 usbComTxSend(response, responseLength);
             }

@@ -1,6 +1,9 @@
 #include <radio_link.h>
 #include <radio_com.h>
 
+#define PAYLOAD_TYPE_DATA 0
+#define PAYLOAD_TYPE_CONTROL_SIGNALS 1
+
 static uint8 DATA txBytesLoaded = 0;
 static uint8 DATA rxBytesLeft = 0;
 
@@ -72,7 +75,7 @@ uint8 radioComRxReceiveByte(void)
 static void radioComSendPacketNow()
 {
     *packetPointer = txBytesLoaded;
-    radioLinkTxSendPacket();
+    radioLinkTxSendPacket(PAYLOAD_TYPE_DATA);
     txBytesLoaded = 0;
 }
 
