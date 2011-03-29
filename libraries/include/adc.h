@@ -120,5 +120,8 @@ diff2 = adcReadDifferential(9 | ADC_REFERENCE_INTERNAL | ADC_BITS_7);
  */
 int16 adcReadDifferential(uint8 channel);
 
+uint16 adcReadVddMillivolts();
+int16 adcConvertToMillivolts(int16 adcResult);
+void adcSetMillivoltCalibration(uint16 vddMillivolts);
 
 #endif
