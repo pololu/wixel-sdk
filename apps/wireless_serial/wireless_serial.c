@@ -140,6 +140,7 @@ uint8 currentSerialMode()
 
 void usbToRadioService()
 {
+    // Data
     while(usbComRxAvailable() && radioComTxAvailable())
     {
         radioComTxSendByte(usbComRxReceiveByte());
@@ -149,6 +150,11 @@ void usbToRadioService()
     {
         usbComTxSendByte(radioComRxReceiveByte());
     }
+
+    // Control Signals
+    // TODO: think more carefully about which control signals correspond to each other
+    usbComSerialState = radioComRxControlSignals();
+    radioComTxControlSignals(usbComControlLineState);
 }
 
 void uartToRadioService()
