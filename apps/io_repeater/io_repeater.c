@@ -6,8 +6,7 @@
 #include <random.h>
 #include <time.h>
 #include <gpio.h>
-
-#include "repeater_radio_link.h"
+#include <radio_queue.h>
 
 #define MAX_TX_INTERVAL 10 // maximum time between transmissions (ms)
 
@@ -158,7 +157,7 @@ void main(void)
     systemInit();
     usbInit();
 
-    repeaterRadioLinkInit();
+    radioQueueInit();
     randomSeedFromSerialNumber();
 
     configurePins();
@@ -170,18 +169,18 @@ void main(void)
         usbComService();
 
         // receive pin states from another Wixel and set our output pins
-        if (rxEnabled && (rxBuf = repeaterRadioLinkRxCurrentPacket()))
+        if (rxEnabled && (rxBuf = radioQueueRxCurrentPacket()))
         {
             setPins(rxBuf + 1, *rxBuf);
-            repeaterRadioLinkRxDoneWithPacket();
+            radioQueueRxDoneWithPacket();
         }
 
         // read our input pins and transmit pin states to other Wixel(s) every MAX_TX_INTERVAL milliseconds
-        if (txEnabled && (uint8)(getMs() - lastTx) > MAX_TX_INTERVAL && (txBuf = repeaterRadioLinkTxCurrentPacket()))
+        if (txEnabled && (uint8)(getMs() - lastTx) > MAX_TX_INTERVAL && (txBuf = radioQueueTxCurrentPacket()))
         {
             readPins(txBuf + 1);
-            *txBuf = inPinCount;
-            repeaterRadioLinkTxSendPacket();
+            *txBuf = inPinCount; // set packet length byte
+            radioQueueTxSendPacket();
 
             lastTx = getMs();
         }
