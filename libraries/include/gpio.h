@@ -1,5 +1,3 @@
-/*! \headerfile gpio.h <gpio.h> */
-
 /*! \file gpio.h
  *
  * The <code>gpio.lib</code> library provides functions for using the CC2511's pins
@@ -10,8 +8,15 @@
  * with digital I/O since you no longer have to deal with a multitude of pin-specific
  * registers.
  *
+ * \section ports Ports
+ *
+ * The pins on the CC2511 are divided in to three ports: Port 0 (P0), Port 1 (P1),
+ * and Port 2 (P2).  Every pin's name is prefixed by the name of the port it is on.
+ * For example, P0_3 starts with "P0" so it is a pin on Port 0.
+ *
  * The pins on Port 0 and Port 1 are all inputs with pull-up resistors after a
- * power-up or reset.
+ * power-up or reset.  On the Wixel, these pins are not tied to any on-board hardware
+ * so they completely free to be used as GPIO.
  *
  * This library supports Port 2, but all of the Wixel's Port 2 pins are handled by the
  * functions declared in board.h so you should not need to manipulate them with this
@@ -20,12 +25,12 @@
  * \section pinparam The pinNumber parameter
  *
  * Most of the functions in this library take a pin number as their first
- * argument.  These numbers are computed by multiplying the port number by ten
- * and adding it to the pin number, as shown in the table below.
+ * argument.  These numbers are computed by multiplying the first digit in the
+ * pin name by ten and adding it to the second digit, as shown in the table below.
  *
  * <table>
  * <caption>CC2511 Pins</caption>
- * <tr><th>Pin</th><th>pinNumber</th></tr>
+ * <tr><th>Pin</th><th>pinNumber parameter</th></tr>
  * <tr><td>P0_0</td><td>0</td></tr>
  * <tr><td>P0_1</td><td>1</td></tr>
  * <tr><td>P0_2</td><td>2</td></tr>
@@ -57,11 +62,11 @@
  * on any of the I/O registers that are changed in the interrupt.
  * The risk is that the interrupt could fire after while the read-modify-write
  * operation is in progress, after the register has been read but before it has been
- * written.  Then when the register is written by the main loop, the made by the ISR
- * will be unintentionally lost.
+ * written.  Then when the register is written by the main loop, the change made by
+ * the ISR will be unintentionally lost.
  *
- * For example, it would be bad if you called setDigitalOutput(10, 1) in an interrupt
- * and in your main loop you had some code like:
+ * For example, it would be bad if you called <code>setDigitalOutput(10, 1)</code>
+ * in an interrupt and in your main loop you had some code like:
 \code
 P1DIR = (P1DIR & MASK) | VALUE;
 \endcode
@@ -80,7 +85,7 @@ P1DIR = (P1DIR & MASK) | VALUE;
  *
  * \section caveats Caveats
  *
- * To use your digital I/O pins correctly, there ar several things you should be aware of:
+ * To use your digital I/O pins correctly, there are several things you should be aware of:
  * - <b>Maximum voltage ratings:</b> Be sure to not expose your input pins to voltages
  *   outside their allowed range.  The voltage should not go below 0 V (GND) and should
  *   not exceed VDD (typically 3.3 V).  This means that you can not connect an input
@@ -92,7 +97,8 @@ P1DIR = (P1DIR & MASK) | VALUE;
  *   The amount of current that can be supplied by the CC2511's I/O pins is not
  *   well-documented by the manufacturer.  According to
  *   <a href="http://e2e.ti.com/support/low_power_rf/f/155/p/31555/319919.aspx">this forum post by a TI Employee</a>,
- *   regular I/O pins are designed to be able to source 4&nbsp;mA while P1_0 and P1_1 are designed for 20 mA.</p>
+ *   regular I/O pins are designed to be able to source 4&nbsp;mA while P1_0 and P1_1 are designed for 20 mA.
+ *   You can use a transistor to overcome this limitation.
  * - <b>Shorts</b>: Be sure that you do not connect a high output pin directly to a
  *   low output pin or to another high output pin that is driving to a different voltage.
  * - <b>Peripheral functions</b>: Many of the pins on the CC2511 can be configured to
@@ -101,8 +107,6 @@ P1DIR = (P1DIR & MASK) | VALUE;
  *   library may not work.  For example, if you have enabled USART1 in Alternate
  *   Location 1, then you can not control the output value of P1_6 using these
  *   functions because P1_6 serves as the serial transmit (TX) line.
- *
- *   You can use a transistor to overcome this limitation.
  */
 
 #ifndef _GPIO_H
@@ -125,7 +129,7 @@ P1DIR = (P1DIR & MASK) | VALUE;
 #define PULLED          1
 
 /*! \brief Configures the specified pin as a digital output.
-\param pinNumber Should be one of the pin numbers listed in the table above (e.g. 12 for P1_2).
+\param pinNumber Should be one of the pin numbers listed in the table above (e.g. 12).
 \param value Should be one of the following:
 - #LOW (0): Drives the line low (GND, 0 V).
 - #HIGH (1): Drives the line high (3V3, typically 3.3 V).
@@ -144,7 +148,7 @@ P0DIR |= (1<<3);
 void setDigitalOutput(uint8 pinNumber, BIT value) __reentrant;
 
 /*! \brief Configures the specified pin as an input.
-\param pinNumber Should be one of the pin numbers listed in the table above (e.g. 12 for P1_2).
+\param pinNumber Should be one of the pin numbers listed in the table above (e.g. 12).
 \param pulled Should be one of the following:
 - #HIGH_IMPEDANCE (0): Disables the internal pull-up and pull-down resistors on that pin.
 - #PULLED (1): Enables an internal 20 kilohm pull-up or pull-down resistor on the pin.
@@ -171,7 +175,7 @@ void setDigitalInput(uint8 pinNumber, BIT pulled) __reentrant;
 
 /*! \brief Returns the current input or output value of the pin.
  *
- * \param pinNumber Should be one of the pin numbers listed in the table above (e.g. 12 for P1_2).
+ * \param pinNumber Should be one of the pin numbers listed in the table above (e.g. 12).
  * \return #LOW (0) or #HIGH (1).
  *
  * If the pin is configured as a digital input, the return value represents a digital
@@ -193,7 +197,7 @@ BIT isPinHigh(uint8 pinNumber) __reentrant;
 
 /*! Selects whether Port 0 will have internal pull-down or pull-up resistors.
  *
- * \param pulltype Specifies the voltage that the resistors will pull to.
+ * \param pullType Specifies the voltage that the resistors will pull to.
  *   Should be either #LOW (0) or #HIGH (1).
  *
  * The resistors can be disabled individually for each pin using setDigitalInput(),
