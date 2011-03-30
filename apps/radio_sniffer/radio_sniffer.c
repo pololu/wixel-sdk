@@ -11,10 +11,8 @@
  * This device appears to the USB host as a Virtual COM Port, with USB product
  * ID 0x2200.
  *
- * The app uses custom radio_link and radio_com libraries that allow it to
- * listen to packets without interfering with communications (it does not
- * transmit anything, including ACKs). The libraries also allow direct access to
- * the full packet contents.
+ * The app uses the radio_queue libray to receive packets.  It does not
+ * transmit any packets.
  *
  * The output from this app takes the following format:
  *
@@ -31,8 +29,8 @@
  * (8) hexadecimal representation of raw packet contents including status bytes
  *
  * The red LED indicates activity on the radio channel (packets being received).
- * Because the sniffer cannot acknowledge successful reception of data, there
- * is no guarantee that it will pick up all the packets being sent, and some of
+ * Since every radio packet has a chance of being lost, there is no guarantee
+ * that this app will pick up all the packets being sent, and some of
  * what it does pick up will be corrupted (indicated by a failed CRC check).
  *
  * == Parameters ==
@@ -52,9 +50,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-
-/** Parameters ****************************************************************/
-
 
 /** Functions *****************************************************************/
 void updateLeds()
