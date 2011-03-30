@@ -462,13 +462,9 @@ void usbComTxSend(const uint8 XDATA * buffer, uint8 size)
     }
 }
 
-// For use with printf.
 void usbComTxSendByte(uint8 byte)
 {
-    while(usbComTxAvailable() == 0)
-    {
-        // TODO: call any background tasks that need to be called?
-    }
+    // Assumption: usbComTxAvailable() recently returned a non-zero number
 
     CDC_DATA_FIFO = byte;                          // Give the byte to the USB module's FIFO.
     inFifoBytesLoaded++;
