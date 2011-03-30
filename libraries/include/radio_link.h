@@ -1,5 +1,5 @@
 /*! \file radio_link.h
- * <code>radio_link.lib</code> is a library provides reliable, ordered delivery
+ * <code>radio_link.lib</code> is a library that provides reliable, ordered delivery
  * and reception of a series of data packets between
  * this device and another on the same frequency.  This is the layer that takes
  * care of Ping/ACK/NAK packets, and handles the details of timing.  This library

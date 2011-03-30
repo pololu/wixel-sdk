@@ -1,11 +1,20 @@
-#ifndef _RADIO_LINK
-#define _RADIO_LINK
+/*! \file radio_queue.h
+ * <code>radio_queue.lib</code> is a library that provides a simple mechanism
+ * for queuing the transmission and reception of RF packets on a device. It
+ * does not ensure reliability, nor does it specify a format for the packet
+ * contents, other than requiring that the first byte of the packet contains its
+ * length. This library depends on <code>radio_mac.lib</code>.
+ */
+
+#ifndef _RADIO_QUEUE
+#define _RADIO_QUEUE
 
 #include <cc2511_types.h>
 #include <radio_mac.h>
 
-/*! Each packet can contain at most 18 bytes of payload. */
-#define RADIO_LINK_PAYLOAD_SIZE 18
+/*! Each packet can contain at most 19 bytes of payload. (This was chosen to
+ * match radio_link's 18-byte payload + 1-byte header.) */
+#define RADIO_QUEUE_PAYLOAD_SIZE 19
 
 /*! Defines the frequency to use.  Valid values are from
  * 0 to 255.  To avoid interference, the channel numbers of
@@ -18,24 +27,24 @@ extern int32 CODE param_radio_channel;
 /*! Initializes the radio_link library and the lower-level
  *  libraries that it radio_link depends on.  This must be called before
  *  any other functions in the library. */
-void repeaterRadioLinkInit(void);
+void radioQueueInit(void);
 
 /*! \return The number of radio packet buffers that are currently free
  * (available to hold data).
  *
  * This function has no side effects. */
-uint8 repeaterRadioLinkTxAvailable(void);
+uint8 radioQueueTxAvailable(void);
 
 /*! \return The number of radio packet buffers that are currently busy
  * (holding a data packet that has not been successfully sent yet).
  *
  * This function has no side effects. */
-uint8 repeaterRadioLinkTxQueued(void);
+uint8 radioQueueTxQueued(void);
 
 /*! Returns a pointer to the current packet, or 0 if no packet is available.
  * This function has no side effects.  To populate this packet, you should
  * write the length of the payload data (which must not exceed
- * RADIO_LINK_PAYLOAD_SIZE) to offset 0, and write the data starting at
+ * RADIO_QUEUE_PAYLOAD_SIZE) to offset 0, and write the data starting at
  * offset 1.  After you have put this data in the packet, call
  * radioLinkTxSendPacket to actually queue the packet up to be sent on
  * the radio.
@@ -52,18 +61,18 @@ uint8 repeaterRadioLinkTxQueued(void);
  *   }
  * </pre>
  */
-uint8 XDATA * repeaterRadioLinkTxCurrentPacket(void);
-void repeaterRadioLinkTxSendPacket(void);
+uint8 XDATA * radioQueueTxCurrentPacket(void);
+void radioQueueTxSendPacket(void);
 
 /*! Returns a pointer to the current RX packet (the earliest packet received
- * by radio_link which has not been processed yet by higher-level code).
+ * by radio_queue which has not been processed yet by higher-level code).
  * Returns 0 if there is no RX packet available.
  * The RX packet has the same format as the TX packet: the length of the
  * payload is at offset 0 and the data starts at offset 1.  When you are
- * done reading the packet, you should call radioLinkRxDoneWithPacket.
+ * done reading the packet, you should call radioQueueRxDoneWithPacket.
  * This frees the current packet buffer so it can receive another packet.
  */
-uint8 XDATA * repeaterRadioLinkRxCurrentPacket(void);  // returns 0 if no packet is available.
-void repeaterRadioLinkRxDoneWithPacket(void);
+uint8 XDATA * radioQueueRxCurrentPacket(void);  // returns 0 if no packet is available.
+void radioQueueRxDoneWithPacket(void);
 
 #endif
