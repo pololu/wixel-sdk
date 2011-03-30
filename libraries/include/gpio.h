@@ -17,7 +17,7 @@
  * functions declared in board.h so you should not need to manipulate them with this
  * library.
  *
- * \section pinparam The pin parameter
+ * \section pinparam The pinNumber parameter
  *
  * Most of the functions in this library take a pin number as their first
  * argument.  These numbers are computed by multiplying the port number by ten
@@ -25,7 +25,7 @@
  *
  * <table>
  * <caption>CC2511 Pins</caption>
- * <tr><th>Pin</th><th>Pin Number</th></tr>
+ * <tr><th>Pin</th><th>pinNumber</th></tr>
  * <tr><td>P0_0</td><td>0</td></tr>
  * <tr><td>P0_1</td><td>1</td></tr>
  * <tr><td>P0_2</td><td>2</td></tr>
@@ -125,7 +125,7 @@ P1DIR = (P1DIR & MASK) | VALUE;
 #define PULLED          1
 
 /*! \brief Configures the specified pin as a digital output.
-\param pin Should be one of the pin numbers listed in the table above (e.g. 12 for P1_2).
+\param pinNumber Should be one of the pin numbers listed in the table above (e.g. 12 for P1_2).
 \param value Should be one of the following:
 - #LOW (0): Drives the line low (GND, 0 V).
 - #HIGH (1): Drives the line high (3V3, typically 3.3 V).
@@ -141,10 +141,10 @@ For example, calling <code>setDigitalOutput(3, HIGH)</code> will have the same e
 P0_3 = 1;
 P0DIR |= (1<<3);
 \endcode */
-void setDigitalOutput(uint8 pin, BIT value) __reentrant;
+void setDigitalOutput(uint8 pinNumber, BIT value) __reentrant;
 
 /*! \brief Configures the specified pin as an input.
-\param pin Should be one of the pin numbers listed in the table above (e.g. 12 for P1_2).
+\param pinNumber Should be one of the pin numbers listed in the table above (e.g. 12 for P1_2).
 \param pulled Should be one of the following:
 - #HIGH_IMPEDANCE (0): Disables the internal pull-up and pull-down resistors on that pin.
 - #PULLED (1): Enables an internal 20 kilohm pull-up or pull-down resistor on the pin.
@@ -167,11 +167,11 @@ so the second argument to this function does not have any effect when configurin
 either of those pins.
 
 */
-void setDigitalInput(uint8 pin, BIT pulled) __reentrant;
+void setDigitalInput(uint8 pinNumber, BIT pulled) __reentrant;
 
 /*! \brief Returns the current input or output value of the pin.
  *
- * \param pin Should be one of the pin numbers listed in the table above (e.g. 12 for P1_2).
+ * \param pinNumber Should be one of the pin numbers listed in the table above (e.g. 12 for P1_2).
  * \return #LOW (0) or #HIGH (1).
  *
  * If the pin is configured as a digital input, the return value represents a digital
@@ -189,7 +189,7 @@ void setDigitalInput(uint8 pin, BIT pulled) __reentrant;
  * calling <code>isPinHigh(14)</code> will have the effect as reading
  * <code>P1_4</code> (but the function call will be slower).
  * */
-BIT isPinHigh(uint8 pin) __reentrant;
+BIT isPinHigh(uint8 pinNumber) __reentrant;
 
 /*! Selects whether Port 0 will have internal pull-down or pull-up resistors.
  *

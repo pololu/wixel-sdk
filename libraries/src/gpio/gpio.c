@@ -2,7 +2,7 @@
 #include <cc2511_map.h>
 #include <gpio.h>
 
-#define PIN_SWITCH(operation) switch(pin) { \
+#define PIN_SWITCH(operation) switch(pinNumber) { \
         case 0:  operation(0,0); break; \
         case 1:  operation(0,1); break; \
         case 2:  operation(0,2); break; \
@@ -33,17 +33,17 @@
 
 #define IS_DIGITAL_INPUT_HIGH(port, pin) { return P##port##_##pin; }
 
-void setDigitalOutput(uint8 pin, BIT value) __reentrant
+void setDigitalOutput(uint8 pinNumber, BIT value) __reentrant
 {
     PIN_SWITCH(SET_DIGITAL_OUTPUT);
 }
 
-void setDigitalInput(uint8 pin, BIT pulled) __reentrant
+void setDigitalInput(uint8 pinNumber, BIT pulled) __reentrant
 {
     PIN_SWITCH(SET_DIGITAL_INPUT);
 }
 
-BIT isPinHigh(uint8 pin) __reentrant
+BIT isPinHigh(uint8 pinNumber) __reentrant
 {
     PIN_SWITCH(IS_DIGITAL_INPUT_HIGH);
     return 0;
