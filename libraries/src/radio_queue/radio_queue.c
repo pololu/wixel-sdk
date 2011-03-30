@@ -60,6 +60,8 @@ static volatile uint8 XDATA radioQueueTxPacket[TX_PACKET_COUNT][1 + RADIO_MAX_PA
 static volatile uint8 DATA radioQueueTxMainLoopIndex = 0;   // The index of the next txPacket to write to in the main loop.
 static volatile uint8 DATA radioQueueTxInterruptIndex = 0;  // The index of the current txPacket we are trying to send on the radio.
 
+BIT radioQueueAllowCrcErrors = 0;
+
 /* GENERAL FUNCTIONS **********************************************************/
 
 void radioQueueInit()
