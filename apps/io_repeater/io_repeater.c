@@ -126,7 +126,7 @@ void readPins(uint8 XDATA * buf)
     for (pin = 0; pin < inPinCount; pin++)
     {
         // put pin link in lower 7 bits, read pin state and put in highest bit
-        buf[pin] = (-pinLink(inPins[pin]) << PIN_LINK_OFFSET) | (isDigitalInputHigh(inPins[pin]) << PIN_VAL_OFFSET);
+        buf[pin] = (-pinLink(inPins[pin]) << PIN_LINK_OFFSET) | (isPinHigh(inPins[pin]) << PIN_VAL_OFFSET);
     }
 }
 
