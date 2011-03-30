@@ -6,3 +6,4 @@
 #include <time.h>
 #include <dma.h>
 #include <adc.h>
+#include <gpio.h>
