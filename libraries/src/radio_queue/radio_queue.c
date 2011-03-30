@@ -2,13 +2,18 @@
  *  This layer builds on top of radio_mac.c to provide a mechanism for queueing
  *  RF packets to be sent and packets that are received by this device. It does
  *  not ensure reliability or specify the format of the packets, except that the
- *  first byte of the packet must contain its length. Radio_queue is essentially
- *  a stripped-down version of the radio_link library, so radio_link is a good
- *  alternative if you want a more specialized implementation with more
- *  features.
+ *  first byte of the packet must contain its length.
+ *
+ *  This layer does not transmit packets as quickly as possible; instead, it
+ *  listens for incoming packets for a random interval of 1-4 ms between sending
+ *  packets.
  *
  *  This layer defines the RF packet memory buffers used, and controls access to
  *  those buffers.
+ *
+ *  Radio_queue is essentially a stripped-down version of the radio_link
+ *  library, so radio_link is a good alternative if you want a more specialized
+ *  implementation with more features.
  */
 
 #include <radio_queue.h>
@@ -27,7 +32,7 @@ int32 CODE param_radio_channel = 128;
 #define RADIO_QUEUE_PACKET_LENGTH_OFFSET 0
 
 /*  rxPackets:
- *  We need to be prepared at all times to receive a full packet from the other
+ *  We need to be prepared at all times to receive a full packet from another
  *  party, even if we cannot give it to the main loop.  Therefore, we need (at
  *  least) THREE buffers, so that two can be owned by the main loop while
  *  another is owned by the ISR and ready to receive the next packet.
@@ -170,7 +175,7 @@ void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
             radioQueueTxInterruptIndex++;
         }
 
-        // We sent a packet, so now lets give the other party a chance to talk.
+        // We sent a packet, so now let's give another party a chance to talk.
         radioMacRx(radioQueueRxPacket[radioQueueRxInterruptIndex], randomTxDelay());
         return;
     }
