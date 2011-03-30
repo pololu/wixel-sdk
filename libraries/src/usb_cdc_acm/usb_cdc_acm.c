@@ -293,6 +293,12 @@ void usbCallbackControlWriteHandler()
 
 uint8 usbComRxAvailable()
 {
+    if (usbDeviceState != USB_STATE_CONFIGURED)
+    {
+        // We have not reached the Configured state yet, so we should not be touching the non-zero endpoints.
+        return 0;
+    }
+
     USBINDEX = CDC_DATA_ENDPOINT;      // Select the data endpoint.
     if (USBCSOL & USBCSOL_OUTPKT_RDY)  // Check the OUTPKT_RDY flag because USBCNTL is only valid when it is 1.
     {
@@ -354,6 +360,28 @@ static void sendPacketNow()
 
 void usbComService(void)
 {
+    usbPoll();
+
+    // Start bootloader if necessary.
+    if (startBootloaderSoon && (uint8)(getMs() - startBootloaderRequestTime) > 70)
+    {
+        // It has been 50 ms since the user requested that we start the bootloader, so
+        // start it.
+
+        // The reason we don't start the bootloader right away when we get the request is
+        // because we want to have time to finish the status phase of the control transfer
+        // so the host knows the request was processed correctly.  Also, the Windows
+        // usbser.sys sends several requests for about 7 ms after the SET_LINE_CODING
+        // request before the operation (SetCommState) finally succeeds.
+        boardStartBootloader();
+    }
+
+    if (usbDeviceState != USB_STATE_CONFIGURED)
+    {
+        // We have not reached the Configured state yet, so we should not be touching the non-zero endpoints.
+        return;
+    }
+
     // Send a packet now if there is data loaded in the FIFO waiting to be sent OR
     //
     // Typical USB systems wait for a short or empty packet before forwarding the data
@@ -364,8 +392,6 @@ void usbComService(void)
     {
         sendPacketNow();
     }
-
-    usbPoll();
 
     // Notify the computer of the current serial state if necessary.
     USBINDEX = CDC_NOTIFICATION_ENDPOINT;
@@ -402,20 +428,6 @@ void usbComService(void)
 
         lastReportedSerialState = usbComSerialState;
     }
-
-    // Start bootloader if necessary.
-    if (startBootloaderSoon && (uint8)(getMs() - startBootloaderRequestTime) > 70)
-    {
-        // It has been 50 ms since the user requested that we start the bootloader, so
-        // start it.
-
-        // The reason we don't start the bootloader right away when we get the request is
-        // because we want to have time to finish the status phase of the control transfer
-        // so the host knows the request was processed correctly.  Also, the Windows
-        // usbser.sys sends several requests for about 7 ms after the SET_LINE_CODING
-        // request before the operation (SetCommState) finally succeeds.
-        boardStartBootloader();
-    }
 }
 
 // Assumption: We are using double buffering, so we can load either 0, 1, or 2
@@ -423,6 +435,13 @@ void usbComService(void)
 uint8 usbComTxAvailable()
 {
     uint8 tmp;
+
+    if (usbDeviceState != USB_STATE_CONFIGURED)
+    {
+        // We have not reached the Configured state yet, so we should not be touching the non-zero endpoints.
+        return 0;
+    }
+
     USBINDEX = CDC_DATA_ENDPOINT;
     tmp = USBCSIL;
     if (tmp & USBCSIL_PKT_PRESENT)
