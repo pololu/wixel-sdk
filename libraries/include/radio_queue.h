@@ -24,6 +24,13 @@
  */
 extern int32 CODE param_radio_channel;
 
+/*! If this variable is set to 1, received packets will be added to the RX queue
+ * even if they have CRC errors. This means that you will get corrupt and
+ * spurious data in addition to good data, but it can be useful for applications
+ * such as an RF packet sniffer. This variable has a value of 0 by default.
+ */
+extern BIT radioQueueAllowCrcErrors;
+
 /*! Initializes the radio_queue library and the lower-level
  *  libraries that radio_queue depends on.  This must be called before
  *  any other functions in the library. */
