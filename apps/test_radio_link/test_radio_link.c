@@ -60,8 +60,8 @@ void radioToUsb()
     }
 
     // Report if we receive a reset packet.
-    // NOTE: If multiple reset packets are received, this code might only succeed in
-    // reporting some of them.
+    // NOTE: If multiple reset packets are received faster than we can report them,
+    // then this code might only succeed in reporting some of them.
     if (radioLinkResetPacketReceived && usbComTxAvailable() >= sizeof(resetString)-1)
     {
         radioLinkResetPacketReceived = 0;
