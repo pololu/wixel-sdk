@@ -2,7 +2,7 @@
  * <code>radio_queue.lib</code> is a library that provides a simple mechanism
  * for queuing the transmission and reception of RF packets on a device. It
  * does not ensure reliability, nor does it specify a format for the packet
- * contents, other than requiring that the first byte of the packet contains its
+ * contents, other than requiring the first byte of the packet to contain its
  * length. This library depends on <code>radio_mac.lib</code>.
  */
 
@@ -24,8 +24,15 @@
  */
 extern int32 CODE param_radio_channel;
 
-/*! Initializes the radio_link library and the lower-level
- *  libraries that it radio_link depends on.  This must be called before
+/*! If this variable is set to 1, received packets will be added to the RX queue
+ * even if they have CRC errors. This means that you will get corrupt and
+ * spurious data in addition to good data, but it can be useful for applications
+ * such as an RF packet sniffer. This variable has a value of 0 by default.
+ */
+extern BIT radioQueueAllowCrcErrors;
+
+/*! Initializes the radio_queue library and the lower-level
+ *  libraries that radio_queue depends on.  This must be called before
  *  any other functions in the library. */
 void radioQueueInit(void);
 
@@ -46,18 +53,18 @@ uint8 radioQueueTxQueued(void);
  * write the length of the payload data (which must not exceed
  * RADIO_QUEUE_PAYLOAD_SIZE) to offset 0, and write the data starting at
  * offset 1.  After you have put this data in the packet, call
- * radioLinkTxSendPacket to actually queue the packet up to be sent on
+ * radioQueueTxSendPacket to actually queue the packet up to be sent on
  * the radio.
  * Example usage:
  * <pre>
- *   uint8 XDATA * packet = radioLinkTxCurrentPacket();
+ *   uint8 XDATA * packet = radioQueueTxCurrentPacket();
  *   if (packet != 0)
  *   {
- *       packet[0] = 3;   // must not exceed RADIO_LINK_PAYLOAD_SIZE
+ *       packet[0] = 3;   // must not exceed RADIO_QUEUE_PAYLOAD_SIZE
  *       packet[1] = 'a';
  *       packet[2] = 'b';
  *       packet[3] = 'c';
- *       radioLinkTxSendPacket();
+ *       radioQueueTxSendPacket();
  *   }
  * </pre>
  */

@@ -29,10 +29,6 @@ static uint8 outPinCount = 0;
 static BIT txEnabled = 0;
 static BIT rxEnabled = 0;
 
-// pointers to link packets
-static uint8 XDATA * txBuf;
-static uint8 XDATA * rxBuf;
-
 // In each byte of a buffer:
 // bit 7 = pin value
 // bits 6:0 = pin link
@@ -152,6 +148,10 @@ void setPins(uint8 XDATA * buf, uint8 byteCount)
 
 void main(void)
 {
+    // pointers to link packets
+    uint8 XDATA * txBuf;
+    uint8 XDATA * rxBuf;
+
     uint8 lastTx = 0;
 
     systemInit();
