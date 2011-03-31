@@ -185,7 +185,7 @@ void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
     {
         uint8 XDATA * currentRxPacket = radioQueueRxPacket[radioQueueRxInterruptIndex];
 
-        if (!radioCrcPassed())
+        if (!radioQueueAllowCrcErrors && !radioCrcPassed())
         {
             if (radioQueueTxInterruptIndex != radioQueueTxMainLoopIndex)
             {
