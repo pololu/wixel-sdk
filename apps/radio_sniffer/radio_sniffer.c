@@ -15,8 +15,8 @@
  *
  * The output from this app takes the following format:
  *
- * 147> "hello world!"       ! R: -50 L: 104 s:0 PING  0D0068656C6C6F20776F726C64212A68
- *  (1)      (2)            (3)  (4)    (5)  (6)  (7)      (8)
+ * 147> "hello world!"       ! R: -50 L: 104 s:0 PING  p:0 0D0068656C6C6F20776F726C64212A68
+ *  (1)      (2)            (3)  (4)    (5)  (6)  (7)  (8)    (9)
  *
  * (1) index (line number)
  * (2) ASCII representation of packet contents (unprintable bytes are replaced with '?')
@@ -25,7 +25,9 @@
  * (5) LQI
  * (6) sequence bit (only applies to RF communications using radio_link)
  * (7) packet type (only applies to RF communications using radio_link)
- * (8) hexadecimal representation of raw packet contents, including length byte at beginning
+ * (8) payload type (only applies to RF communications using radio_link)
+ * (9) hexadecimal representation of raw packet contents, including length byte
+ *     and any header bytes at beginning
  *
  * The red LED indicates activity on the radio channel (packets being received).
  * Since every radio packet has a chance of being lost, there is no guarantee
@@ -56,6 +58,8 @@ void updateLeds()
     usbShowStatusWithGreenLed();
 
     LED_YELLOW(radioQueueRxCurrentPacket());
+
+    LED_RED(0);
 }
 
 // This is called by printf and printPacket.
@@ -75,8 +79,6 @@ void printPacket(uint8 XDATA * pkt)
 {
     static uint16 pkt_count = 0;
     uint8 j, len;
-
-    LED_RED(1);
 
     // index
     printf("%3d> ", pkt_count++);
@@ -127,6 +129,12 @@ void printPacket(uint8 XDATA * pkt)
         case 3: printf("RESET "); break;
     }
 
+    // payload type
+    putchar('p');
+    putchar(':');
+    putchar(nibbleToAscii(pkt[1] >> 1 & 0xF));
+    putchar(' ');
+    
     // packet contents in hex
     for(j = 0; j < len + 1; j++)  // add 1 for length byte
     {
@@ -135,8 +143,6 @@ void printPacket(uint8 XDATA * pkt)
     }
     putchar('\r');
     putchar('\n');
-
-    LED_RED(0);
 }
 
 void printPacketIfNeeded()
@@ -155,6 +161,7 @@ void main()
     usbInit();
 
     radioQueueInit();
+    radioQueueAllowCrcErrors = 1;   
     randomSeedFromSerialNumber();
 
     while(1)
