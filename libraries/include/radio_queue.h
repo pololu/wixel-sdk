@@ -25,7 +25,7 @@
 extern int32 CODE param_radio_channel;
 
 /*! Initializes the radio_queue library and the lower-level
- *  libraries that it radio_queue depends on.  This must be called before
+ *  libraries that radio_queue depends on.  This must be called before
  *  any other functions in the library. */
 void radioQueueInit(void);
 
