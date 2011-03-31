@@ -40,24 +40,34 @@ void radioToUsb()
     uint8 XDATA buffer[128];
     uint8 length;
     uint8 i;
+    uint8 XDATA * packet;
+    static uint8 CODE resetString[] = "RX: RESET\r\n";
 
-    uint8 XDATA * packet = radioLinkRxCurrentPacket();
-    if (packet == 0){ return; }
-
-    if (usbComTxAvailable() < packet[0]*2 + 30){ return; }
-
-    length = sprintf(buffer, "RX: %2d ", radioLinkRxCurrentPayloadType());
-    for (i = 0; i < packet[0]; i++)
+    if ((packet = radioLinkRxCurrentPacket()) && usbComTxAvailable() >= packet[0]*2 + 30)
     {
-        buffer[length++] = nibbleToAscii(packet[1+i] >> 4);
-        buffer[length++] = nibbleToAscii(packet[1+i]);
+        length = sprintf(buffer, "RX: %2d ", radioLinkRxCurrentPayloadType());
+        for (i = 0; i < packet[0]; i++)
+        {
+            buffer[length++] = nibbleToAscii(packet[1+i] >> 4);
+            buffer[length++] = nibbleToAscii(packet[1+i]);
+        }
+
+        buffer[length++] = '\r';
+        buffer[length++] = '\n';
+
+        radioLinkRxDoneWithPacket();
+        usbComTxSend(buffer, length);
     }
 
-    buffer[length++] = '\r';
-    buffer[length++] = '\n';
+    // Report if we receive a reset packet.
+    // NOTE: If multiple reset packets are received, this code might only succeed in
+    // reporting some of them.
+    if (radioLinkResetPacketReceived && usbComTxAvailable() >= sizeof(resetString)-1)
+    {
+        radioLinkResetPacketReceived = 0;
+        usbComTxSend((uint8 XDATA *)resetString, sizeof(resetString)-1);
+    }
 
-    radioLinkRxDoneWithPacket();
-    usbComTxSend(buffer, length);
 }
 
 void handleCommands()

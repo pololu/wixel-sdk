@@ -78,6 +78,8 @@ uint8 DATA radioLinkTxCurrentPacketTries = 0;
 static volatile BIT sendingReset = 0;
 static volatile BIT acceptAnySequenceBit = 0;
 
+volatile BIT radioLinkResetPacketReceived;
+
 /* SEQUENCING VARIABLES *******************************************************/
 /* Each data packet we transmit contains a bit that is either 0 or 1 called the
    sequence bit.  This bit changes every time we send a different data packet,
@@ -278,6 +280,9 @@ void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
             // The other Wixel sent a Reset packet, which means the next packet it sends will have a sequence bit of 0.
             // So this Wixel should set its "previously received" sequence bit to 1 so it expects a 0 next.
             rxSequenceBit = 1;
+
+            // Notify the higher-level code.
+            radioLinkResetPacketReceived = 1;
 
             // Send an ACK
             shortTxPacket[RADIO_LINK_PACKET_LENGTH_OFFSET] = 1;

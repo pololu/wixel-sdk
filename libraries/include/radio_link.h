@@ -42,6 +42,54 @@
  * it using the Wixel Configuration Utility.) */
 extern int32 CODE param_radio_channel;
 
+/*! This bit allows the higher-level code to detect when a reset packet
+ * is received.  It is set to 1 in an interrupt by the radio_link library
+ * whenever a reset packet is received.  The higher-level code should set
+ * it to zero when it uses this information.
+ *
+ * A reset packet will be received whenever the other Wixel is reset for
+ * any reason.  Multiple reset packets can also be received in quick
+ * succession if the other device does not receive the acknowledgment
+ * packet sent by this device (every radio packet has a chance of being
+ * lost).  This situation is indistinguishable from the situation where
+ * the other party is actually getting reset several times in quick
+ * succession.
+ *
+ * If the higher-level code responds to this bit by sending an initialization
+ * packet to the other device, then it should clear radioLinkResetPacketReceived
+ * BEFORE queueing the packet to be sent.  Otherwise, the following
+ * scenario could occur:
+ * -# Main Loop: This device detects a reset packet (radioLinkResetPacketReceived==1).
+ * -# Main Loop: This device queues initialization packet to be sent.
+ * -# ISR: This device sends an initialization packet.
+ * -# ISR: This device receives a reset packet because other device got reset.
+ * -# This device clears the radioLinkResetPacketReceived.
+ *
+ * By clearing the bit first, you guarantee that an initialization packet will
+ * be sent AFTER the final reset packet is received.
+ *
+ * Example use:
+ \code
+ if (radioLinkResetPacketReceived && radioLinkTxAvailable())
+ {
+     uint8 XDATA * packet;
+
+     // A reset packet from the other party was received, so send
+     // a packet to initialize the connection.
+
+     // Clear the flag.  This must be done BEFORE queueing the packet
+     // to be sent, as discussed in radio_link.h
+     radioLinkResetPacketReceived = 0;
+
+     packet = radioLinkTxAvailable();
+     packet[0] = INIT_PACKET_LENGTH;  // defined by higher-level code
+     packet[1] = INIT_PACKET_PAYLOAD; // defined by higher-level code
+     radioLinkTxSendPacket(INIT_PACKET_PAYLOAD_TYPE);
+ }
+ \endcode
+ */
+extern volatile BIT radioLinkResetPacketReceived;
+
 /*! Initializes the radio_link library and the lower-level
  *  libraries that it radio_link depends on.  This must be called before
  *  any other functions in the library. */
