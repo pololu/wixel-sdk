@@ -13,8 +13,8 @@ static uint8 XDATA * DATA packetPointer = 0;
 
 static uint8 radioComRxSignals = 0;
 static uint8 radioComTxSignals = 0;
-static uint8 lastTxSignals = 0; // The last TX signals sent to the lower-level code.
 static uint8 lastRxSignals = 0; // The last RX signals sent to the higher-level code.
+static BIT sendSignalsSoon = 0; // 1 iff we should transmit control signals soon
 
 // For highest throughput, we want to send as much data in each packet
 // as possible.  But for lower latency, we sometimes need to send packets
@@ -144,13 +144,21 @@ static void radioComSendControlSignalsNow()
     packet = radioLinkTxCurrentPacket();
     packet[0] = 1;   // Payload length is one byte.
     packet[1] = radioComTxSignals;
-    lastTxSignals = radioComTxSignals;
+    sendSignalsSoon = 0;
     radioLinkTxSendPacket(PAYLOAD_TYPE_CONTROL_SIGNALS);
 }
 
 void radioComTxService(void)
 {
-    if (radioComTxSignals != lastTxSignals)
+    if (radioLinkResetPacketReceived)
+    {
+        // The other device has sent us a reset packet, which means it has been
+        // reset.  We should send the state of the control signals to it.
+        radioLinkResetPacketReceived = 0;
+        sendSignalsSoon = 1;
+    }
+
+    if (sendSignalsSoon)
     {
         // We want to send the control signals ASAP.
 
@@ -184,7 +192,7 @@ void radioComTxService(void)
 
 uint8 radioComTxAvailable(void)
 {
-    if (radioComTxSignals != lastTxSignals)
+    if (sendSignalsSoon)
     {
         // We want to send the control signals ASAP, but have not yet been able to
         // queue a packet for them.  Return 0 because we don't want to accept any
@@ -222,6 +230,10 @@ void radioComTxSendByte(uint8 byte)
 // If we are in the middle of building a packet, send it.
 void radioComTxControlSignals(uint8 controlSignals)
 {
-    radioComTxSignals = controlSignals;
-    radioComTxService();
+    if(controlSignals != radioComTxSignals)
+    {
+        radioComTxSignals = controlSignals;
+        sendSignalsSoon = 1;
+        radioComTxService();
+    }
 }

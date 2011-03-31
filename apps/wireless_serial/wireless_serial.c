@@ -152,9 +152,8 @@ void usbToRadioService()
     }
 
     // Control Signals
-    // TODO: think more carefully about which control signals correspond to each other
-    usbComSerialState = radioComRxControlSignals();
-    radioComTxControlSignals(usbComControlLineState);
+    usbComSerialState = (usbComSerialState & ~3) | (radioComRxControlSignals() & 3);
+    radioComTxControlSignals(usbComControlLineState & 3);
 }
 
 void uartToRadioService()
