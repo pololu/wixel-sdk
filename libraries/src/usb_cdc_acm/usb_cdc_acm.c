@@ -70,7 +70,7 @@ static void doNothing();
 // TODO: look at usb-to-serial adapters and figure out good default values for usbComControlLineState (RTS and CTS)
 uint8 usbComControlLineState = 0;
 
-uint8 usbComSerialState = ACM_SERIAL_STATE_RING_SIGNAL;
+uint8 usbComSerialState = 0;
 
 // The last state we reported to the computer, or 0xFF if we have not reported
 // a state yet.
