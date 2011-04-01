@@ -5,6 +5,8 @@
  * P1_6 = Serial TX (0-3.3V)
  * P1_7 = Serial RX (0-3.3V, not 5V tolerant)
  *
+ * TODO: document other pins here
+ *
  * == Overview ==
  * This app allows you to connect two Wixels together to make a wireless,
  * bidirectional, lossless serial link.  The Wixels must be on the same radio
@@ -67,8 +69,8 @@
  * TODO: UART flow control.
  * TODO: Better radio protocol (see TODOs in radio_link.c).
  * TODO: Obey CDC-ACM Set Line Coding commands:
- *       In USB-UART mode this would let the user change the baud rate at run-time.
  *       In USB-RADIO mode, bauds 0-255 would correspond to radio channels.
+ * TODO: shut down radio when we are in a different serial mode
  */
 
 /** Dependencies **************************************************************/
@@ -99,6 +101,8 @@ int32 CODE param_nRTS_pin = 11;
 int32 CODE param_nDSR_pin = 12;
 int32 CODE param_nCD_pin = 13;
 int32 CODE param_nTRST_pin = 0;
+
+// TODO: rename nTRST to Arduino DTR
 
 /** Functions *****************************************************************/
 void updateLeds()
