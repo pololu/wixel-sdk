@@ -128,10 +128,28 @@ uint8 ioRxSignals()
 
 void ioTxSignals(uint8 signals)
 {
+    static uint8 nTrstPulseStartTime;
+    static uint8 lastSignals;
+
     // Note that we use inverted voltage levels.
 
-    setDigitalOutput(param_nDTR_pin, (signals & 1) ? 0 : 1);
-    setDigitalOutput(param_nRTS_pin, (signals & 2) ? 0 : 1);
+    setDigitalOutput(param_nDTR_pin, (signals & ACM_CONTROL_LINE_DTR) ? 0 : 1);
+    setDigitalOutput(param_nRTS_pin, (signals & ACM_CONTROL_LINE_RTS) ? 0 : 1);
+
+    // nTRST
+    if (!(lastSignals & ACM_CONTROL_LINE_DTR) && (signals & ACM_CONTROL_LINE_DTR))
+    {
+        // We just made a falling edge on the nDTR line, so start a 1-2ms high pulse
+        // on the nTRST line.
+        setDigitalOutput(param_nTRST_pin, HIGH);
+        nTrstPulseStartTime = getMs();
+    }
+    else if ((uint8)(getMs() - nTrstPulseStartTime) >= 2)
+    {
+        setDigitalOutput(param_nTRST_pin, LOW);
+    }
+
+    lastSignals = signals;
 }
 
 uint8 currentSerialMode()
@@ -222,6 +240,10 @@ void usbToUartService()
 void main()
 {
     systemInit();
+
+    setDigitalOutput(param_nTRST_pin, LOW);
+    ioTxSignals(0);
+
     usbInit();
 
     uart1Init();
