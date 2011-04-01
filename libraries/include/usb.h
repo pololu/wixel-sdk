@@ -236,21 +236,21 @@ void usbSleep();
  * should call usbSuspended() because that function is less likely to change in
  * future versions.  If you want to have a P0 interrupt AND USB Suspend, you
  * should write your ISR like this:
- *
- * ISR(P0INT, 1)
- * {
- *     // Handle the P0 flags you care about here, but you might want to
- *     // check PICTL first because if we are in suspend mode then the P0
- *     // interrupt settings may be different from what you set them to be.
- *
- *     if (P0IFG & 0x80)  // Check USB_RESUME bit.
- *     {
- *         usbSuspendMode = 0;   // Causes usbSleep to exit sleep mode.
- *     }
- *     P0IFG = 0;   // Clear the flags so this interrupt doesn't run again.
- *     P0IF = 0;
- * }
- *
+ \code
+ISR(P0INT, 1)
+{
+    // Handle the P0 flags you care about here, but you might want to
+    // check PICTL first because if we are in suspend mode then the P0
+    // interrupt settings may be different from what you set them to be.
+
+    if (P0IFG & 0x80)  // Check USB_RESUME bit.
+    {
+        usbSuspendMode = 0;   // Causes usbSleep to exit sleep mode.
+    }
+    P0IFG = 0;   // Clear the flags so this interrupt doesn't run again.
+    P0IF = 0;
+}
+\endcode
  * If your P0 ISR does NOT clear usbSuspendMode, then your device will not be
  * able to wake up out of suspend mode because when USB activity happens, your
  * ISR will (if it's well-written) clear P0IFG so usbSleep won't be able to
