@@ -5,28 +5,10 @@
  *  are dependent on the performance/configuration of the MAC layer, so if the MAC layer
  *  changes then the timing details here may have to change.)
  *
- *  This layer defines the RF packet memory buffers used, and controls access to those buffers.
- *
- *  This layer also takes care of presence detection by sending out regular Ping packets even
- *  if there is no data packet to transmit.
- *
- *  This is the layer that restricts us to only talk to one device.  (If you wanted to make a
- *  network with more than 2 devices, you would have to replace this layer with something more
- *  complicated that has addressing.)
- *
- *  Similarly, this layer also restricts us to only having one logical data pipe.  If you wanted
- *  to send some extra data that doesn't get NAKed, or gets NAKed at different times then the
- *  regular data, you would need to replace this layer with something more complicated that
- *  keeps track of different streams and schedules them in a reasonable way.
- *
  *  There is a distinction here between RF packets and data packets:  an RF packet is what gets
  *  transmitted by the radio.  A data packet is a piece of data that needs to be sent to the
  *  other device, and it might correspond to several RF packets because there are retries and
  *  ACKs.
- *
- *  This layer does not correspond cleanly to any of the layers in the OSI Model.
- *  It combines portions of the Data Link Layer (#2), Network Layer (#3), and
- *  Transport Layer (#4).
  */
 
 #include <radio_link.h>
@@ -47,6 +29,9 @@ int32 CODE param_radio_channel = 128;
 
 #define RADIO_LINK_PACKET_LENGTH_OFFSET 0
 #define RADIO_LINK_PACKET_TYPE_OFFSET   1
+
+#define RADIO_LINK_PAYLOAD_TYPE_BIT_OFFSET 1
+#define RADIO_LINK_PAYLOAD_TYPE_MASK       0b00011110
 
 #define PACKET_TYPE_MASK  (3 << 6) // These are the bits that determine the packet type.
 #define PACKET_TYPE_PING  (0 << 6) // If both bits are zero, it is just a Ping packet (with optional data).
@@ -92,6 +77,8 @@ uint8 DATA radioLinkTxCurrentPacketTries = 0;
 
 static volatile BIT sendingReset = 0;
 static volatile BIT acceptAnySequenceBit = 0;
+
+volatile BIT radioLinkResetPacketReceived;
 
 /* SEQUENCING VARIABLES *******************************************************/
 /* Each data packet we transmit contains a bit that is either 0 or 1 called the
@@ -164,10 +151,13 @@ uint8 XDATA * radioLinkTxCurrentPacket()
     return radioLinkTxPacket[radioLinkTxMainLoopIndex] + RADIO_LINK_PACKET_HEADER_LENGTH;
 }
 
-void radioLinkTxSendPacket(void)
+void radioLinkTxSendPacket(uint8 payloadType)
 {
     // Now we set the length byte.
     radioLinkTxPacket[radioLinkTxMainLoopIndex][0] = radioLinkTxPacket[radioLinkTxMainLoopIndex][RADIO_LINK_PACKET_HEADER_LENGTH] + RADIO_LINK_PACKET_HEADER_LENGTH;
+
+    // Put the payloadType in to the packet header.
+    radioLinkTxPacket[radioLinkTxMainLoopIndex][RADIO_LINK_PACKET_TYPE_OFFSET] = payloadType << RADIO_LINK_PAYLOAD_TYPE_BIT_OFFSET;
 
     // Update our index of which packet to populate in the main loop.
     if (radioLinkTxMainLoopIndex == TX_PACKET_COUNT - 1)
@@ -194,6 +184,11 @@ uint8 XDATA * radioLinkRxCurrentPacket(void)
     }
 
     return radioLinkRxPacket[radioLinkRxMainLoopIndex] + RADIO_LINK_PACKET_HEADER_LENGTH;
+}
+
+uint8 radioLinkRxCurrentPayloadType(void)
+{
+    return radioLinkRxPacket[radioLinkRxMainLoopIndex][0];
 }
 
 void radioLinkRxDoneWithPacket(void)
@@ -223,7 +218,8 @@ static void txResetPacket()
 
 static void txDataPacket(uint8 packetType)
 {
-    radioLinkTxPacket[radioLinkTxInterruptIndex][RADIO_LINK_PACKET_TYPE_OFFSET] = packetType | txSequenceBit;
+    radioLinkTxPacket[radioLinkTxInterruptIndex][RADIO_LINK_PACKET_TYPE_OFFSET] =
+            (radioLinkTxPacket[radioLinkTxInterruptIndex][RADIO_LINK_PACKET_TYPE_OFFSET] & RADIO_LINK_PAYLOAD_TYPE_MASK) | packetType | txSequenceBit;
     radioMacTx(radioLinkTxPacket[radioLinkTxInterruptIndex]);
     if (radioLinkTxCurrentPacketTries < 255)
     {
@@ -284,6 +280,9 @@ void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
             // The other Wixel sent a Reset packet, which means the next packet it sends will have a sequence bit of 0.
             // So this Wixel should set its "previously received" sequence bit to 1 so it expects a 0 next.
             rxSequenceBit = 1;
+
+            // Notify the higher-level code.
+            radioLinkResetPacketReceived = 1;
 
             // Send an ACK
             shortTxPacket[RADIO_LINK_PACKET_LENGTH_OFFSET] = 1;
@@ -358,13 +357,22 @@ void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
                 {
                     // We can accept this packet and send an ACK!
 
+                    uint8 payloadType;
+
                     // Set rxSequenceBit to match the sequence bit in the received packet
                     rxSequenceBit = (currentRxPacket[RADIO_LINK_PACKET_TYPE_OFFSET] & 1);
                     acceptAnySequenceBit = 0;
 
+                    // Extract the payload type.
+                    payloadType = (currentRxPacket[RADIO_LINK_PACKET_TYPE_OFFSET] & RADIO_LINK_PAYLOAD_TYPE_MASK) >> RADIO_LINK_PAYLOAD_TYPE_BIT_OFFSET;
+
                     // Set length byte that will be read by the higher-level code.
                     // (This overrides the 1-byte header.)
                     currentRxPacket[RADIO_LINK_PACKET_HEADER_LENGTH] = currentRxPacket[RADIO_LINK_PACKET_LENGTH_OFFSET] - RADIO_LINK_PACKET_HEADER_LENGTH;
+
+                    // Set the payload type byte which will be read by radioLinkRxCurrentPayloadType().
+                    // (This overrides the 1-byte RF packet length.)
+                    currentRxPacket[0] = payloadType;
 
                     radioLinkRxInterruptIndex = nextradioLinkRxInterruptIndex;
                 }

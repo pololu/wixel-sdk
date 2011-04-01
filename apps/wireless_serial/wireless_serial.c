@@ -41,6 +41,8 @@
  *   baud_rate     : The baud rate to use for the UART, in bits per second.
  *   radio_channel : See description in radio_link.h.
  *
+ * TODO: document all parameters here
+ *
  * == Example Uses ==
  * 1) This application can be used to make a wireless serial link between two
  *    microcontrollers, with no USB involved.  To do this, use the UART-to-Radio
@@ -70,10 +72,7 @@
  */
 
 /** Dependencies **************************************************************/
-#include <cc2511_map.h>
-#include <board.h>
-#include <random.h>
-#include <time.h>
+#include <wixel.h>
 
 #include <usb.h>
 #include <usb_com.h>
@@ -93,6 +92,13 @@ int32 CODE param_serial_mode = SERIAL_MODE_AUTO;
 
 int32 CODE param_baud_rate = 9600;
 
+// TODO: support having non-inverted output/inputs too
+
+int32 CODE param_nDTR_pin = 10;
+int32 CODE param_nRTS_pin = 11;
+int32 CODE param_nDSR_pin = 12;
+int32 CODE param_nCD_pin = 13;
+int32 CODE param_nTRST_pin = 0;
 
 /** Functions *****************************************************************/
 void updateLeds()
@@ -112,6 +118,38 @@ void updateLeds()
     {
         LED_RED(0);
     }
+}
+
+uint8 ioRxSignals()
+{
+    // Note that we use inverted voltage levels.
+    return !isPinHigh(param_nCD_pin) | (!isPinHigh(param_nDSR_pin) << 1);
+}
+
+void ioTxSignals(uint8 signals)
+{
+    static uint8 nTrstPulseStartTime;
+    static uint8 lastSignals;
+
+    // Note that we use inverted voltage levels.
+
+    setDigitalOutput(param_nDTR_pin, (signals & ACM_CONTROL_LINE_DTR) ? 0 : 1);
+    setDigitalOutput(param_nRTS_pin, (signals & ACM_CONTROL_LINE_RTS) ? 0 : 1);
+
+    // nTRST
+    if (!(lastSignals & ACM_CONTROL_LINE_DTR) && (signals & ACM_CONTROL_LINE_DTR))
+    {
+        // We just made a falling edge on the nDTR line, so start a 1-2ms high pulse
+        // on the nTRST line.
+        setDigitalOutput(param_nTRST_pin, HIGH);
+        nTrstPulseStartTime = getMs();
+    }
+    else if ((uint8)(getMs() - nTrstPulseStartTime) >= 2)
+    {
+        setDigitalOutput(param_nTRST_pin, LOW);
+    }
+
+    lastSignals = signals;
 }
 
 uint8 currentSerialMode()
@@ -140,6 +178,9 @@ uint8 currentSerialMode()
 
 void usbToRadioService()
 {
+    uint8 signals;
+
+    // Data
     while(usbComRxAvailable() && radioComTxAvailable())
     {
         radioComTxSendByte(usbComRxReceiveByte());
@@ -149,10 +190,19 @@ void usbToRadioService()
     {
         usbComTxSendByte(radioComRxReceiveByte());
     }
+
+    // Control Signals
+
+    // Need to switch bits 1 and 2 so that DTR pairs up with DSR.
+    signals = radioComRxControlSignals();
+    usbComTxControlSignals( ((signals & 1) ? 2 : 0) | ((signals & 2) ? 1 : 0));
+
+    radioComTxControlSignals(usbComRxControlSignals() & 3);
 }
 
 void uartToRadioService()
 {
+    // Data
     while(uart1RxAvailable() && radioComTxAvailable())
     {
         radioComTxSendByte(uart1RxReceiveByte());
@@ -162,10 +212,15 @@ void uartToRadioService()
     {
         uart1TxSendByte(radioComRxReceiveByte());
     }
+
+    // Control Signals.
+    ioTxSignals(radioComRxControlSignals());
+    radioComTxControlSignals(ioRxSignals());
 }
 
 void usbToUartService()
 {
+    // Data
     while(usbComRxAvailable() && uart1TxAvailable())
     {
         uart1TxSendByte(usbComRxReceiveByte());
@@ -175,11 +230,20 @@ void usbToUartService()
     {
         usbComTxSendByte(uart1RxReceiveByte());
     }
+
+    ioTxSignals(usbComRxControlSignals());
+    usbComTxControlSignals(ioRxSignals());
+
+    // TODO: report framing, parity, and overrun errors to the USB host here
 }
 
 void main()
 {
     systemInit();
+
+    setDigitalOutput(param_nTRST_pin, LOW);
+    ioTxSignals(0);
+
     usbInit();
 
     uart1Init();

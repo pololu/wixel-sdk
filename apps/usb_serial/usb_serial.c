@@ -49,12 +49,14 @@
 void updateLeds()
 {
     usbShowStatusWithGreenLed();
-    LED_YELLOW(usbComControlLineState & ACM_CONTROL_LINE_DTR);
+    LED_YELLOW(usbComRxControlSignals() & ACM_CONTROL_LINE_DTR);
     LED_RED(0);
 }
 
 void usbToUartService()
 {
+    uint8 signals;
+
     // Data
     while(usbComRxAvailable() && uart1TxAvailable())
     {
@@ -67,15 +69,16 @@ void usbToUartService()
     }
 
     // Control lines controlled by computer.
-    P1_0 = !(usbComControlLineState & ACM_CONTROL_LINE_DTR);
-    P1_1 = !(usbComControlLineState & ACM_CONTROL_LINE_RTS);
+    P1_0 = !(usbComRxControlSignals() & ACM_CONTROL_LINE_DTR);
+    P1_1 = !(usbComRxControlSignals() & ACM_CONTROL_LINE_RTS);
     P1DIR |= (1<<0) | (1<<1);
 
     // Control lines controlled by device.
 
-    usbComSerialState = (usbComSerialState & ~(ACM_SERIAL_STATE_RX_CARRIER | ACM_SERIAL_STATE_TX_CARRIER));
-    if (!P1_2){ usbComSerialState |= ACM_SERIAL_STATE_TX_CARRIER; } // TX Carrier = DSR
-    if (!P1_3){ usbComSerialState |= ACM_SERIAL_STATE_RX_CARRIER; } // RX Carrier = CD
+    signals = 0;
+    if (!P1_2){ signals |= ACM_SERIAL_STATE_TX_CARRIER; } // TX Carrier = DSR
+    if (!P1_3){ signals |= ACM_SERIAL_STATE_RX_CARRIER; } // RX Carrier = CD
+    usbComTxControlSignals(signals);
 }
 
 void lineCodingChanged()
