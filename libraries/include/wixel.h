@@ -7,3 +7,4 @@
 #include <dma.h>
 #include <adc.h>
 #include <gpio.h>
+#include <random.h>
