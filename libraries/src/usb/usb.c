@@ -23,6 +23,9 @@ XDATA uint8 * controlTransferPointer;
 
 volatile BIT usbSuspendMode = 0;
 
+// TODO: eventually: Enable the USB interrupt and only set usbActivityFlag in the ISR
+volatile BIT usbActivityFlag = 0;
+
 void usbInit()
 {
 }
@@ -36,6 +39,8 @@ void usbReadFifo(uint8 endpointNumber, uint8 count, uint8 XDATA * buffer)
         count--;
         *(buffer++) = *fifo;
     }
+
+    usbActivityFlag = 1;
 }
 
 void usbWriteFifo(uint8 endpointNumber, uint8 count, const uint8 XDATA * buffer)
@@ -46,6 +51,9 @@ void usbWriteFifo(uint8 endpointNumber, uint8 count, const uint8 XDATA * buffer)
         count--;
         *fifo = *(buffer++);
     }
+
+    // We don't set the usbActivityFlag here; we wait until the packet is
+    // actually sent.
 }
 
 // Performs some basic tasks that should be done after USB is connected and after every
@@ -126,6 +134,8 @@ void usbPoll()
         USBINDEX = 0;
         usbcs0 = USBCS0;
 
+        usbActivityFlag = 1;
+
         if (usbcs0 & (1<<4)) // Check SETUP_END
         {
             // A new setup packet has arrived, prematurely ending the previous control transfer.
@@ -143,7 +153,7 @@ void usbPoll()
         if (usbcs0 & (1<<0))  // Check OUTPKT_RDY
         {
             // Requirement: Every codepath from here must result in writing a 1 to
-            // bit 6 of USBCS0 to clear the OUTPKT_RDY flag USBCS0 |= (1<<6).
+            // bit 6 of USBCS0 to clear the OUTPKT_RDY flag: USBCS0 = (1<<6).
 
             if (controlTransferState == CONTROL_TRANSFER_STATE_WRITE)
             {
@@ -170,6 +180,8 @@ void usbPoll()
                     {
                         usbCallbackControlWriteHandler();
                     }
+
+                    USBINDEX = 0;  // Just in case USBINDEX was changed above.
 
                     if (controlTransferState == CONTROL_TRANSFER_STATE_NONE)
                     {
@@ -511,8 +523,6 @@ BIT usbSuspended()
     return usbSuspendMode;
 }
 
-void delayMs(uint16); //tmphax
-
 // Sleeps until we receive USB resume signaling.
 // This uses PM1.  ( PM2 and PM3 are not usable because they will reset the USB module. )
 // NOTE: For some reason, USB suspend does not work if you plug your device in to a computer
@@ -521,7 +531,7 @@ void delayMs(uint16); //tmphax
 // TODO: figure out how to wake up when self power is connected.  Probably we should use the
 // sleep timer to wake up regularly and check (that's going to be easier than using a P2
 // interrupt I think).
-// TODO: make sure suspend mode doesn't interfere with the radio library.  We should
+// TODO: make sure suspend mode doesn't interfere with the radio libraries.  We should
 // probably make a simple power-event registration thing using function pointers,
 // (either an array, or a linked list where the memory is contributed by the modules using it).
 // When going to sleep, we would call these functions in the order they were added;

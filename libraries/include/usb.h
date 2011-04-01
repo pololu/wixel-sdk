@@ -1,3 +1,8 @@
+/*! \file usb.h
+ * The <code>usb.lib</code> library takes care of setting up the USB module and
+ * responding to standard device requests. This is a general purpose library that
+ * could be used to implement many different kinds of USB device interfaces. */
+
 #ifndef _USB_H
 #define _USB_H
 
@@ -203,8 +208,10 @@ void usbInitEndpointOut(uint8 endpointNumber, uint8 maxPacketSize);
 void usbWriteFifo(uint8 endpointNumber, uint8 count, const uint8 XDATA * buffer);
 void usbReadFifo(uint8 endpointNumber, uint8 count, uint8 XDATA * buffer);
 
-/* usbSuspended returns 1 if we are connected to a USB bus that is suspended.
- * It returns 0 otherwise.  You can use this to know when it is time to turn
+/*! Returns 1 if we are connected to a USB bus that is suspended.
+ * Returns 0 otherwise.
+ *
+ * You can use this to know when it is time to turn
  * off the peripherals and go in to a power-saving mode. */
 BIT usbSuspended();
 
@@ -223,7 +230,7 @@ BIT usbSuspended();
  */
 void usbSleep();
 
-/* usbSuspendMode:  Direct access to this bit is provided for applications that
+/*! usbSuspendMode:  Direct access to this bit is provided for applications that
  * need to use the P0 interrupt and want USB suspend mode to work.  If you don't
  * fall in to that category, please don't use this bit directly: instead you
  * should call usbSuspended() because that function is less likely to change in
@@ -251,23 +258,34 @@ void usbSleep();
  */
 extern volatile BIT usbSuspendMode;
 
-/* usbShowStatusWithGreenLed:
+/*! usbShowStatusWithGreenLed:
  * This function updates the green LED to reflect the current USB status.
  * If you call this function frequently enough, then the green LED will
  * exhibit these behaviors:
  * - Off when USB is disconnected or if we are in USB suspend mode
  * - On when we are connected to USB and are in the configured state
- *   (which usually means that the drivers are installed correctly)
+ *   (which usually means that the drivers are installed correctly),
+ *   and flickering whenever there is USB activity.
  * - Blinking with a period of 1024 ms if we are connected to USB but
  *   not in the configured state yet.
+ *
+ * In order to make the flickering work properly, any library that
+ * directly reads or writes from USB FIFOs
  *
  * Note: Calling this function will cause the usb library to have extra
  * dependencies that it normally would not have, because this function
  * accesses the system time and sets the green LED.  You might get a linker
  * error if those things are not available.
+ *
+ * See #usbActivityFlag for more information on the flickering.
  */
 void usbShowStatusWithGreenLed();
 
+/*! Libraries that directly access USB registers should set this bit to
+ * 1 whenever they read or write data from USB.  This allows the
+ * USB led to flicker when there is USB activity.  See
+ * usbShowStatusWithGreenLed() for more information. */
+extern volatile BIT usbActivityFlag;
 
 /* HIGH-LEVEL CALLBACKS AND DATA STRUCTURES REQUIRED BY usb.c *****************/
 // usb.c requires these high-level callbacks and data structures:

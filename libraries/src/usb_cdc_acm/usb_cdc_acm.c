@@ -328,6 +328,8 @@ uint8 usbComRxReceiveByte()
     {
         USBCSOL &= ~USBCSOL_OUTPKT_RDY;   // Tell the USB module we are done reading this packet, so it can receive more.
     }
+
+    usbActivityFlag = 1;
     return tmp;
 }
 
@@ -355,7 +357,12 @@ static void sendPacketNow()
 
     // If the last packet transmitted was a full packet, we should send an empty packet later.
     sendEmptyPacketSoon = (inFifoBytesLoaded == CDC_IN_PACKET_SIZE);
+
+    // There are 0 bytes in the IN FIFO now.
     inFifoBytesLoaded = 0;
+
+    // Notify the USB library that some activity has occurred.
+    usbActivityFlag = 1;
 }
 
 void usbComService(void)
@@ -426,6 +433,9 @@ void usbComService(void)
         usbComSerialState &= ~ACM_IRREGULAR_SIGNAL_MASK;
 
         lastReportedSerialState = usbComSerialState;
+
+        // Notify the USB library that some activity has occurred.
+        usbActivityFlag = 1;
     }
 }
 
@@ -491,6 +501,8 @@ void usbComTxSendByte(uint8 byte)
     {
         sendPacketNow();
     }
+
+    // Don't set usbActivityFlag here; wait until we actually send the packet.
 }
 
 /* CDC ACM CONTROL SIGNAL FUNCTIONS *******************************************/
