@@ -94,15 +94,16 @@ int32 CODE param_serial_mode = SERIAL_MODE_AUTO;
 
 int32 CODE param_baud_rate = 9600;
 
-// TODO: support having non-inverted output/inputs too
-
 int32 CODE param_nDTR_pin = 10;
 int32 CODE param_nRTS_pin = 11;
 int32 CODE param_nDSR_pin = 12;
 int32 CODE param_nCD_pin = 13;
-int32 CODE param_nTRST_pin = 0;
+int32 CODE param_arduino_DTR_pin = 0;
 
-// TODO: rename nTRST to Arduino DTR
+int32 CODE param_DTR_pin = -1;
+int32 CODE param_RTS_pin = -1;
+int32 CODE param_DSR_pin = -1;
+int32 CODE param_CD_pin = -1;
 
 /** Functions *****************************************************************/
 void updateLeds()
@@ -126,8 +127,21 @@ void updateLeds()
 
 uint8 ioRxSignals()
 {
-    // Note that we use inverted voltage levels.
-    return !isPinHigh(param_nCD_pin) | (!isPinHigh(param_nDSR_pin) << 1);
+    uint8 signals = 0;
+
+    if ((param_CD_pin >= 0 && isPinHigh(param_CD_pin)) ||
+            (param_nCD_pin >= 0 && !isPinHigh(param_nCD_pin)))
+    {
+        signals |= 2;
+    }
+
+    if ((param_DSR_pin >= 0 && isPinHigh(param_DSR_pin)) ||
+            (param_nDSR_pin >= 0 && !isPinHigh(param_nDSR_pin)))
+    {
+        signals |= 1;
+    }
+
+    return signals;
 }
 
 void ioTxSignals(uint8 signals)
@@ -135,22 +149,25 @@ void ioTxSignals(uint8 signals)
     static uint8 nTrstPulseStartTime;
     static uint8 lastSignals;
 
-    // Note that we use inverted voltage levels.
-
+    // Inverted outputs
     setDigitalOutput(param_nDTR_pin, (signals & ACM_CONTROL_LINE_DTR) ? 0 : 1);
     setDigitalOutput(param_nRTS_pin, (signals & ACM_CONTROL_LINE_RTS) ? 0 : 1);
 
-    // nTRST
+    // Non-inverted outputs.
+    setDigitalOutput(param_DTR_pin, (signals & ACM_CONTROL_LINE_DTR) ? 1 : 0);
+    setDigitalOutput(param_RTS_pin, (signals & ACM_CONTROL_LINE_RTS) ? 1 : 0);
+
+    // Arduino DTR pin.
     if (!(lastSignals & ACM_CONTROL_LINE_DTR) && (signals & ACM_CONTROL_LINE_DTR))
     {
         // We just made a falling edge on the nDTR line, so start a 1-2ms high pulse
         // on the nTRST line.
-        setDigitalOutput(param_nTRST_pin, HIGH);
+        setDigitalOutput(param_arduino_DTR_pin, HIGH);
         nTrstPulseStartTime = getMs();
     }
     else if ((uint8)(getMs() - nTrstPulseStartTime) >= 2)
     {
-        setDigitalOutput(param_nTRST_pin, LOW);
+        setDigitalOutput(param_arduino_DTR_pin, LOW);
     }
 
     lastSignals = signals;
@@ -197,11 +214,11 @@ void usbToRadioService()
 
     // Control Signals
 
-    // Need to switch bits 1 and 2 so that DTR pairs up with DSR.
+    radioComTxControlSignals(usbComRxControlSignals() & 3);
+
+    // Need to switch bits 0 and 1 so that DTR pairs up with DSR.
     signals = radioComRxControlSignals();
     usbComTxControlSignals( ((signals & 1) ? 2 : 0) | ((signals & 2) ? 1 : 0));
-
-    radioComTxControlSignals(usbComRxControlSignals() & 3);
 }
 
 void uartToRadioService()
@@ -224,6 +241,8 @@ void uartToRadioService()
 
 void usbToUartService()
 {
+    uint8 signals;
+
     // Data
     while(usbComRxAvailable() && uart1TxAvailable())
     {
@@ -236,7 +255,10 @@ void usbToUartService()
     }
 
     ioTxSignals(usbComRxControlSignals());
-    usbComTxControlSignals(ioRxSignals());
+
+    // Need to switch bits 0 and 1 so that DTR pairs up with DSR.
+    signals = ioRxSignals();
+    usbComTxControlSignals( ((signals & 1) ? 2 : 0) | ((signals & 2) ? 1 : 0));
 
     // TODO: report framing, parity, and overrun errors to the USB host here
 }
@@ -245,7 +267,7 @@ void main()
 {
     systemInit();
 
-    setDigitalOutput(param_nTRST_pin, LOW);
+    setDigitalOutput(param_arduino_DTR_pin, LOW);
     ioTxSignals(0);
 
     usbInit();
