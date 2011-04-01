@@ -38,7 +38,6 @@
 #define STX     3
 #define SIDLE   4
 
-void radioPhyInit();
 static void radioMacEvent(uint8 event);
 
 // Bits for sending commands to the MAC in an interrupt safe way.
@@ -47,7 +46,6 @@ static volatile BIT strobe = 0;
 // Error reporting
 volatile BIT radioRxOverflowOccurred = 0;
 volatile BIT radioTxUnderflowOccurred = 0;
-volatile uint8 DATA radioBadMarcState = 0xFF;
 
 volatile uint8 DATA radioMacState = RADIO_MAC_STATE_OFF;
 
@@ -159,12 +157,6 @@ void radioMacEvent(uint8 event)
      * happen later after we disarm the DMA channel. */
     if (MARCSTATE != 0x12 && MARCSTATE != 0x01 && MARCSTATE != 0x00 && MARCSTATE != 0x15)
     {
-        // Report the bad state to the main loop for debugging purposes.
-        if (radioBadMarcState == 0xFF && MARCSTATE != 0x0D)
-        {
-            radioBadMarcState = MARCSTATE;
-        }
-
         // Fix the bad state by telling the radio to go to the SFSTXON state.
         RFST = SFSTXON;
     }
