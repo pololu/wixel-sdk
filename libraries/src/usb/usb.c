@@ -609,13 +609,13 @@ void usbControlStall()
 void usbInitEndpointIn(uint8 endpointNumber, uint8 maxPacketSize)
 {
     USBINDEX = endpointNumber;
-    USBMAXI = maxPacketSize >> 3;
+    USBMAXI = (maxPacketSize + 7) >> 3;
     USBCSIH = 1;                    // Enable Double buffering
 }
 
 void usbInitEndpointOut(uint8 endpointNumber, uint8 maxPacketSize)
 {
     USBINDEX = endpointNumber;
-    USBMAXO = maxPacketSize >> 3;
+    USBMAXO = (maxPacketSize + 7) >> 3;
     USBCSOH = 1;                    // Enable Double buffering
 }
