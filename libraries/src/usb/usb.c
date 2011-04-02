@@ -334,8 +334,15 @@ static void usbStandardDeviceRequestHandler()
                 }
                 default:
                 {
-                    // unknown type of descriptor
-                    return;
+                    // see if the class recognizes the descriptor type
+                    usbCallbackClassDescriptorHandler();
+
+                    if (controlTransferState == CONTROL_TRANSFER_STATE_NONE)
+                    {
+                        // unknown type of descriptor
+                        return;
+                    }
+                    break;
                 }
             }
 
