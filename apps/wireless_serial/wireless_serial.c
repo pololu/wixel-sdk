@@ -275,8 +275,11 @@ void main()
     uart1Init();
     uart1SetBaudRate(param_baud_rate);
 
-    radioComInit();
-    randomSeedFromSerialNumber();
+    if (param_serial_mode != SERIAL_MODE_USB_UART)
+    {
+        radioComInit();
+        randomSeedFromSerialNumber();
+    }
 
     // Set up P1_5 to be the radio's TX debug signal.
     P1DIR |= (1<<5);
@@ -287,7 +290,11 @@ void main()
         boardService();
         updateLeds();
 
-        radioComTxService();
+        if (param_serial_mode != SERIAL_MODE_USB_UART)
+        {
+            radioComTxService();
+        }
+
         usbComService();
 
         switch(currentSerialMode())
