@@ -1,3 +1,4 @@
+#include <usb_hid.h>
 #include <usb.h>
 #include <board.h>           // just for boardStartBootloader() and serialNumberString
 
@@ -46,19 +47,19 @@
 #define HID_INPUT           0x81
 #define HID_OUTPUT          0x91
 
-// HID Report Usage Pages from HID Usage Tables 1.11 Section 3
-#define HID_USAGE_PAGE_GENERIC_DESKTOP 1
-#define HID_USAGE_PAGE_KEY_CODES       7
-#define HID_USAGE_PAGE_LEDS            8
-#define HID_USAGE_PAGE_BUTTONS         9
+// HID Report Usage Pages from HID Usage Tables 1.11 Section 3, Table 1
+#define HID_USAGE_PAGE_GENERIC_DESKTOP 0x01
+#define HID_USAGE_PAGE_KEY_CODES       0x07
+#define HID_USAGE_PAGE_LEDS            0x08
+#define HID_USAGE_PAGE_BUTTONS         0x09
 
-// HID Report Usages from HID Usage Tables 1.11 Section 4
-#define HID_USAGE_POINTER  1
-#define HID_USAGE_MOUSE    2
-#define HID_USAGE_KEYBOARD 6
-#define HID_USAGE_X        30
-#define HID_USAGE_Y        31
-#define HID_USAGE_WHEEL    38
+// HID Report Usages from HID Usage Tables 1.11 Section 4, Table 6
+#define HID_USAGE_POINTER  0x01
+#define HID_USAGE_MOUSE    0x02
+#define HID_USAGE_KEYBOARD 0x06
+#define HID_USAGE_X        0x30
+#define HID_USAGE_Y        0x31
+#define HID_USAGE_WHEEL    0x38
 
 // HID Report Collection Types from HID 1.11 6.2.2.6
 #define HID_COLLECTION_PHYSICAL    0
@@ -68,6 +69,14 @@
 #define HID_ITEM_CONSTANT 0x1
 #define HID_ITEM_VARIABLE 0x2
 #define HID_ITEM_RELATIVE 0x4
+
+// Request Codes from HID 1.11 Section 7.2
+#define HID_REQUEST_GET_REPORT   0x1
+#define HID_REQUEST_GET_IDLE     0x2
+#define HID_REQUEST_GET_PROTOCOL 0x3
+#define HID_REQUEST_SET_REPORT   0x9
+#define HID_REQUEST_SET_IDLE     0xA
+#define HID_REQUEST_SET_PROTOCOL 0xB
 
 /* HID USB Descriptors ****************************************************/
 
@@ -158,7 +167,7 @@ CODE uint8 mouseReportDescriptor[]
 
             HID_COUNT, 1,                                   // Padding (3 bits)
             HID_SIZE, 3,
-            HID_OUTPUT, HID_ITEM_CONSTANT,
+            HID_INPUT, HID_ITEM_CONSTANT,
 
             HID_COUNT, 3,                                   // 3 Axes (X, Y, wheel)
             HID_SIZE, 8,
@@ -179,11 +188,11 @@ CODE struct CONFIG1 {
     struct USB_DESCRIPTOR_CONFIGURATION configuration;
 
     struct USB_DESCRIPTOR_INTERFACE keyboard_interface;
-    uint8 keyboard_class_specific[9];  // HID-Specific Descriptors
+    uint8 keyboard_hid[9]; // HID Descriptor
     struct USB_DESCRIPTOR_ENDPOINT keyboard_in;
 
     struct USB_DESCRIPTOR_INTERFACE mouse_interface;
-    uint8 mouse_class_specific[9];  // HID-Specific Descriptors
+    uint8 mouse_hid[9]; // HID Descriptor
     struct USB_DESCRIPTOR_ENDPOINT mouse_in;
 } usbConfigurationDescriptor
 =
@@ -249,7 +258,7 @@ CODE struct CONFIG1 {
     {                                                    // Mouse IN Endpoint
         sizeof(struct USB_DESCRIPTOR_ENDPOINT),
         USB_DESCRIPTOR_TYPE_ENDPOINT,
-        USB_ENDPOINT_ADDRESS_OUT | HID_MOUSE_ENDPOINT,   // bEndpointAddress
+        USB_ENDPOINT_ADDRESS_IN | HID_MOUSE_ENDPOINT,   // bEndpointAddress
         USB_TRANSFER_TYPE_INTERRUPT,                     // bmAttributes
         HID_IN_PACKET_SIZE,                              // wMaxPacketSize
         10,                                              // bInterval
@@ -261,6 +270,22 @@ DEFINE_STRING_DESCRIPTOR(languages, 1, USB_LANGUAGE_EN_US)
 DEFINE_STRING_DESCRIPTOR(manufacturer, 18, 'P','o','l','o','l','u',' ','C','o','r','p','o','r','a','t','i','o','n')
 DEFINE_STRING_DESCRIPTOR(product, 5, 'W','i','x','e','l')
 uint16 CODE * CODE usbStringDescriptors[] = { languages, manufacturer, product, serialNumberStringDescriptor };
+
+/* HID structs and global variables */
+XDATA struct KEYBOARD_OUT_REPORT {
+    uint8 leds;
+} keyboardOutReport
+= {0};
+
+XDATA struct KEYBOARD_IN_REPORT {
+    uint8 modifiers;
+    uint8 reserved;
+    uint8 keyCodes[6];
+} keyboardInReport
+= {0, 0, {0}};
+
+XDATA struct MOUSE_IN_REPORT mouseInReport
+= {0, 0, 0, 0};
 
 /* HID USB callbacks ******************************************************/
 // These functions are called by the low-level USB module (usb.c) when a USB
@@ -279,37 +304,86 @@ void usbCallbackSetupHandler(void)
     if ((usbSetupPacket.bmRequestType & 0x7F) != 0x21)   // Require Type==Class and Recipient==Interface.
         return;
 
-    if (!(usbSetupPacket.wIndex == HID_KEYBOARD_INTERFACE_NUMBER || usbSetupPacket.wIndex == HID_MOUSE_INTERFACE_NUMBER))
-        return;
-
-    /*switch(usbSetupPacket.bRequest)
+    switch(usbSetupPacket.bRequest)
     {
-        case ACM_REQUEST_SET_LINE_CODING:                          // SetLineCoding (USBPSTN1.20 Section 6.3.10 SetLineCoding)
-            usbControlWrite(sizeof(usbComLineCoding), (uint8 XDATA *)&usbComLineCoding);
-            break;
+    /*case HID_REQUEST_SET_REPORT:
+        if (usbSetupPacket.wIndex == HID_KEYBOARD_INTERFACE_NUMBER && usbSetupPacket.wLength == sizeof(keyboardOutReport))
+        {
+            usbControlWrite(sizeof(keyboardOutReport), (uint8 XDATA *)&keyboardOutReport);
+        }
+        break;
+    case HID_REQUEST_SET_IDLE:
+        if (usbSetupPacket.wIndex == HID_KEYBOARD_INTERFACE_NUMBER)
+        {
 
-        case ACM_REQUEST_GET_LINE_CODING:                          // GetLineCoding (USBPSTN1.20 Section 6.3.11 GetLineCoding)
-            usbControlRead(sizeof(usbComLineCoding), (uint8 XDATA *)&usbComLineCoding);
-            break;
+        }
+        else if (usbSetupPacket.wIndex == HID_MOUSE_INTERFACE_NUMBER)
+        {
 
-        case ACM_REQUEST_SET_CONTROL_LINE_STATE:                   // SetControlLineState (USBPSTN1.20 Section 6.3.12 SetControlLineState)
-            usbComControlLineState = usbSetupPacket.wValue;
-            usbControlAcknowledge();
-            break;
-    }*/
+        }
+        else
+        {
+            // unrecognized interface
+            return;
+        }
+        usbControlAcknowledge();
+        break;*/
+    }
 }
 
 void usbCallbackClassDescriptorHandler(void)
 {
+    uint16 bytes;
+    uint8 XDATA * pointer;
+
     if (usbSetupPacket.bmRequestType != 0x81)   // Require Direction==Device-to-Host, Type==Standard, and Recipient==Interface. (HID 1.11 Section 7.1.1)
         return;
 
-    if (!(usbSetupPacket.wIndex == HID_KEYBOARD_INTERFACE_NUMBER || usbSetupPacket.wIndex == HID_MOUSE_INTERFACE_NUMBER))
-        return;
-
-
+    if ((usbSetupPacket.wValue >> 8) == HID_DESCRIPTOR_TYPE_REPORT)
+    {
+        if (usbSetupPacket.wIndex == HID_KEYBOARD_INTERFACE_NUMBER)
+        {
+            bytes = sizeof(keyboardReportDescriptor);
+            pointer = (uint8 XDATA *)&keyboardReportDescriptor;
+        }
+        else if (usbSetupPacket.wIndex == HID_MOUSE_INTERFACE_NUMBER)
+        {
+            bytes = sizeof(mouseReportDescriptor);
+            pointer = (uint8 XDATA *)&mouseReportDescriptor;
+        }
+        else
+        {
+            // unrecognized interface
+            return;
+        }
+        usbControlRead(bytes, pointer);
+    }
 }
 
 void usbCallbackControlWriteHandler(void)
 {
+}
+
+void usbHidService(void)
+{
+    usbPoll();
+
+    if (usbDeviceState != USB_STATE_CONFIGURED)
+    {
+        // We have not reached the Configured state yet, so we should not be touching the non-zero endpoints.
+        return;
+    }
+
+    USBINDEX = HID_KEYBOARD_ENDPOINT;
+    if (!(USBCSIL & USBCSIL_INPKT_RDY))
+    {
+        usbWriteFifo(HID_KEYBOARD_ENDPOINT, sizeof(keyboardInReport), (uint8 XDATA *)&keyboardInReport);
+        USBCSIL |= USBCSIL_INPKT_RDY;
+    }
+
+    USBINDEX = HID_MOUSE_ENDPOINT;
+    if (!(USBCSIL & USBCSIL_INPKT_RDY)) {
+        usbWriteFifo(HID_MOUSE_ENDPOINT, sizeof(mouseInReport), (uint8 XDATA *)&mouseInReport);
+        USBCSIL |= USBCSIL_INPKT_RDY;
+    }
 }

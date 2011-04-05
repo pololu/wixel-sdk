@@ -334,7 +334,7 @@ static void usbStandardDeviceRequestHandler()
                 }
                 default:
                 {
-                    // see if the class recognizes the descriptor type
+                    // see if the class recognizes the descriptor type; it should call usbControlRead if it does
                     usbCallbackClassDescriptorHandler();
 
                     if (controlTransferState == CONTROL_TRANSFER_STATE_NONE)
