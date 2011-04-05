@@ -4,6 +4,8 @@
 #define PAYLOAD_TYPE_DATA 0
 #define PAYLOAD_TYPE_CONTROL_SIGNALS 1
 
+BIT radioComRxEnforceOrdering = 0;
+
 static uint8 DATA txBytesLoaded = 0;
 static uint8 DATA rxBytesLeft = 0;
 
@@ -34,6 +36,8 @@ void radioComInit()
 
 /** RX FUNCTIONS **************************************************************/
 
+#define WAITING_TO_REPORT_RX_SIGNALS (radioComRxEnforceOrdering && radioComRxSignals != lastRxSignals)
+
 static void receiveMorePackets(void)
 {
     uint8 XDATA * packet;
@@ -45,7 +49,7 @@ static void receiveMorePackets(void)
         return;
     }
 
-    if (radioComRxSignals != lastRxSignals)
+    if (WAITING_TO_REPORT_RX_SIGNALS)
     {
         // The higher-level code needs to call radioComRxSignals before
         // we feed it any more data.
@@ -76,7 +80,7 @@ static void receiveMorePackets(void)
 
             radioLinkRxDoneWithPacket();
 
-            if (radioComRxSignals != lastRxSignals)
+            if (WAITING_TO_REPORT_RX_SIGNALS)
             {
                 // The higher-level code has not seen these values for the control
                 // signals yet, so stop processing packets.

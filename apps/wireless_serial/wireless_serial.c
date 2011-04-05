@@ -219,6 +219,7 @@ void main()
 
     if (param_serial_mode != SERIAL_MODE_USB_UART)
     {
+        radioComRxEnforceOrdering = 1;
         radioComInit();
         randomSeedFromSerialNumber();
     }
