@@ -1,6 +1,7 @@
 #include <usb_hid.h>
 #include <usb.h>
 #include <board.h>
+#include <time.h>
 
 /* HID Library Configuration **************************************************/
 
@@ -132,16 +133,12 @@ uint8 CODE keyboardReportDescriptor[]
         HID_REPORT_SIZE, 8,
         HID_INPUT, HID_ITEM_CONSTANT,
 
-        HID_REPORT_COUNT, 5,                        // 5 LEDs
+        HID_REPORT_COUNT, 8,                        // 8 LEDs
         HID_REPORT_SIZE, 1,
         HID_USAGE_PAGE, HID_USAGE_PAGE_LEDS,
         HID_USAGE_MIN, 1,                           // Num Lock
-        HID_USAGE_MAX, 5,                           // Kana
+        HID_USAGE_MAX, 8,                           // Do Not Disturb (TODO: use this as a bootloader signal?)
         HID_OUTPUT, HID_ITEM_VARIABLE,
-
-        HID_REPORT_COUNT, 1,                        // Padding (3 bits)
-        HID_REPORT_SIZE, 3,
-        HID_OUTPUT, HID_ITEM_CONSTANT,
 
         HID_REPORT_COUNT, 6,                        // 6 Key Codes
         HID_REPORT_SIZE, 8,
@@ -279,22 +276,15 @@ DEFINE_STRING_DESCRIPTOR(product, 5, 'W','i','x','e','l')
 uint16 CODE * CODE usbStringDescriptors[] = { languages, manufacturer, product, serialNumberStringDescriptor };
 
 /* HID structs and global variables */
-struct KEYBOARD_OUT_REPORT {
-    uint8 leds;
-} XDATA hidKeyboardOutReport
-= {0};
+struct HID_KEYBOARD_OUT_REPORT XDATA usbHidKeyboardOutput = {0};
+struct HID_KEYBOARD_IN_REPORT XDATA usbHidKeyboardInput = {0, 0, {0}};
+struct HID_MOUSE_IN_REPORT XDATA usbHidMouseInput = {0, 0, 0, 0};
 
-struct KEYBOARD_IN_REPORT {
-    uint8 modifiers;
-    uint8 reserved;
-    uint8 keyCodes[6];
-} XDATA hidKeyboardInReport
-= {0, 0, {0}};
+BIT usbHidKeyboardInputUpdated = 0;
+BIT usbHidMouseInputUpdated    = 0;
 
-struct MOUSE_IN_REPORT XDATA hidMouseInReport
-= {0, 0, 0, 0};
-
-uint8 hidKeyboardIdleDuration = 125; // units of 4 ms
+uint16 XDATA hidKeyboardIdleDuration = 500; // 0 to 1020 ms
+uint16 XDATA hidKeyboardLastReportTime = 0;
 
 BIT hidKeyboardProtocol = HID_PROTOCOL_REPORT;
 BIT hidMouseProtocol    = HID_PROTOCOL_REPORT;
@@ -327,11 +317,11 @@ void usbCallbackSetupHandler(void)
         switch (usbSetupPacket.wIndex)
         {
         case HID_KEYBOARD_INTERFACE_NUMBER:
-            usbControlRead(sizeof(hidKeyboardInReport), (uint8 XDATA *)&hidKeyboardInReport);
+            usbControlRead(sizeof(usbHidKeyboardInput), (uint8 XDATA *)&usbHidKeyboardInput);
             return;
 
         case HID_MOUSE_INTERFACE_NUMBER:
-            usbControlRead(sizeof(hidMouseInReport), (uint8 XDATA *)&hidMouseInReport);
+            usbControlRead(sizeof(usbHidMouseInput), (uint8 XDATA *)&usbHidMouseInput);
             return;
 
         default:
@@ -343,15 +333,27 @@ void usbCallbackSetupHandler(void)
     case HID_REQUEST_SET_REPORT:
         if (usbSetupPacket.wIndex == HID_KEYBOARD_INTERFACE_NUMBER)
         {
-            usbControlWrite(sizeof(hidKeyboardOutReport), (uint8 XDATA *)&hidKeyboardOutReport);
+            usbControlWrite(sizeof(usbHidKeyboardOutput), (uint8 XDATA *)&usbHidKeyboardOutput);
         }
         return;
 
     // required for keyboards
     case HID_REQUEST_GET_IDLE:
+        if (usbSetupPacket.wIndex == HID_KEYBOARD_INTERFACE_NUMBER)
+        {
+            response = hidKeyboardIdleDuration / 4; // value in request is in units of 4 ms
+            usbControlRead(1, (uint8 XDATA *)&response);
+        }
+        return;
 
     // required for keyboards
     case HID_REQUEST_SET_IDLE:
+        if (usbSetupPacket.wIndex == HID_KEYBOARD_INTERFACE_NUMBER)
+        {
+            hidKeyboardIdleDuration = (usbSetupPacket.wValue >> 8) * 4; // value in request is in units of 4 ms
+            usbControlAcknowledge();
+        }
+        return;
 
 
     // required for boot devices
@@ -455,15 +457,20 @@ void usbHidService(void)
     }
 
     USBINDEX = HID_KEYBOARD_ENDPOINT;
-    if (!(USBCSIL & USBCSIL_INPKT_RDY))
+    // Check if keyboard input has been updated OR if the idle period is nonzero and has expired.
+    if ((usbHidKeyboardInputUpdated || (hidKeyboardIdleDuration && ((uint16)(getMs() - hidKeyboardLastReportTime) > hidKeyboardIdleDuration))) && !(USBCSIL & USBCSIL_INPKT_RDY))
     {
-        usbWriteFifo(HID_KEYBOARD_ENDPOINT, sizeof(hidKeyboardInReport), (uint8 XDATA *)&hidKeyboardInReport);
+        usbWriteFifo(HID_KEYBOARD_ENDPOINT, sizeof(usbHidKeyboardInput), (uint8 XDATA *)&usbHidKeyboardInput);
         USBCSIL |= USBCSIL_INPKT_RDY;
+        usbHidKeyboardInputUpdated = 0;
+        hidKeyboardLastReportTime = getMs();
     }
 
     USBINDEX = HID_MOUSE_ENDPOINT;
-    if (!(USBCSIL & USBCSIL_INPKT_RDY)) {
-        usbWriteFifo(HID_MOUSE_ENDPOINT, sizeof(hidMouseInReport), (uint8 XDATA *)&hidMouseInReport);
+    // Check if mouse input has been updated.
+    if (usbHidMouseInputUpdated && !(USBCSIL & USBCSIL_INPKT_RDY)) {
+        usbWriteFifo(HID_MOUSE_ENDPOINT, sizeof(usbHidMouseInput), (uint8 XDATA *)&usbHidMouseInput);
         USBCSIL |= USBCSIL_INPKT_RDY;
+        usbHidMouseInputUpdated = 0;
     }
 }

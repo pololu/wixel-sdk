@@ -3,8 +3,17 @@
 
 #include <cc2511_types.h>
 
-// TODO: better name for this struct, like HID_MOUSE_REPORT?
-struct MOUSE_IN_REPORT
+struct HID_KEYBOARD_OUT_REPORT {
+    uint8 leds;
+};
+
+struct HID_KEYBOARD_IN_REPORT {
+    uint8 modifiers;
+    uint8; // reserved
+    uint8 keyCodes[6];
+};
+
+struct HID_MOUSE_IN_REPORT
 {
     uint8 buttons;
     int8 x;
@@ -12,14 +21,12 @@ struct MOUSE_IN_REPORT
     int8 wheel;
 };
 
-typedef struct KEYBOARD_IN_REPORT {
-    uint8 modifiers;
-    uint8 reserved;
-    uint8 keyCodes[6];
-};
+extern struct HID_KEYBOARD_OUT_REPORT XDATA usbHidKeyboardOutput;
+extern struct HID_KEYBOARD_IN_REPORT XDATA usbHidKeyboardInput;
+extern struct HID_MOUSE_IN_REPORT XDATA usbHidMouseInput;
 
-extern XDATA struct MOUSE_IN_REPORT hidMouseInReport;
-extern XDATA struct KEYBOARD_IN_REPORT hidKeyboardInReport;
+extern BIT usbHidKeyboardInputUpdated;
+extern BIT usbHidMouseInputUpdated;
 
 void usbHidService(void);
 
