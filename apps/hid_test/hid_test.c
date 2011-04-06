@@ -21,6 +21,7 @@ void main()
     usbInit();
     randomSeedFromAdc();
 
+    hidKeyboardInReport.keyCodes[0] = 4;
     while(1)
     {
         boardService();
@@ -30,9 +31,10 @@ void main()
 
         if ((uint8)(getMs() - last) > 250)
         {
-            mouseInReport.x = (int8)randomNumber() >> 6;
-            mouseInReport.y = (int8)randomNumber() >> 6;
-            last = getMs();
+
+            //mouseInReport.x = (int8)randomNumber() >> 6;
+            //mouseInReport.y = (int8)randomNumber() >> 6;
+            //last = getMs();
         }
     }
 }

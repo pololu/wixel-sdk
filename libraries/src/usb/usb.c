@@ -410,12 +410,8 @@ static void usbStandardDeviceRequestHandler()
         }
         case USB_REQUEST_GET_CONFIGURATION: // USB Spec 9.4.2 Get Configuration
         {
-            switch (usbDeviceState)
-            {
-            case USB_STATE_ADDRESS:    response[0] = 0; break;
-            case USB_STATE_CONFIGURED: response[0] = 1; break; // Assumption: there is only one configuration and its value is 1.
-            default: return; // not specified
-            }
+            // Assumption: there is only one configuration and its value is 1.
+            response[0] = (usbDeviceState == USB_STATE_CONFIGURED) ? 1 : 0;
             usbControlRead(1, response);
             return;
         }
