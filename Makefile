@@ -135,10 +135,6 @@ all: $(TARGETS)
 clean:
 	-@rm -fv $(sort $(CLEAN))
 
-tmphax:
-	@echo $(AUTOLIBs)
-	@echo $(RELs)
-
 #### COMPLETE COMMANDS #########################################################
 
 ifdef VERBOSE
