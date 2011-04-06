@@ -11,7 +11,7 @@ uint8 randomNumber()
     uint8 rand;
     while(ADCCON1 & 0x0C);                   // Wait for the random number to finish.
     rand = RNDL;                             // Get the random number.
-    ADCCON1 |= 0x07;                         // Start generating the next random number.  // tmphax, move this back later
+    ADCCON1 = (ADCCON1 & 0x30) | 0x07;       // Start generating the next random number.
     return rand;
 }
 
