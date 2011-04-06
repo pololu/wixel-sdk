@@ -44,6 +44,7 @@
 #define HID_USAGE_MAX       0x29
 #define HID_LOGICAL_MIN     0x15
 #define HID_LOGICAL_MAX     0x25
+#define HID_LOGICAL_MAX_2   0x26 // 2-byte data
 #define HID_INPUT           0x81
 #define HID_OUTPUT          0x91
 
@@ -77,6 +78,11 @@
 #define HID_REQUEST_SET_REPORT   0x9
 #define HID_REQUEST_SET_IDLE     0xA
 #define HID_REQUEST_SET_PROTOCOL 0xB
+
+// Report Types from HID 1.11 Section 7.2.1
+#define HID_REPORT_TYPE_INPUT   1
+#define HID_REPORT_TYPE_OUTPUT  2
+#define HID_REPORT_TYPE_FEATURE 3
 
 // Protocols from HID 1.11 Section 7.2.5
 #define HID_PROTOCOL_BOOT   0
@@ -116,7 +122,7 @@ CODE uint8 keyboardReportDescriptor[]
         HID_REPORT_SIZE, 1,
         HID_USAGE_PAGE, HID_USAGE_PAGE_KEY_CODES,
         HID_USAGE_MIN, 224,                         // Left Control
-        HID_USAGE_MAX, 231,                         // Right GUI (Windows key)
+        HID_USAGE_MAX, 231,                         // Right GUI (Windows key) (highest defined usage ID)
         HID_LOGICAL_MIN, 0,
         HID_LOGICAL_MAX, 1,
         HID_INPUT, HID_ITEM_VARIABLE,
@@ -140,9 +146,9 @@ CODE uint8 keyboardReportDescriptor[]
         HID_REPORT_SIZE, 8,
         HID_USAGE_PAGE, HID_USAGE_PAGE_KEY_CODES,
         HID_USAGE_MIN, 0,
-        HID_USAGE_MAX, 255,
+        HID_USAGE_MAX, 231,
         HID_LOGICAL_MIN, 0,
-        HID_LOGICAL_MAX, 255,
+        HID_LOGICAL_MAX_2, 231, 0,                  // Logical Maximum is signed, so we need to use an extra byte to make sure the highest bit is 0
         HID_INPUT, 0,
 
     HID_END_COLLECTION,
@@ -160,7 +166,7 @@ CODE uint8 mouseReportDescriptor[]
         HID_USAGE, HID_USAGE_POINTER,
         HID_COLLECTION, HID_COLLECTION_PHYSICAL,
 
-            HID_REPORT_COUNT, 5,                            // 5 Mouse Buttons
+            HID_REPORT_COUNT, 8,                            // 8 Mouse Buttons
             HID_REPORT_SIZE, 1,
             HID_USAGE_PAGE, HID_USAGE_PAGE_BUTTONS,
             HID_USAGE_MIN, 1,
@@ -168,10 +174,6 @@ CODE uint8 mouseReportDescriptor[]
             HID_LOGICAL_MIN, 0,
             HID_LOGICAL_MAX, 1,
             HID_INPUT, HID_ITEM_VARIABLE,
-
-            HID_REPORT_COUNT, 1,                            // Padding (3 bits)
-            HID_REPORT_SIZE, 3,
-            HID_INPUT, HID_ITEM_CONSTANT,
 
             HID_REPORT_COUNT, 3,                            // 3 Axes (X, Y, wheel)
             HID_REPORT_SIZE, 8,
@@ -278,21 +280,23 @@ uint16 CODE * CODE usbStringDescriptors[] = { languages, manufacturer, product, 
 /* HID structs and global variables */
 XDATA struct KEYBOARD_OUT_REPORT {
     uint8 leds;
-} keyboardOutReport
+} hidKeyboardOutReport
 = {0};
 
 XDATA struct KEYBOARD_IN_REPORT {
     uint8 modifiers;
     uint8 reserved;
     uint8 keyCodes[6];
-} keyboardInReport
+} hidKeyboardInReport
 = {0, 0, {0}};
 
-XDATA struct MOUSE_IN_REPORT mouseInReport
+XDATA struct MOUSE_IN_REPORT hidMouseInReport
 = {0, 0, 0, 0};
 
-uint8 XDATA hidKeyboardProtocol = HID_PROTOCOL_REPORT;
-uint8 XDATA hidMouseProtocol    = HID_PROTOCOL_REPORT;
+uint8 hidKeyboardIdleDuration = 125; // units of 4 ms
+
+BIT hidKeyboardProtocol = HID_PROTOCOL_REPORT;
+BIT hidMouseProtocol    = HID_PROTOCOL_REPORT;
 
 /* HID USB callbacks ******************************************************/
 // These functions are called by the low-level USB module (usb.c) when a USB
@@ -304,24 +308,29 @@ void usbCallbackInitEndpoints(void)
     usbInitEndpointIn(HID_MOUSE_ENDPOINT, HID_IN_PACKET_SIZE);
 }
 
-// Implements all the control transfers that are required by D1 of the
-// ACM descriptor bmCapabilities, (USBPSTN1.20 Table 4).
+// Implements all the control transfers that are required by Appendix G of HID 1.11.
 void usbCallbackSetupHandler(void)
 {
+    static XDATA uint8 response;
+
     if ((usbSetupPacket.bmRequestType & 0x7F) != 0x21)   // Require Type==Class and Recipient==Interface.
         return;
 
     switch(usbSetupPacket.bRequest)
     {
-    case HID_REQUEST_GET_PROTOCOL:
+    // required
+    case HID_REQUEST_GET_REPORT:
+        if ((usbSetupPacket.wValue >> 8) != HID_REPORT_TYPE_INPUT)
+            return;
+
         switch (usbSetupPacket.wIndex)
         {
         case HID_KEYBOARD_INTERFACE_NUMBER:
-            usbControlWrite(1, (uint8 XDATA *)&hidKeyboardProtocol);
+            usbControlRead(sizeof(hidKeyboardInReport), (uint8 XDATA *)&hidKeyboardInReport);
             return;
 
         case HID_MOUSE_INTERFACE_NUMBER:
-            usbControlWrite(1, (uint8 XDATA *)&hidMouseProtocol);
+            usbControlRead(sizeof(hidMouseInReport), (uint8 XDATA *)&hidMouseInReport);
             return;
 
         default:
@@ -329,6 +338,41 @@ void usbCallbackSetupHandler(void)
             return;
         }
 
+    // required for devices with Output reports
+    case HID_REQUEST_SET_REPORT:
+        if (usbSetupPacket.wIndex == HID_KEYBOARD_INTERFACE_NUMBER)
+        {
+            usbControlWrite(sizeof(hidKeyboardOutReport), (uint8 XDATA *)&hidKeyboardOutReport);
+        }
+        return;
+
+    // required for keyboards
+    case HID_REQUEST_GET_IDLE:
+
+    // required for keyboards
+    case HID_REQUEST_SET_IDLE:
+
+
+    // required for boot devices
+    case HID_REQUEST_GET_PROTOCOL:
+        switch (usbSetupPacket.wIndex)
+        {
+        case HID_KEYBOARD_INTERFACE_NUMBER:
+            response = hidKeyboardProtocol;
+            usbControlRead(1, (uint8 XDATA *)&response);
+            return;
+
+        case HID_MOUSE_INTERFACE_NUMBER:
+            response = hidMouseProtocol;
+            usbControlRead(1, (uint8 XDATA *)&response);
+            return;
+
+        default:
+            // unrecognized interface - stall
+            return;
+        }
+
+    // required for boot devices
     case HID_REQUEST_SET_PROTOCOL:
         switch (usbSetupPacket.wIndex)
         {
@@ -347,28 +391,9 @@ void usbCallbackSetupHandler(void)
         usbControlAcknowledge();
         return;
 
-    /*case HID_REQUEST_SET_REPORT:
-        if (usbSetupPacket.wIndex == HID_KEYBOARD_INTERFACE_NUMBER && usbSetupPacket.wLength == sizeof(keyboardOutReport))
-        {
-            usbControlWrite(sizeof(keyboardOutReport), (uint8 XDATA *)&keyboardOutReport);
-        }
+    default:
+        // unrecognized request - stall
         return;
-    case HID_REQUEST_SET_IDLE:
-        if (usbSetupPacket.wIndex == HID_KEYBOARD_INTERFACE_NUMBER)
-        {
-
-        }
-        else if (usbSetupPacket.wIndex == HID_MOUSE_INTERFACE_NUMBER)
-        {
-
-        }
-        else
-        {
-            // unrecognized interface
-            return;
-        }
-        usbControlAcknowledge();
-        return;*/
     }
 }
 
@@ -443,13 +468,13 @@ void usbHidService(void)
     USBINDEX = HID_KEYBOARD_ENDPOINT;
     if (!(USBCSIL & USBCSIL_INPKT_RDY))
     {
-        usbWriteFifo(HID_KEYBOARD_ENDPOINT, sizeof(keyboardInReport), (uint8 XDATA *)&keyboardInReport);
+        usbWriteFifo(HID_KEYBOARD_ENDPOINT, sizeof(hidKeyboardInReport), (uint8 XDATA *)&hidKeyboardInReport);
         USBCSIL |= USBCSIL_INPKT_RDY;
     }
 
     USBINDEX = HID_MOUSE_ENDPOINT;
     if (!(USBCSIL & USBCSIL_INPKT_RDY)) {
-        usbWriteFifo(HID_MOUSE_ENDPOINT, sizeof(mouseInReport), (uint8 XDATA *)&mouseInReport);
+        usbWriteFifo(HID_MOUSE_ENDPOINT, sizeof(hidMouseInReport), (uint8 XDATA *)&hidMouseInReport);
         USBCSIL |= USBCSIL_INPKT_RDY;
     }
 }

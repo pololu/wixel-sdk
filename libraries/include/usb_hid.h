@@ -17,7 +17,14 @@ typedef struct MOUSE_IN_REPORT {
     int8 wheel;
 };
 
-extern XDATA struct MOUSE_IN_REPORT mouseInReport;
+typedef struct KEYBOARD_IN_REPORT {
+    uint8 modifiers;
+    uint8 reserved;
+    uint8 keyCodes[6];
+};
+
+extern XDATA struct MOUSE_IN_REPORT hidMouseInReport;
+extern XDATA struct KEYBOARD_IN_REPORT hidKeyboardInReport;
 
 void usbHidService(void);
 
