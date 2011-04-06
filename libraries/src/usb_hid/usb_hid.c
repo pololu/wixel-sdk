@@ -1,6 +1,8 @@
 #include <usb_hid.h>
 #include <usb.h>
-#include <board.h>           // just for boardStartBootloader() and serialNumberString
+#include <board.h>
+
+/* HID Library Configuration **************************************************/
 
 #define HID_DATA_ENDPOINT             1
 #define HID_IN_PACKET_SIZE            8
@@ -13,17 +15,16 @@
 #define HID_MOUSE_ENDPOINT            2
 #define HID_MOUSE_FIFO                USBF2   // This must match HID_MOUSE_ENDPOINT!
 
-/* HID Constants ******************************************************/
+/* HID Constants **************************************************************/
 
-// USB Class Codes
-#define DEVICE_CLASS 0
-#define HID_CLASS    3          // (HID 1.11 Section 4.1: The HID Class).
+// USB Class Code from HID 1.11 Section 4.1: The HID Class
+#define HID_CLASS    3
 
-// USB Subclass Codes
-#define HID_SUBCLASS_BOOT 1     // (HID 1.11 Section 4.2: Subclass).
+// USB Subclass Code from HID 1.11 Section 4.2: Subclass
+#define HID_SUBCLASS_BOOT 1
 
-// USB Protocol Codes
-#define HID_PROTOCOL_KEYBOARD 1 // (HID 1.11 Section 4.3: Protocols).
+// USB Protocol Codes from HID 1.11 Section 4.3: Protocols
+#define HID_PROTOCOL_KEYBOARD 1
 #define HID_PROTOCOL_MOUSE    2
 
 // USB Descriptor types from HID 1.11 Section 7.1
@@ -89,7 +90,7 @@ USB_DESCRIPTOR_DEVICE CODE usbDeviceDescriptor =
     sizeof(USB_DESCRIPTOR_DEVICE),
     USB_DESCRIPTOR_TYPE_DEVICE,
     0x0200,                 // USB Spec Release Number in BCD format
-    DEVICE_CLASS,           // Class Code: undefined (use class code info from Interface Descriptors)
+    0,                      // Class Code: undefined (use class code info from Interface Descriptors)
     0,                      // Subclass code
     0,                      // Protocol
     USB_EP0_PACKET_SIZE,    // Max packet size for Endpoint 0
@@ -105,7 +106,7 @@ USB_DESCRIPTOR_DEVICE CODE usbDeviceDescriptor =
 // keyboard report descriptor
 // HID 1.11 Section 6.2.2: Report Descriptor
 // Uses same format as keyboard boot interface report descriptor - see HID 1.11 Appendix B.1
-CODE uint8 keyboardReportDescriptor[]
+uint8 CODE keyboardReportDescriptor[]
 =
 {
     HID_USAGE_PAGE, HID_USAGE_PAGE_GENERIC_DESKTOP,
@@ -150,7 +151,7 @@ CODE uint8 keyboardReportDescriptor[]
 
 // mouse report descriptor
 // HID 1.11 Section 6.2.2: Report Descriptor
-CODE uint8 mouseReportDescriptor[]
+uint8 CODE mouseReportDescriptor[]
 =
 {
     HID_USAGE_PAGE, HID_USAGE_PAGE_GENERIC_DESKTOP,
@@ -222,8 +223,8 @@ CODE struct CONFIG1 {
         HID_PROTOCOL_KEYBOARD,                           // bInterfaceProtocol
         0                                                // iInterface
     },
-    {                                                    // Functional Descriptors.
-        9,                                               // 9-byte HID Descriptor
+    {
+        sizeof(usbConfigurationDescriptor.keyboard_hid), // 9-byte HID Descriptor for keyboard (HID 1.11 Section 6.2.1)
         HID_DESCRIPTOR_TYPE_HID,
         0x11, 0x01,                                      // bcdHID.  We conform to HID 1.11.
         HID_COUNTRY_NOT_LOCALIZED,                       // bCountryCode
@@ -250,8 +251,8 @@ CODE struct CONFIG1 {
         HID_PROTOCOL_MOUSE,                              // bInterfaceProtocol
         0                                                // iInterface
     },
-    {                                                    // Functional Descriptors.
-        9,                                               // 9-byte HID Descriptor
+    {
+        sizeof(usbConfigurationDescriptor.mouse_hid),    // 9-byte HID Descriptor for mouse (HID 1.11 Section 6.2.1)
         HID_DESCRIPTOR_TYPE_HID,
         0x11, 0x01,                                      // bcdHID.  We conform to HID 1.11.
         HID_COUNTRY_NOT_LOCALIZED,                       // bCountryCode
@@ -262,7 +263,7 @@ CODE struct CONFIG1 {
     {                                                    // Mouse IN Endpoint
         sizeof(struct USB_DESCRIPTOR_ENDPOINT),
         USB_DESCRIPTOR_TYPE_ENDPOINT,
-        USB_ENDPOINT_ADDRESS_IN | HID_MOUSE_ENDPOINT,   // bEndpointAddress
+        USB_ENDPOINT_ADDRESS_IN | HID_MOUSE_ENDPOINT,    // bEndpointAddress
         USB_TRANSFER_TYPE_INTERRUPT,                     // bmAttributes
         HID_IN_PACKET_SIZE,                              // wMaxPacketSize
         10,                                              // bInterval
@@ -276,25 +277,25 @@ DEFINE_STRING_DESCRIPTOR(product, 5, 'W','i','x','e','l')
 uint16 CODE * CODE usbStringDescriptors[] = { languages, manufacturer, product, serialNumberStringDescriptor };
 
 /* HID structs and global variables */
-XDATA struct KEYBOARD_OUT_REPORT {
+struct KEYBOARD_OUT_REPORT {
     uint8 leds;
-} keyboardOutReport
+} XDATA keyboardOutReport
 = {0};
 
-XDATA struct KEYBOARD_IN_REPORT {
+struct KEYBOARD_IN_REPORT {
     uint8 modifiers;
     uint8 reserved;
     uint8 keyCodes[6];
-} keyboardInReport
+} XDATA keyboardInReport
 = {0, 0, {0}};
 
-XDATA struct MOUSE_IN_REPORT mouseInReport
+struct MOUSE_IN_REPORT XDATA mouseInReport
 = {0, 0, 0, 0};
 
 uint8 XDATA hidKeyboardProtocol = HID_PROTOCOL_REPORT;
 uint8 XDATA hidMouseProtocol    = HID_PROTOCOL_REPORT;
 
-/* HID USB callbacks ******************************************************/
+/* HID USB callbacks **********************************************************/
 // These functions are called by the low-level USB module (usb.c) when a USB
 // event happens that requires higher-level code to make a decision.
 
@@ -374,61 +375,49 @@ void usbCallbackSetupHandler(void)
 
 void usbCallbackClassDescriptorHandler(void)
 {
-    uint8 XDATA * pointer = 0;
-    uint16 bytes = 0;
-
-    if (usbSetupPacket.bmRequestType != 0x81)   // Require Direction==Device-to-Host, Type==Standard, and Recipient==Interface. (HID 1.11 Section 7.1.1)
+    // Require Direction==Device-to-Host, Type==Standard, and Recipient==Interface. (HID 1.11 Section 7.1.1)
+    if (usbSetupPacket.bmRequestType != 0x81)
+    {
         return;
+    }
 
     switch (usbSetupPacket.wValue >> 8)
     {
     case HID_DESCRIPTOR_TYPE_HID:
+        // The host has requested the HID descriptor of a particular interface.
         switch (usbSetupPacket.wIndex)
         {
         case HID_KEYBOARD_INTERFACE_NUMBER:
-            pointer = (uint8 XDATA *)&usbConfigurationDescriptor.keyboard_hid;
-            break;
+            usbControlRead(sizeof(usbConfigurationDescriptor.keyboard_hid), (uint8 XDATA *)&usbConfigurationDescriptor.keyboard_hid);
+            return;
 
         case HID_MOUSE_INTERFACE_NUMBER:
-            pointer = (uint8 XDATA *)&usbConfigurationDescriptor.mouse_hid;
-            break;
-
-        default:
-            // unrecognized interface - stall
+            usbControlRead(sizeof(usbConfigurationDescriptor.mouse_hid), (uint8 XDATA *)&usbConfigurationDescriptor.mouse_hid);
             return;
         }
-        bytes = pointer[0];
-        break;
+        return;
 
     case HID_DESCRIPTOR_TYPE_REPORT:
+        // The host has requested the Report Descriptor of a particular interface.
         switch (usbSetupPacket.wIndex)
         {
         case HID_KEYBOARD_INTERFACE_NUMBER:
-            pointer = (uint8 XDATA *)&keyboardReportDescriptor;
-            bytes = sizeof(keyboardReportDescriptor);
-            break;
+            usbControlRead(sizeof(keyboardReportDescriptor), (uint8 XDATA *)&keyboardReportDescriptor);
+            return;
 
         case HID_MOUSE_INTERFACE_NUMBER:
-            pointer = (uint8 XDATA *)&mouseReportDescriptor;
-            bytes = sizeof(mouseReportDescriptor);
-            break;
-
-        default:
-            // unrecognized interface - stall
+            usbControlRead(sizeof(mouseReportDescriptor), (uint8 XDATA *)&mouseReportDescriptor);
             return;
         }
-        break;
-
-    default:
-        // unrecognized descriptor type - stall
         return;
     }
-    usbControlRead(bytes, pointer);
 }
 
 void usbCallbackControlWriteHandler(void)
 {
 }
+
+/* Other HID Functions ********************************************************/
 
 void usbHidService(void)
 {
