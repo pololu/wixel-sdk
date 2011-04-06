@@ -121,7 +121,6 @@ void shiftbriteProcessByte(char c)
     if(c == '\r' || c == '\n')
     {
         i = 0;
-        LED_YELLOW(1);
         toggleLatch();
     }
     else
@@ -170,7 +169,7 @@ void shiftbriteService()
     }
     while(radioComRxAvailable());
 
-    // Record the time that the USB activity occurred.
+    // Record the time that the radio activity occurred.
     radioLastActivity = (uint8)getMs();
 
     // If we are not already blinking to indicate radio activity,
