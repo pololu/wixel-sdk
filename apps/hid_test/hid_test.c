@@ -5,23 +5,22 @@
 
 #include <usb.h>
 #include <usb_hid.h>
-#include <random.h>
+#include <adc.h>
+#include <gpio.h>
 
 void updateLeds()
 {
     usbShowStatusWithGreenLed();
 }
 
-
 void main()
 {
-    uint8 last = 0;
-
     systemInit();
     usbInit();
-    randomSeedFromAdc();
 
-    hidKeyboardInReport.keyCodes[0] = 4;
+    setDigitalInput(1, HIGH_IMPEDANCE);
+    setDigitalInput(2, HIGH_IMPEDANCE);
+
     while(1)
     {
         boardService();
@@ -29,12 +28,9 @@ void main()
 
         usbHidService();
 
-        if ((uint8)(getMs() - last) > 250)
-        {
-
-            //mouseInReport.x = (int8)randomNumber() >> 6;
-            //mouseInReport.y = (int8)randomNumber() >> 6;
-            //last = getMs();
-        }
+        usbHidMouseInput.x = -((int16)adcRead(2 | ADC_BITS_7) - 1024) / 64;
+        usbHidMouseInput.y = ((int16)adcRead(1 | ADC_BITS_7) - 1024) / 64;
+        usbHidMouseInput.buttons = !isPinHigh(0);
+        usbHidMouseInputUpdated = 1;
     }
 }
