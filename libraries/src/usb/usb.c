@@ -408,6 +408,17 @@ static void usbStandardDeviceRequestHandler()
             usbControlAcknowledge();
             return;
         }
+        case USB_REQUEST_GET_CONFIGURATION: // USB Spec 9.4.2 Get Configuration
+        {
+            switch (usbDeviceState)
+            {
+            case USB_STATE_ADDRESS:    response[0] = 0; break;
+            case USB_STATE_CONFIGURED: response[0] = 1; break; // Assumption: there is only one configuration and its value is 1.
+            default: return; // not specified
+            }
+            usbControlRead(1, response);
+            return;
+        }
         case USB_REQUEST_GET_INTERFACE: // USB Spec 9.4.4 Get Interface
         {
             // Assumption: the "alternate setting number" of each interface
