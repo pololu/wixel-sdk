@@ -6,6 +6,9 @@ http://www.pololu.com/docs/0J46
 
 This app allows you to connect two Wixels together to make a wireless, bidirectional, lossless serial link.  It uses an RF bit rate of 350 kbps, is capable of carrying up to 10 KB of payload data per second, and can reach a range of approximately 40 feet (under typical conditions indoors).  You can also use it to turn one Wixel in to a USB-to-TTL serial adapter.
 
+This app can run on multiple pairs of Wixels as long as each pair operates on a different radio channel (the channels should be separated by 2 to avoid interference).
+
+This app is designed for pairs of Wixels; it will not work properly if three or more Wixels are broadcasting on the same radio channel.
 
 == Default Pinout ==
 
