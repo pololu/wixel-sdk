@@ -1,13 +1,11 @@
 /** \mainpage Wixel SDK Documentation
 
-The Pololu Wixel is a general-purpose programmable module featuring a 2.4 GHz radio and USB. The Wixel is based on the CC2511F32 microcontroller from Texas Instruments, which has an integrated radio transceiver, 32 KB of flash memory, 4 KB of RAM, and a full-speed USB interface. A total of 15 general-purpose I/O lines are available, including 6 analog inputs, and the 0.1" pin spacing makes the Wixel easy to use with breadboards and perfboards. 
-
-The <a href="http://www.pololu.com/catalog/product/1336">Wixel</a> is
-a general-pupose programmable module made
-by <a href="http://www.pololu.com/">Pololu</a> featuring a 2.4 GHz
-radio and USB.  The Wixel is based around the
+The <a href="http://www.pololu.com/catalog/product/1336">Pololu Wixel</a> is
+a general-purpose programmable module featuring a 2.4 GHz radio and USB.
+The Wixel is based on the
 <a href="http://focus.ti.com/docs/prod/folders/print/cc2511f32.html">CC2511F32</a>
-chip from Texas Instruments.
+microcontroller from Texas Instruments, which has an integrated radio transceiver,
+32 KB of flash memory, 4 KB of RAM, and a full-speed USB interface.
 The Pololu Wixel Software Development Kit (SDK) contains code, utilities,
 and Makefiles which will help you build your own applications for the Wixel.
 
@@ -67,10 +65,16 @@ To generate this documentation yourself, type "make docs"
 
 Documentation for the Wixel itself is available in the
 <a href="http://www.pololu.com/docs/0J46">Pololu Wixel User's Guide</a> provided by Pololu.
+The user's guide contains schematic diagrams, pinout diagrams, documentation for the
+apps, example wiring, and more.
 
 Documentation for the CC2511F32 (the microcontroller on the Wixel) is available in the
 <a href="http://focus.ti.com/docs/prod/folders/print/cc2511f32.html">CC2511F32 datasheet</a>
 provided by Texas Instruments.
+The datasheet provides detailed technical information about the hardware peripherals and
+how to control them, as well as electrical specifications, and more.
+Texas Instruments also provides many app notes and design notes on the
+<a href="http://focus.ti.com/docs/prod/folders/print/cc2511f32.html">CC2511F32</a> page.
 
 Documentation for SDCC is available on the <a href="http://sdcc.sourceforge.net/">SDCC website</a>.
 
