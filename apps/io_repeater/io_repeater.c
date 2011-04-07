@@ -92,7 +92,7 @@ void configurePins(void)
     // TODO: make this user-configurable
     setPort0PullType(HIGH);
     setPort1PullType(HIGH);
-    setPort2PullType(LOW); // pulling port 2 high causes problems (triggers bootloader entry)
+    // Port 2 is pulled low and should remain pulled low; pulling it high would cause problems.
 
     for(pin = 0; pin < PIN_COUNT; pin++)
     {
@@ -100,14 +100,16 @@ void configurePins(void)
 
         if (IS_OUTPUT(tmp))
         {
-            // if the param says this pin is an output, make it an output and add it to the list of output pins
+            // This pin is configured as an output, so add it to the list of output pins.
+            // The default state of the output pins, as documented in the user's guide, is LOW.
             setDigitalOutput(tmp, LOW);
             outPins[outPinCount++] = tmp;
             rxEnabled = 1;
         }
         else if (IS_INPUT(tmp))
         {
-            // if the param says this pin is an input, add it to the list of input pins
+            // This pin is configured as an input, so add it to the list of input pins.
+            // The pin is already an input because all pins are inputs by default.
             inPins[inPinCount++] = tmp;
             txEnabled = 1;
         }
