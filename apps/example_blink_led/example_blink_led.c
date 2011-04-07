@@ -13,7 +13,7 @@ void updateLeds()
 
     LED_YELLOW(0);
 
-    if ((uint16)(getMs() - lastToggle) >= (param_blink_period_ms/2))
+    if (getMs() - lastToggle >= param_blink_period_ms/2)
     {
         LED_RED(!LED_RED_STATE);
         lastToggle = getMs();
