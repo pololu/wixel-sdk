@@ -9,6 +9,7 @@
 #include <usb_com.h>
 #include <random.h>
 #include <radio_queue.h>
+#include <math.h>
 
 #define MAX_TX_INTERVAL 10 // maximum time between transmissions (ms)
 
@@ -20,8 +21,8 @@ void updateLeds()
 
 void main()
 {
+    int8 x, y, tmp;
     uint8 XDATA * txBuf;
-
     uint8 lastTx = 0;
 
     systemInit();
@@ -41,8 +42,11 @@ void main()
 
         if ((uint8)(getMs() - lastTx) > MAX_TX_INTERVAL && (txBuf = radioQueueTxCurrentPacket()))
         {
-            txBuf[1] = -((int16)adcRead(2 | ADC_BITS_7) - 1024) / 64;
-            txBuf[2] = ((int16)adcRead(1 | ADC_BITS_7) - 1024) / 64;
+            x = -((int16)adcRead(2 | ADC_BITS_7) - 1024) / 128;
+            y =  ((int16)adcRead(1 | ADC_BITS_7) - 1024) / 128;
+            tmp = sqrtf(x * x + y * y);
+            txBuf[1] = x * tmp;
+            txBuf[2] = y * tmp;
             txBuf[3] = !isPinHigh(0);
             *txBuf = 3; // set packet length byte
             radioQueueTxSendPacket();
