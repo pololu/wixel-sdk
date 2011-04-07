@@ -21,6 +21,11 @@ int32 CODE param_echo_on = 1;
 
 uint32 lastSend = 0;
 
+// These variables are used to flicker the yellow LED when data is received over the radio.
+BIT radioBlinkActive = 0;
+uint8 radioLastActivity;
+uint8 radioBlinkStart;
+
 // converts 0-9, a-f, or A-F into the corresponding hex value
 uint8 hexCharToByte(char c)
 {
@@ -116,7 +121,6 @@ void shiftbriteProcessByte(char c)
     if(c == '\r' || c == '\n')
     {
         i = 0;
-        LED_YELLOW(1);
         toggleLatch();
     }
     else
@@ -152,7 +156,9 @@ void shiftbriteProcessByte(char c)
 
 void shiftbriteService()
 {
-    while(radioComRxAvailable())
+    if (!radioComRxAvailable()){ return; }
+
+    do
     {
         char c = radioComRxReceiveByte();
         if(radioComTxAvailable() && param_echo_on)
@@ -160,6 +166,18 @@ void shiftbriteService()
             radioComTxSendByte(c);
         }
         shiftbriteProcessByte(c);
+    }
+    while(radioComRxAvailable());
+
+    // Record the time that the radio activity occurred.
+    radioLastActivity = (uint8)getMs();
+
+    // If we are not already blinking to indicate radio activity,
+    // start blinking.
+    if (!radioBlinkActive)
+    {
+        radioBlinkActive = 1;
+        radioBlinkStart = radioLastActivity;
     }
 }
 
@@ -176,7 +194,27 @@ void shiftbriteInit()
 
 void updateLeds()
 {
+    uint8 time = (uint8)getMs();
+
+    if (radioBlinkActive)
+    {
+        // Make the yellow LED flicker because we recently received some data over the radio.
+        LED_YELLOW((uint8)(time - radioBlinkStart) & 64);
+
+        if ((uint8)(time - radioLastActivity) > 96)
+        {
+            // Stop flickering after 96 ms.
+            radioBlinkActive = 0;
+        }
+    }
+    else
+    {
+        // The yellow LED is normally on.
+        LED_YELLOW(1);
+    }
+
     usbShowStatusWithGreenLed();
+
 }
 
 void main()
