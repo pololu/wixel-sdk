@@ -1,5 +1,7 @@
 /** \mainpage Wixel SDK Documentation
 
+The Pololu Wixel is a general-purpose programmable module featuring a 2.4 GHz radio and USB. The Wixel is based on the CC2511F32 microcontroller from Texas Instruments, which has an integrated radio transceiver, 32 KB of flash memory, 4 KB of RAM, and a full-speed USB interface. A total of 15 general-purpose I/O lines are available, including 6 analog inputs, and the 0.1" pin spacing makes the Wixel easy to use with breadboards and perfboards. 
+
 The <a href="http://www.pololu.com/catalog/product/1336">Wixel</a> is
 a general-pupose programmable module made
 by <a href="http://www.pololu.com/">Pololu</a> featuring a 2.4 GHz
@@ -21,11 +23,17 @@ by downloading the Wixel Development Bundle, available from the
 
 The Wixel SDK is also available as a
 <a href="http://github.com/pololu/wixel-sdk">git repository hosted on GitHub</a>,
-so you can get it by <a href="http://help.github.com/set-up-git-redirect">installing git</a>
+so you can get it by installing <a href="http://git-scm.com/">git</a>
 and running:
 <pre>
 git clone -o pololu git://github.com/pololu/wixel-sdk.git
 </pre>
+
+If you need help, see GitHub's instructions on how to
+<a href="http://help.github.com/set-up-git-redirect">Set Up Git</a>.
+For Windows users, we also recommend installing
+<a href="http://code.google.com/p/tortoisegit/">TortoiseGit</a>
+because it provides a good graphical user interface for git.
 
 \section building_app Building Your App
 
@@ -45,14 +53,15 @@ is out of date.
 
 \section sdk_docs Documentation of Wixel SDK Libraries (incomplete!)
 
-To generate this documentation, type "make docs" (requires <a href="http://www.doxygen.org/">Doxygen</a>).
-
 The <a href="./modules.html">Modules</a> section contains an overview
 of all the libraries available in this SDK.
 
 The <a href="./files.html">Files</a> section contains specific documentation
 for all the functions, grouped by header file.  This section is auto-generated
 from the .c and .h files in the SDK.
+
+To generate this documentation yourself, type "make docs"
+(requires <a href="http://www.doxygen.org/">Doxygen</a>).
 
 \section other_docs Other Documentation
 
