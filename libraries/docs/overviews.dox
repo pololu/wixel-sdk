@@ -122,7 +122,7 @@ If you have a problem or question, feel free to ask us on the
 
 - <b>usb_cdc_acm.lib (usb_com.h):</b> Implements the USB CDC ACM interface, which
   allows the Wixel to appear as a virtual COM port when it is connected to a PC.
-  Depends on <b>usb.lib</b> on <b>wixel.lib</b>.
+  Depends on <b>usb.lib</b> and <b>wixel.lib</b>.
 - <b>usb.lib (usb.h):</b> Sets up the USB module and responds to standard device
   requests.  This is a general purpose library that could be used to implement
   many different kinds of USB device interfaces.  Depends on <b>wixel.lib</b>.
