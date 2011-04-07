@@ -1,7 +1,11 @@
 /*! \file cc2511_map.h
- * This header file allows your program to access special registers on the
- * CC251xFxx.  The USB-related registers will only work on the CC2511Fxx.
- * This file is based on the CC2510Fx/CC2511Fx datasheet (SWRS055F).
+ * This header file provides access to the special registers on the CC2511F32, which
+ * allow direct manipulation of the chip's hardware.
+ *
+ * This file also provides macros for defining Interrupt Service Routines (ISRs).
+ *
+ * For documentation, see the
+ * <a href="http://focus.ti.com/docs/prod/folders/print/cc2511f32.html">CC2511F32 datasheet</a>.
  */
 
 #ifndef _CC2511_MAP_H
@@ -31,6 +35,31 @@
   SBIT(address+7, bit7)
 #define SFR16(addressH, addressL, name) static __sfr16 __at (((addressH) << 8) + (addressL)) name;
 #define SFRX(address, name)       static volatile unsigned char __xdata __at(address) name;
+
+/*! Defines or declares an interrupt service routine (ISR).
+ * <b>For the interrupt to work, SDCC requires that the declaration must
+ * be present in the file that defines main().</b>
+ *
+ * \param source
+ *    The source of the interrupt.  Must be either the first word of one of
+ *    the *_VECTOR macros defined in this file (e.g. "P1INT").
+ *
+ * \param bank
+ *    The register back to use.  Must be a number from 0 to 3, inclusive.
+ *
+ * Example ISR declaration (in a .h file):
+\code
+ISR(UTX1, 1);
+\endcode
+ *
+ * Example ISR definition (in a .c file):
+\code
+ISR(UTX1, 1)
+{
+    // code for handling event and clearing interrupt flag
+}
+\endcode
+ */
 #define ISR(source, bank) void ISR_##source() __interrupt(source##_VECTOR) __using(bank)
 
 #else
