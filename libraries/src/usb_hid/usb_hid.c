@@ -275,7 +275,8 @@ DEFINE_STRING_DESCRIPTOR(manufacturer, 18, 'P','o','l','o','l','u',' ','C','o','
 DEFINE_STRING_DESCRIPTOR(product, 5, 'W','i','x','e','l')
 uint16 CODE * CODE usbStringDescriptors[] = { languages, manufacturer, product, serialNumberStringDescriptor };
 
-/* HID structs and global variables */
+/* HID structs and global variables *******************************************/
+
 struct HID_KEYBOARD_OUT_REPORT XDATA usbHidKeyboardOutput = {0};
 struct HID_KEYBOARD_IN_REPORT XDATA usbHidKeyboardInput = {0, 0, {0}};
 struct HID_MOUSE_IN_REPORT XDATA usbHidMouseInput = {0, 0, 0, 0};
