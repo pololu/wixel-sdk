@@ -101,13 +101,28 @@ void keyboardService()
     char CODE string[] = "hello world ";
     static uint8 charsLeftToSend = 0;
     static char XDATA * nextCharToSend;
+    static BIT handledThisButtonPress = 0;
+    static uint8 lastTimeButtonWasNotPressed = 0;
 
-    // If P0_2 goes low, queue up "hello world" to be sent.
-    if (!isPinHigh(2) && charsLeftToSend == 0)
+    if (isPinHigh(2))
     {
-        nextCharToSend = (uint8 XDATA *)string;
-        charsLeftToSend = sizeof(string)-1;
+        // The P0_2 "button" is not pressed.
+        handledThisButtonPress = 0;
+        lastTimeButtonWasNotPressed = (uint8)getMs();
     }
+    else if ((uint8)(getMs() - lastTimeButtonWasNotPressed) > 50)
+    {
+        // The P0_2 "button" is pressed (or at least P0_2 is shorted to ground).
+
+        // Queue up the string to be sent to the computer once per button press.
+        if (!handledThisButtonPress && charsLeftToSend == 0)
+        {
+            nextCharToSend = (uint8 XDATA *)string;
+            charsLeftToSend = sizeof(string)-1;
+            handledThisButtonPress = 1;
+        }
+    }
+
 
     LED_RED(charsLeftToSend > 0);
 
