@@ -1,6 +1,7 @@
 #ifndef _USB_HID_H
 #define _USB_HID_H
 
+#include "usb_hid_constants.h"
 #include <cc2511_types.h>
 
 struct HID_KEYBOARD_OUT_REPORT {
