@@ -54,13 +54,13 @@
 #define HID_INPUT           0x81
 #define HID_OUTPUT          0x91
 
-// HID Report Usage Pages from HID Usage Tables 1.11 Section 3, Table 1
+// HID Report Usage Pages from HID Usage Tables 1.12 Section 3, Table 1
 #define HID_USAGE_PAGE_GENERIC_DESKTOP 0x01
 #define HID_USAGE_PAGE_KEY_CODES       0x07
 #define HID_USAGE_PAGE_LEDS            0x08
 #define HID_USAGE_PAGE_BUTTONS         0x09
 
-// HID Report Usages from HID Usage Tables 1.11 Section 4, Table 6
+// HID Report Usages from HID Usage Tables 1.12 Section 4, Table 6
 #define HID_USAGE_POINTER  0x01
 #define HID_USAGE_MOUSE    0x02
 #define HID_USAGE_KEYBOARD 0x06
@@ -68,7 +68,7 @@
 #define HID_USAGE_Y        0x31
 #define HID_USAGE_WHEEL    0x38
 
-// HID Report Collection Types from HID 1.11 6.2.2.6
+// HID Report Collection Types from HID 1.12 6.2.2.6
 #define HID_COLLECTION_PHYSICAL    0
 #define HID_COLLECTION_APPLICATION 1
 
@@ -106,7 +106,7 @@ USB_DESCRIPTOR_DEVICE CODE usbDeviceDescriptor =
     0,                      // Protocol
     USB_EP0_PACKET_SIZE,    // Max packet size for Endpoint 0
     USB_VENDOR_ID_POLOLU,   // Vendor ID
-    0x2201,                 // Product ID FIXME tmphax
+    0x2201,                 // Product ID
     0x0000,                 // Device release number in BCD format
     1,                      // Index of Manufacturer String Descriptor
     2,                      // Index of Product String Descriptor
@@ -116,7 +116,7 @@ USB_DESCRIPTOR_DEVICE CODE usbDeviceDescriptor =
 
 // keyboard report descriptor
 // HID 1.11 Section 6.2.2: Report Descriptor
-// Uses same format as keyboard boot interface report descriptor - see HID 1.11 Appendix B.1
+// Uses format compatible with keyboard boot interface report descriptor - see HID 1.11 Appendix B.1
 uint8 CODE keyboardReportDescriptor[]
 =
 {
@@ -127,8 +127,8 @@ uint8 CODE keyboardReportDescriptor[]
         HID_REPORT_COUNT, 8,                        // 8 Modifier Keys
         HID_REPORT_SIZE, 1,
         HID_USAGE_PAGE, HID_USAGE_PAGE_KEY_CODES,
-        HID_USAGE_MIN, 224,                         // Left Control
-        HID_USAGE_MAX, 231,                         // Right GUI (Windows key) (highest defined usage ID)
+        HID_USAGE_MIN, 0xE0,                        // Left Control
+        HID_USAGE_MAX, 0xE7,                        // Right GUI (Windows key) (highest defined usage ID)
         HID_LOGICAL_MIN, 0,
         HID_LOGICAL_MAX, 1,
         HID_INPUT, HID_ITEM_VARIABLE,
@@ -140,8 +140,8 @@ uint8 CODE keyboardReportDescriptor[]
         HID_REPORT_COUNT, 8,                        // 8 LEDs
         HID_REPORT_SIZE, 1,
         HID_USAGE_PAGE, HID_USAGE_PAGE_LEDS,
-        HID_USAGE_MIN, 1,                           // Num Lock
-        HID_USAGE_MAX, 8,                           // Do Not Disturb (TODO: use this as a bootloader signal?)
+        HID_USAGE_MIN, 0x1,                         // Num Lock
+        HID_USAGE_MAX, 0x8,                         // Do Not Disturb (TODO: use this as a bootloader signal?)
         HID_OUTPUT, HID_ITEM_VARIABLE,
 
         HID_REPORT_COUNT, 6,                        // 6 Key Codes
@@ -158,6 +158,7 @@ uint8 CODE keyboardReportDescriptor[]
 
 // mouse report descriptor
 // HID 1.11 Section 6.2.2: Report Descriptor
+// Uses format compatible with mouse boot interface report descriptor - see HID 1.11 Appendix B.2
 uint8 CODE mouseReportDescriptor[]
 =
 {
@@ -193,20 +194,20 @@ uint8 CODE mouseReportDescriptor[]
 };
 
 CODE struct CONFIG1 {
-    struct USB_DESCRIPTOR_CONFIGURATION configuration;
+    USB_DESCRIPTOR_CONFIGURATION configuration;
 
-    struct USB_DESCRIPTOR_INTERFACE keyboard_interface;
+    USB_DESCRIPTOR_INTERFACE keyboard_interface;
     uint8 keyboard_hid[9]; // HID Descriptor
-    struct USB_DESCRIPTOR_ENDPOINT keyboard_in;
+    USB_DESCRIPTOR_ENDPOINT keyboard_in;
 
-    struct USB_DESCRIPTOR_INTERFACE mouse_interface;
+    USB_DESCRIPTOR_INTERFACE mouse_interface;
     uint8 mouse_hid[9]; // HID Descriptor
-    struct USB_DESCRIPTOR_ENDPOINT mouse_in;
+    USB_DESCRIPTOR_ENDPOINT mouse_in;
 } usbConfigurationDescriptor
 =
 {
     {                                                    // Configuration Descriptor
-        sizeof(struct USB_DESCRIPTOR_CONFIGURATION),
+        sizeof(USB_DESCRIPTOR_CONFIGURATION),
         USB_DESCRIPTOR_TYPE_CONFIGURATION,
         sizeof(struct CONFIG1),                          // wTotalLength
         2,                                               // bNumInterfaces
@@ -216,7 +217,7 @@ CODE struct CONFIG1 {
         50,                                              // bMaxPower
     },
     {                                                    // Keyboard Interface
-        sizeof(struct USB_DESCRIPTOR_INTERFACE),
+        sizeof(USB_DESCRIPTOR_INTERFACE),
         USB_DESCRIPTOR_TYPE_INTERFACE,
         HID_KEYBOARD_INTERFACE_NUMBER,                   // bInterfaceNumber
         0,                                               // bAlternateSetting
@@ -236,7 +237,7 @@ CODE struct CONFIG1 {
         sizeof(keyboardReportDescriptor), 0              // wDescriptorLength
     },
     {                                                    // Keyboard IN Endpoint
-        sizeof(struct USB_DESCRIPTOR_ENDPOINT),
+        sizeof(USB_DESCRIPTOR_ENDPOINT),
         USB_DESCRIPTOR_TYPE_ENDPOINT,
         USB_ENDPOINT_ADDRESS_IN | HID_KEYBOARD_ENDPOINT, // bEndpointAddress
         USB_TRANSFER_TYPE_INTERRUPT,                     // bmAttributes
@@ -244,7 +245,7 @@ CODE struct CONFIG1 {
         10,                                              // bInterval
     },
     {                                                    // Mouse Interface
-        sizeof(struct USB_DESCRIPTOR_INTERFACE),
+        sizeof(USB_DESCRIPTOR_INTERFACE),
         USB_DESCRIPTOR_TYPE_INTERFACE,
         HID_MOUSE_INTERFACE_NUMBER,                      // bInterfaceNumber
         0,                                               // bAlternateSetting
@@ -264,7 +265,7 @@ CODE struct CONFIG1 {
         sizeof(mouseReportDescriptor), 0                 // wDescriptorLength
     },
     {                                                    // Mouse IN Endpoint
-        sizeof(struct USB_DESCRIPTOR_ENDPOINT),
+        sizeof(USB_DESCRIPTOR_ENDPOINT),
         USB_DESCRIPTOR_TYPE_ENDPOINT,
         USB_ENDPOINT_ADDRESS_IN | HID_MOUSE_ENDPOINT,    // bEndpointAddress
         USB_TRANSFER_TYPE_INTERRUPT,                     // bmAttributes
@@ -281,15 +282,14 @@ uint16 CODE * CODE usbStringDescriptors[] = { languages, manufacturer, product, 
 
 /* HID structs and global variables *******************************************/
 
-struct HID_KEYBOARD_OUT_REPORT XDATA usbHidKeyboardOutput = {0};
-struct HID_KEYBOARD_IN_REPORT XDATA usbHidKeyboardInput = {0, 0, {0}};
-struct HID_MOUSE_IN_REPORT XDATA usbHidMouseInput = {0, 0, 0, 0};
+HID_KEYBOARD_OUT_REPORT XDATA usbHidKeyboardOutput = {0};
+HID_KEYBOARD_IN_REPORT XDATA usbHidKeyboardInput = {0, 0, {0}};
+HID_MOUSE_IN_REPORT XDATA usbHidMouseInput = {0, 0, 0, 0};
 
 BIT usbHidKeyboardInputUpdated = 0;
 BIT usbHidMouseInputUpdated    = 0;
 
 uint16 XDATA hidKeyboardIdleDuration = 500; // 0 to 1020 ms
-uint16 XDATA hidKeyboardLastReportTime = 0;
 
 BIT hidKeyboardProtocol = HID_PROTOCOL_REPORT;
 BIT hidMouseProtocol    = HID_PROTOCOL_REPORT;
@@ -447,12 +447,15 @@ void usbCallbackClassDescriptorHandler(void)
 
 void usbCallbackControlWriteHandler(void)
 {
+    // not used by usb_hid
 }
 
 /* Other HID Functions ********************************************************/
 
 void usbHidService(void)
 {
+    static uint16 XDATA hidKeyboardLastReportTime = 0;
+
     usbPoll();
 
     if (usbDeviceState != USB_STATE_CONFIGURED)
@@ -467,7 +470,7 @@ void usbHidService(void)
     {
         usbWriteFifo(HID_KEYBOARD_ENDPOINT, sizeof(usbHidKeyboardInput), (uint8 XDATA *)&usbHidKeyboardInput);
         USBCSIL |= USBCSIL_INPKT_RDY;
-        usbHidKeyboardInputUpdated = 0;
+        usbHidKeyboardInputUpdated = 0; // reset updated flag
         hidKeyboardLastReportTime = getMs();
     }
 
@@ -476,7 +479,7 @@ void usbHidService(void)
     if (usbHidMouseInputUpdated && !(USBCSIL & USBCSIL_INPKT_RDY)) {
         usbWriteFifo(HID_MOUSE_ENDPOINT, sizeof(usbHidMouseInput), (uint8 XDATA *)&usbHidMouseInput);
         USBCSIL |= USBCSIL_INPKT_RDY;
-        usbHidMouseInputUpdated = 0;
+        usbHidMouseInputUpdated = 0; // reset updated flag
     }
 }
 

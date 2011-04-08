@@ -77,7 +77,7 @@ void main()
     radioQueueInit();
     randomSeedFromSerialNumber();
 
-    // disable pull-ups on inputs from accelerometer
+    // disable pull-ups on accelerometer outputs
     setDigitalInput(1, HIGH_IMPEDANCE);
     setDigitalInput(2, HIGH_IMPEDANCE);
 

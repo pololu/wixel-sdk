@@ -1,7 +1,15 @@
+/*! \file usb_hid_constants.h
+ * This file contains definitions of constants used in HID reports sent by the
+ * <code>usb_hid.lib</code> library. These are Usage tags that are specified in
+ * in Hut1_12.pdf, available for download from USB Implementers Forum at this
+ * url:
+ * http://www.usb.org/developers/hidpage
+ */
+
 #ifndef USB_HID_CONSTANTS_H_
 #define USB_HID_CONSTANTS_H_
 
-
+// Bits in usbHidKeyboardOutput.leds
 #define LED_NUM_LOCK        0
 #define LED_CAPS_LOCK       1
 #define LED_SCROLL_LOCK     2
@@ -11,6 +19,18 @@
 #define LED_SHIFT           6
 #define LED_DO_NOT_DISTURB  7
 
+// Bits in usbHidKeyboardInput.modifiers
+#define MODIFIER_CONTROL_LEFT  0
+#define MODIFIER_SHIFT_LEFT    1
+#define MODIFIER_ALT_LEFT      2
+#define MODIFIER_GUI_LEFT      3
+#define MODIFIER_CONTROL_RIGHT 4
+#define MODIFIER_SHIFT_RIGHT   5
+#define MODIFIER_ALT_RIGHT     6
+#define MODIFIER_GUI_RIGHT     7
+
+// Values for usbHidKeyboardInput.keyCodes
+// Only the key codes for common keys are defined here. See Hut1_12.pdf for a full list.
 #define KEY_NONE               0x00
 #define KEY_A                  0x04
 #define KEY_B                  0x05
@@ -124,7 +144,9 @@
 #define KEY_ALT_RIGHT          0xE6
 #define KEY_GUI_RIGHT          0xE7
 
+// Bits in usbHidMouseInput.buttons
 #define MOUSE_BUTTON_LEFT   0
 #define MOUSE_BUTTON_RIGHT  1
+#define MOUSE_BUTTON_MIDDLE 2
 
 #endif /* USB_HID_CONSTANTS_H_ */
