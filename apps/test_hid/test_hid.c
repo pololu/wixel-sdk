@@ -71,15 +71,6 @@ void updateMouseState()
     usbHidMouseInputUpdated = 1;
 }
 
-uint8 charToKeyCode(char c)
-{
-    if (c >= 'a' && c <= 'z'){ return c - 'a' + KEY_A; }
-    if (c >= 'A' && c <= 'Z'){ return c - 'A' + KEY_A; }
-    if (c == ' '){ return KEY_SPACE; }
-
-    return 0;
-}
-
 // See keyboardService for an example of how to use this function correctly.
 // Assumption: usbHidKeyboardInputUpdated == 0.  Otherwise, this function
 // could clobber a keycode sitting in the buffer that has not been sent to
@@ -129,9 +120,9 @@ void keyboardService()
     static uint8 charsLeftToSend = 0;
     static char XDATA * nextCharToSend;
 
-    if (charsLeftToSend == 0 && buttonGetSingleDebouncedPress())
+    if (buttonGetSingleDebouncedPress() && charsLeftToSend == 0)
     {
-        nextCharToSend = (uint8 XDATA *)string;
+        nextCharToSend = (char XDATA *)string;
         charsLeftToSend = sizeof(string)-1;
     }
 
@@ -140,7 +131,7 @@ void keyboardService()
     // Feed data to the HID library, one character at a time.
     if (charsLeftToSend && !usbHidKeyboardInputUpdated)
     {
-        uint8 keyCode = charToKeyCode(*nextCharToSend);
+        uint8 keyCode = hidAsciiCharToKeyCode(*nextCharToSend);
 
         if (keyCode != 0 && keyCode == lastKeyCodeSent)
         {

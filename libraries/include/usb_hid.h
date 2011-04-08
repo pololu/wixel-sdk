@@ -4,11 +4,13 @@
 #include "usb_hid_constants.h"
 #include <cc2511_types.h>
 
-struct HID_KEYBOARD_OUT_REPORT {
+struct HID_KEYBOARD_OUT_REPORT
+{
     uint8 leds;
 };
 
-struct HID_KEYBOARD_IN_REPORT {
+struct HID_KEYBOARD_IN_REPORT
+{
     uint8 modifiers;
     uint8; // reserved
     uint8 keyCodes[6];
@@ -30,5 +32,7 @@ extern BIT usbHidKeyboardInputUpdated;
 extern BIT usbHidMouseInputUpdated;
 
 void usbHidService(void);
+
+uint8 hidAsciiCharToKeyCode(char asciiChar);
 
 #endif
