@@ -70,7 +70,7 @@ static void doNothing();
 // TODO: look at usb-to-serial adapters and figure out good default values for usbComControlLineState (RTS and CTS)
 uint8 usbComControlLineState = 0;
 
-uint8 usbComSerialState = ACM_SERIAL_STATE_RING_SIGNAL;
+uint8 usbComSerialState = 0;
 
 // The last state we reported to the computer, or 0xFF if we have not reported
 // a state yet.
@@ -333,6 +333,8 @@ uint8 usbComRxReceiveByte()
     {
         USBCSOL &= ~USBCSOL_OUTPKT_RDY;   // Tell the USB module we are done reading this packet, so it can receive more.
     }
+
+    usbActivityFlag = 1;
     return tmp;
 }
 
@@ -360,7 +362,12 @@ static void sendPacketNow()
 
     // If the last packet transmitted was a full packet, we should send an empty packet later.
     sendEmptyPacketSoon = (inFifoBytesLoaded == CDC_IN_PACKET_SIZE);
+
+    // There are 0 bytes in the IN FIFO now.
     inFifoBytesLoaded = 0;
+
+    // Notify the USB library that some activity has occurred.
+    usbActivityFlag = 1;
 }
 
 void usbComService(void)
@@ -428,10 +435,12 @@ void usbComService(void)
         USBCSIL |= USBCSIL_INPKT_RDY;
 
         // As specified in PSTN 1.20 Section 6.5.4, we clear the "irregular" signals.
-        usbComSerialState &= ~(ACM_SERIAL_STATE_BREAK | ACM_SERIAL_STATE_RING_SIGNAL |
-                ACM_SERIAL_STATE_FRAMING | ACM_SERIAL_STATE_PARITY | ACM_SERIAL_STATE_OVERRUN);
+        usbComSerialState &= ~ACM_IRREGULAR_SIGNAL_MASK;
 
         lastReportedSerialState = usbComSerialState;
+
+        // Notify the USB library that some activity has occurred.
+        usbActivityFlag = 1;
     }
 }
 
@@ -497,4 +506,23 @@ void usbComTxSendByte(uint8 byte)
     {
         sendPacketNow();
     }
+
+    // Don't set usbActivityFlag here; wait until we actually send the packet.
+}
+
+/* CDC ACM CONTROL SIGNAL FUNCTIONS *******************************************/
+
+uint8 usbComRxControlSignals()
+{
+    return usbComControlLineState;
+}
+
+void usbComTxControlSignals(uint8 signals)
+{
+    usbComSerialState = (usbComSerialState & ACM_IRREGULAR_SIGNAL_MASK) | signals;
+}
+
+void usbComTxControlSignalEvents(uint8 signalEvents)
+{
+    usbComSerialState |= signalEvents;
 }

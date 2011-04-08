@@ -2,9 +2,11 @@
  * Contains common code that is needed by usb_com.h, uart1.h, and uart0.h.
  *
  * The ACM_SERIAL_STATE_* defines all come from Table 31 of PSTN specification.
- * specification version 1.20.
+ * specification version 1.20.  They serve to define the bits used in
+ * usbComTxSignals() (see usb_com.h).
  *
  * The ACM_CONTROL_LINE_* defines all from the Table 18 of the PSTN specification.
+ * They serve to define the bits returned by usbComRxSignals() (see usb_com.h).
  *
  * PSTN is a subclass of the USB CDC Device Class.  You can find the specification
  * of PSTN in PSTN120.pdf, available for download from USB Implementers Forum at
@@ -38,6 +40,12 @@
 
 /*! Received data has been discarded due to overrun in the device. */
 #define ACM_SERIAL_STATE_OVERRUN     (1<<6)
+
+/*! These are the "irregular" signals, described in PSTN 1.20 Section 6.5.4.
+ * These bits represent events that can be reported to the USB host.
+ * They are more like interrupts than I/O lines.
+ * See the usbComTxControlSignals() function in usb_com.h for more information. */
+#define ACM_IRREGULAR_SIGNAL_MASK  (ACM_SERIAL_STATE_BREAK | ACM_SERIAL_STATE_RING_SIGNAL | ACM_SERIAL_STATE_FRAMING | ACM_SERIAL_STATE_PARITY | ACM_SERIAL_STATE_OVERRUN)
 
 /*! Indicates to the CDE if DTE is present or not.
  * - 0 = Not Present

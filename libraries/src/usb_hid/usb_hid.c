@@ -168,7 +168,7 @@ uint8 CODE mouseReportDescriptor[]
             HID_REPORT_SIZE, 1,
             HID_USAGE_PAGE, HID_USAGE_PAGE_BUTTONS,
             HID_USAGE_MIN, 1,
-            HID_USAGE_MAX, 5,
+            HID_USAGE_MAX, 8,
             HID_LOGICAL_MIN, 0,
             HID_LOGICAL_MAX, 1,
             HID_INPUT, HID_ITEM_VARIABLE,

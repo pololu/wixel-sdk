@@ -178,16 +178,16 @@ void setDigitalInput(uint8 pinNumber, BIT pulled) __reentrant;
  * \param pinNumber Should be one of the pin numbers listed in the table above (e.g. 12).
  * \return #LOW (0) or #HIGH (1).
  *
- * If the pin is configured as a digital input, the return value represents a digital
- * reading of the voltage on the pin.
+ * The return value represents a digital reading of the voltage on the pin.
  * According to the "DC Characteristics" section of the CC2511 datasheet,
  * voltages below 30% of VDD (typically 0.99 V on the Wixel) will read as 0,
  * while voltages above 70% of VDD (typically 2.31 V on the Wixel)
  * will read as 1.
  *
- * If the pin is configured as a digital output, the return value represents the
- * logical value (i.e. voltage) that the pin is outputting.  This value can be set
- * with setDigitalOutput().
+ * This function is intended to be used for pins that are configured as inputs.
+ * For a pin configured as an output, it can be used, but it might sometimes
+ * give unexpected results in case the current voltage has not
+ * reached the voltage that the pin is configured to drive it to.
  *
  * This function simply returns the bit value of the port.  For example,
  * calling <code>isPinHigh(14)</code> will have the effect as reading
