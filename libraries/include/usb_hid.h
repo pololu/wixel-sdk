@@ -26,8 +26,7 @@
  * the \b keyboard interface.
  * If the Wixel is connected to a Windows machine, you can use this struct to
  * determine whether the Caps Lock, Num Lock, or Scroll Lock options are active.
- * Mac OS and Linux computers, on the other hand, do not send that information
- * to the device. */
+ * This might not work on Linux or Mac OS computers. */
 typedef struct HID_KEYBOARD_OUT_REPORT
 {
     /*! Keyboard LED indicator data. Each bit contains the state of one
@@ -45,7 +44,7 @@ if (usbHidKeyboardOutput.leds & (1<<LED_CAPS_LOCK))
 }
 \endcode
      *
-     * This only works on Windows computers.
+     * This might not work on Linux or Mac OS computers.
      */
     uint8 leds;
 } HID_KEYBOARD_OUT_REPORT;
@@ -102,8 +101,8 @@ typedef struct HID_MOUSE_IN_REPORT
 /*! Contains \b output data received by the \b keyboard interface from the host.
  * If the Wixel is connected to a Windows machine, you can use this variable to
  * determine whether the Caps Lock, Num Lock, or Scroll Lock options are active.
- * Mac OS and Linux computers, on the other hand, do not send that information
- * to the device.  See HID_KEYBOARD_OUT_REPORT for details. */
+ * This might not work on Linux or Mac OS computers.
+ * See HID_KEYBOARD_OUT_REPORT for details. */
 extern HID_KEYBOARD_OUT_REPORT XDATA usbHidKeyboardOutput;
 
 /*! Contains \b input data to be sent from the \b keyboard interface to the host.
