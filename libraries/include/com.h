@@ -2,7 +2,7 @@
  * Contains common code that is needed by usb_com.h, uart1.h, and uart0.h.
  *
  * The ACM_SERIAL_STATE_* defines all come from Table 31 of PSTN specification.
- * specification version 1.20.  They serve to define the bits used in
+ * They serve to define the bits used in
  * usbComTxSignals() (see usb_com.h).
  *
  * The ACM_CONTROL_LINE_* defines all from the Table 18 of the PSTN specification.
