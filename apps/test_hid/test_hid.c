@@ -15,6 +15,8 @@
 int32 CODE param_move_cursor = 1;
 int32 CODE param_move_mouse_wheel = 1;
 
+uint8 lastKeyCodeSent = 0;
+
 void updateLeds()
 {
     usbShowStatusWithGreenLed();
@@ -28,6 +30,7 @@ void updateMouseState()
 {
     usbHidMouseInput.x = 0;
     usbHidMouseInput.y = 0;
+
     if (param_move_cursor)
     {
         uint8 direction = getMs() >> 9 & 3;
@@ -68,50 +71,90 @@ void updateMouseState()
     usbHidMouseInputUpdated = 1;
 }
 
+uint8 charToKeyCode(char c)
+{
+    if (c >= 'a' && c <= 'z'){ return c - 'a' + KEY_A; }
+    if (c >= 'A' && c <= 'Z'){ return c - 'A' + KEY_A; }
+    if (c == ' '){ return KEY_SPACE; }
+
+    return 0;
+}
+
+// See keyboardService for an example of how to use this function correctly.
+// Assumption: usbHidKeyboardInputUpdated == 0.  Otherwise, this function
+// could clobber a keycode sitting in the buffer that has not been sent to
+// the computer yet.
+// Assumption: usbHidKeyBoardInput[1 through 5] are all zero.
+// Assumption: usbHidKeyboardInput.modifiers is 0.
+// NOTE: To send two identical characters, you must send a 0 in between.
+void sendKeyCode(uint8 keyCode)
+{
+    lastKeyCodeSent = keyCode;
+    usbHidKeyboardInput.keyCodes[0] = keyCode;
+
+    // Tell the HID library to send the new keyboard state to the computer.
+    usbHidKeyboardInputUpdated = 1;
+}
+
+void keyboardService()
+{
+    char CODE string[] = "hello world ";
+    static uint8 charsLeftToSend = 0;
+    static char XDATA * nextCharToSend;
+
+    // If P0_2 goes low, queue up "hello world" to be sent.
+    if (!isPinHigh(2) && charsLeftToSend == 0)
+    {
+        nextCharToSend = (uint8 XDATA *)string;
+        charsLeftToSend = sizeof(string)-1;
+    }
+
+    LED_RED(charsLeftToSend > 0);
+
+    // Feed data to the HID library, one character at a time.
+    if (charsLeftToSend && !usbHidKeyboardInputUpdated)
+    {
+        uint8 keyCode = charToKeyCode(*nextCharToSend);
+
+        if (keyCode != 0 && keyCode == lastKeyCodeSent)
+        {
+            // Avoid sending duplicate a duplicate keycode twice in a row,
+            // otherwise the computer will just think the button was held down
+            // a little longer and interpet the two characters as a single
+            // key press.
+            keyCode = 0;
+        }
+        else
+        {
+            nextCharToSend++;
+            charsLeftToSend--;
+        }
+
+        sendKeyCode(keyCode);
+    }
+
+    if (charsLeftToSend == 0 && lastKeyCodeSent != 0 && !usbHidKeyboardInputUpdated)
+    {
+        sendKeyCode(0);
+    }
+}
+
 void periodicTasks()
 {
     updateLeds();
     boardService();
     usbHidService();
     updateMouseState();
+    keyboardService();
 }
-
-uint8 charToKeyCode(char c)
-{
-    if (c >= 'a' && c <= 'z')
-        return c - 'a' + 4;
-    if (c >= 'A' && c <= 'Z')
-        return c - 'A' + 4;
-    if (c == ' ')
-        return 0x2C;
-
-    return 0;
-}
-
 
 void main()
 {
-    uint8 i;
-    char XDATA string[] = "hello world";
-
     systemInit();
     usbInit();
 
     while (1)
     {
-        while (isPinHigh(2)) periodicTasks();
-        while (!isPinHigh(2)) periodicTasks();
-
-        LED_RED(1);
-        for (i = 0; i < sizeof(string)-1; i++)
-        {
-            usbHidKeyboardInput.keyCodes[0] = charToKeyCode(string[i]);
-            usbHidKeyboardInputUpdated = 1;
-            while (usbHidKeyboardInputUpdated) periodicTasks();
-            usbHidKeyboardInput.keyCodes[0] = 0;
-            usbHidKeyboardInputUpdated = 1;
-            while (usbHidKeyboardInputUpdated) periodicTasks();
-        }
-        LED_RED(0);
+        periodicTasks();
     }
 }
