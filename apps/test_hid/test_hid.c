@@ -116,12 +116,10 @@ BIT buttonGetSingleDebouncedPress()
 
 void keyboardService()
 {
-    char CODE greeting[] = "hello world ";
-
-    char CODE test[] = "!\"#$%&'()*+,-./0123456789:;<=>? "
+    /* char CODE test[] = "!\"#$%&'()*+,-./0123456789:;<=>? "
             "@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_ "
-            "`abcdefghijklmnopqrstuvwxyz{|}~";
-
+            "`abcdefghijklmnopqrstuvwxyz{|}~"; */
+    char CODE greeting[] = "hello world ";
     static uint8 charsLeftToSend = 0;
     static char XDATA * nextCharToSend;
 
@@ -130,7 +128,7 @@ void keyboardService()
         nextCharToSend = (char XDATA *)greeting;
         charsLeftToSend = sizeof(greeting)-1;
 
-        // Uncomment the following line to test more characters.
+        // Uncomment the 'test' string above and the following line to test more characters.
         //nextCharToSend = (char XDATA *)test; charsLeftToSend = sizeof(test)-1;
     }
 
@@ -139,7 +137,7 @@ void keyboardService()
     // Feed data to the HID library, one character at a time.
     if (charsLeftToSend && !usbHidKeyboardInputUpdated)
     {
-        uint8 keyCode = hidAsciiCharToKeyCode(*nextCharToSend);
+        uint8 keyCode = usbHidKeyCodeFromAsciiChar(*nextCharToSend);
 
         if (keyCode != 0 && keyCode == lastKeyCodeSent)
         {
