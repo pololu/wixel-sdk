@@ -1,4 +1,3 @@
-/** Dependencies **************************************************************/
 #include <cc2511_map.h>
 #include <board.h>
 #include <time.h>
@@ -15,10 +14,22 @@ void updateLeds()
     usbShowStatusWithGreenLed();
 }
 
-void main()
+void rxMouseState(void)
 {
     uint8 XDATA * rxBuf;
 
+    if (rxBuf = radioQueueRxCurrentPacket())
+    {
+        usbHidMouseInput.x = rxBuf[1];
+        usbHidMouseInput.y =  rxBuf[2];
+        usbHidMouseInput.buttons = rxBuf[3];
+        usbHidMouseInputUpdated = 1;
+        radioQueueRxDoneWithPacket();
+    }
+}
+
+void main()
+{
     systemInit();
     usbInit();
 
@@ -27,18 +38,10 @@ void main()
 
     while(1)
     {
-        boardService();
         updateLeds();
-
+        boardService();
         usbHidService();
 
-        if (rxBuf = radioQueueRxCurrentPacket())
-        {
-            usbHidMouseInput.x = rxBuf[1];
-            usbHidMouseInput.y =  rxBuf[2];
-            usbHidMouseInput.buttons = rxBuf[3];
-            usbHidMouseInputUpdated = 1;
-            radioQueueRxDoneWithPacket();
-        }
+        rxMouseState();
     }
 }
