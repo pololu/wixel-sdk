@@ -116,14 +116,22 @@ BIT buttonGetSingleDebouncedPress()
 
 void keyboardService()
 {
-    char CODE string[] = "hello world ";
+    char CODE greeting[] = "hello world ";
+
+    char CODE test[] = "!\"#$%&'()*+,-./0123456789:;<=>? "
+            "@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_ "
+            "`abcdefghijklmnopqrstuvwxyz{|}~";
+
     static uint8 charsLeftToSend = 0;
     static char XDATA * nextCharToSend;
 
     if (buttonGetSingleDebouncedPress() && charsLeftToSend == 0)
     {
-        nextCharToSend = (char XDATA *)string;
-        charsLeftToSend = sizeof(string)-1;
+        nextCharToSend = (char XDATA *)greeting;
+        charsLeftToSend = sizeof(greeting)-1;
+
+        // Uncomment the following line to test more characters.
+        //nextCharToSend = (char XDATA *)test; charsLeftToSend = sizeof(test)-1;
     }
 
     LED_RED(charsLeftToSend > 0);
@@ -135,10 +143,9 @@ void keyboardService()
 
         if (keyCode != 0 && keyCode == lastKeyCodeSent)
         {
-            // Avoid sending duplicate a duplicate keycode twice in a row,
-            // otherwise the computer will just think the button was held down
-            // a little longer and interpet the two characters as a single
-            // key press.
+            // If we need to send the same character twice in a row,
+            // send a 0 between them so the compute registers it as
+            // two different separate key strokes.
             keyCode = 0;
         }
         else
@@ -150,19 +157,11 @@ void keyboardService()
         sendKeyCode(keyCode);
     }
 
+    // Send a 0 to signal the release of the last key.
     if (charsLeftToSend == 0 && lastKeyCodeSent != 0 && !usbHidKeyboardInputUpdated)
     {
         sendKeyCode(0);
     }
-}
-
-void periodicTasks()
-{
-    updateLeds();
-    boardService();
-    usbHidService();
-    updateMouseState();
-    keyboardService();
 }
 
 void main()
@@ -172,6 +171,10 @@ void main()
 
     while(1)
     {
-        periodicTasks();
+        updateLeds();
+        boardService();
+        usbHidService();
+        updateMouseState();
+        keyboardService();
     }
 }
