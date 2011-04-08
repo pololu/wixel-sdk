@@ -1,26 +1,56 @@
+/* pinout:
+ *
+ * P0_0 = Left Mouse Button input
+ * P0_1 = Right Mouse Button input
+ *
+ * P1_0 = Num Lock Output
+ * P1_1 = Scroll Lock Output
+ * P2_2 = Caps Lock Output (yellow LED)
+ */
+
 #include <wixel.h>
 #include <usb.h>
 #include <usb_hid.h>
+
+int32 CODE param_move_cursor = 1;
+int32 CODE param_move_mouse_wheel = 1;
 
 void updateLeds()
 {
     usbShowStatusWithGreenLed();
     LED_YELLOW(usbHidKeyboardOutput.leds & (1 << LED_CAPS_LOCK));
+
+    setDigitalOutput(10, usbHidKeyboardOutput.leds & (1 << LED_NUM_LOCK));
+    setDigitalOutput(11, usbHidKeyboardOutput.leds & (1 << LED_SCROLL_LOCK));
 }
 
-void mouseService()
+void updateMouseState()
 {
-    uint8 dir = getMs() >> 8 & 3;
-
     usbHidMouseInput.x = 0;
     usbHidMouseInput.y = 0;
-
-    switch(dir)
+    if (param_move_cursor)
     {
-    case 0: usbHidMouseInput.x = 2; break;
-    case 1: usbHidMouseInput.y = 2; break;
-    case 2: usbHidMouseInput.x = -2; break;
-    case 3: usbHidMouseInput.y = -2; break;
+        uint8 direction = getMs() >> 9 & 3;
+        switch(direction)
+        {
+        case 0: usbHidMouseInput.x = 3; break;
+        case 1: usbHidMouseInput.y = 3; break;
+        case 2: usbHidMouseInput.x = -3; break;
+        case 3: usbHidMouseInput.y = -3; break;
+        }
+    }
+
+    if (param_move_mouse_wheel)
+    {
+        uint8 direction = getMs() >> 10 & 1;
+        if (direction)
+        {
+            usbHidMouseInput.wheel = -1;
+        }
+        else
+        {
+            usbHidMouseInput.wheel = 1;
+        }
     }
 
     usbHidMouseInput.buttons = 0;
@@ -43,7 +73,7 @@ void periodicTasks()
     updateLeds();
     boardService();
     usbHidService();
-    mouseService();
+    updateMouseState();
 }
 
 uint8 charToKeyCode(char c)
@@ -69,8 +99,8 @@ void main()
 
     while (1)
     {
-        while (isPinHigh(0)) periodicTasks();
-        while (!isPinHigh(0)) periodicTasks();
+        while (isPinHigh(2)) periodicTasks();
+        while (!isPinHigh(2)) periodicTasks();
 
         LED_RED(1);
         for (i = 0; i < sizeof(string)-1; i++)
