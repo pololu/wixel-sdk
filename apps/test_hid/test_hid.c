@@ -96,33 +96,44 @@ void sendKeyCode(uint8 keyCode)
     usbHidKeyboardInputUpdated = 1;
 }
 
-void keyboardService()
+// NOTE: This function only handles bouncing that occurs when the button is
+// going from the not-pressed to pressed state.
+BIT buttonGetSingleDebouncedPress()
 {
-    char CODE string[] = "hello world ";
-    static uint8 charsLeftToSend = 0;
-    static char XDATA * nextCharToSend;
-    static BIT handledThisButtonPress = 0;
+    static BIT reportedThisButtonPress = 0;
     static uint8 lastTimeButtonWasNotPressed = 0;
 
     if (isPinHigh(2))
     {
         // The P0_2 "button" is not pressed.
-        handledThisButtonPress = 0;
+        reportedThisButtonPress = 0;
         lastTimeButtonWasNotPressed = (uint8)getMs();
     }
-    else if ((uint8)(getMs() - lastTimeButtonWasNotPressed) > 50)
+    else if ((uint8)(getMs() - lastTimeButtonWasNotPressed) > 15)
     {
-        // The P0_2 "button" is pressed (or at least P0_2 is shorted to ground).
+        // The P0_2 "button" has been pressed (or at least P0_2 is shorted
+        // to ground) for 15 ms.
 
-        // Queue up the string to be sent to the computer once per button press.
-        if (!handledThisButtonPress && charsLeftToSend == 0)
+        if (!reportedThisButtonPress)
         {
-            nextCharToSend = (uint8 XDATA *)string;
-            charsLeftToSend = sizeof(string)-1;
-            handledThisButtonPress = 1;
+            reportedThisButtonPress = 1;
+            return 1;
         }
     }
+    return 0;
+}
 
+void keyboardService()
+{
+    char CODE string[] = "hello world ";
+    static uint8 charsLeftToSend = 0;
+    static char XDATA * nextCharToSend;
+
+    if (charsLeftToSend == 0 && buttonGetSingleDebouncedPress())
+    {
+        nextCharToSend = (uint8 XDATA *)string;
+        charsLeftToSend = sizeof(string)-1;
+    }
 
     LED_RED(charsLeftToSend > 0);
 
@@ -168,7 +179,7 @@ void main()
     systemInit();
     usbInit();
 
-    while (1)
+    while(1)
     {
         periodicTasks();
     }
