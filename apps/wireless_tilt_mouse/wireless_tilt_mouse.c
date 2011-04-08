@@ -15,7 +15,7 @@
  *
  * == Parameters ==
  * - invert_x:  Default is 0.  Set to 1 to invert the X axis movement.
- * - invert_y:  Default is 0.  Set to 1 to inver the Y axis movement.
+ * - invert_y:  Default is 0.  Set to 1 to invert the Y axis movement.
  * - speed: Controls how fast the mouse moves.  Default is 100.
  */
 
