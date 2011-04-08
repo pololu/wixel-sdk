@@ -32,7 +32,7 @@ void txMouseState()
         magnitude = sqrtf(x * x + y * y);
         txBuf[1] = (int8)(x * magnitude);
         txBuf[2] = (int8)(y * magnitude);
-        txBuf[3] = !isPinHigh(0) << MOUSE_BUTTON_LEFT;
+        txBuf[3] = !isPinHigh(12) << MOUSE_BUTTON_LEFT;
         *txBuf = 3; // set packet length byte
         radioQueueTxSendPacket();
 
@@ -48,7 +48,7 @@ void main()
     radioQueueInit();
     randomSeedFromSerialNumber();
 
-    // disable pull-ups on inputs from accelerometer
+    // disable pull-ups on accelerometer outputs
     setDigitalInput(1, HIGH_IMPEDANCE);
     setDigitalInput(2, HIGH_IMPEDANCE);
 
