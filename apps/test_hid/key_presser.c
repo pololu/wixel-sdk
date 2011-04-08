@@ -1,13 +1,6 @@
-/** Dependencies **************************************************************/
-#include <cc2511_map.h>
-#include <board.h>
-#include <time.h>
-
+#include <wixel.h>
 #include <usb.h>
 #include <usb_hid.h>
-#include <gpio.h>
-
-#include <string.h>
 
 void updateLeds()
 {
@@ -15,11 +8,42 @@ void updateLeds()
     LED_YELLOW(usbHidKeyboardOutput.leds & (1 << LED_CAPS_LOCK));
 }
 
+void mouseService()
+{
+    uint8 dir = getMs() >> 8 & 3;
+
+    usbHidMouseInput.x = 0;
+    usbHidMouseInput.y = 0;
+
+    switch(dir)
+    {
+    case 0: usbHidMouseInput.x = 2; break;
+    case 1: usbHidMouseInput.y = 2; break;
+    case 2: usbHidMouseInput.x = -2; break;
+    case 3: usbHidMouseInput.y = -2; break;
+    }
+
+    usbHidMouseInput.buttons = 0;
+    if (!isPinHigh(0))
+    {
+        // The left mouse button is pressed.
+        usbHidMouseInput.buttons |= (1<<MOUSE_BUTTON_LEFT);
+    }
+    if (!isPinHigh(1))
+    {
+        // The right mouse button is pressed.
+        usbHidMouseInput.buttons |= (1<<MOUSE_BUTTON_RIGHT);
+    }
+
+    usbHidMouseInputUpdated = 1;
+}
+
 void periodicTasks()
 {
     updateLeds();
     boardService();
     usbHidService();
+    mouseService();
 }
 
 uint8 charToKeyCode(char c)
@@ -49,7 +73,7 @@ void main()
         while (!isPinHigh(0)) periodicTasks();
 
         LED_RED(1);
-        for (i = 0; i < strlen(string); i++)
+        for (i = 0; i < sizeof(string)-1; i++)
         {
             usbHidKeyboardInput.keyCodes[0] = charToKeyCode(string[i]);
             usbHidKeyboardInputUpdated = 1;
