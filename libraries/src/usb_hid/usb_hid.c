@@ -620,7 +620,7 @@ uint8 CODE hidKeyCode[128] =
     KEY_DELETE         // 0x7F Delete
 };
 
-uint8 hidAsciiCharToKeyCode(char asciiChar)
+uint8 usbHidKeyCodeFromAsciiChar(char asciiChar)
 {
     if (asciiChar & 0x80){ return 0; }
     return hidKeyCode[asciiChar];

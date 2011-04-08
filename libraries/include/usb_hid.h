@@ -1,6 +1,7 @@
 /*! \file usb_hid.h
  * The <code>usb_hid.lib</code> library implements a composite USB device
- * containing a keyboard interface and a mouse interface using the HID class.
+ * containing a keyboard interface and a mouse interface using the
+ * Human Interface Device (HID) class.
  *
  * You can find the specification of the USB HID device class in HID1_11.pdf,
  * available for download from USB Implementers Forum at this url:
@@ -22,7 +23,11 @@
 
 /*! \struct HID_KEYBOARD_OUT_REPORT
  * This struct contains the \b output data sent in HID reports from the host to
- * the \b keyboard interface. */
+ * the \b keyboard interface.
+ * If the Wixel is connected to a Windows machine, you can use this struct to
+ * determine whether the Caps Lock, Num Lock, or Scroll Lock options are active.
+ * Mac OS and Linux computers, on the other hand, do not send that information
+ * to the device. */
 typedef struct HID_KEYBOARD_OUT_REPORT
 {
     /*! Keyboard LED indicator data. Each bit contains the state of one
@@ -31,6 +36,16 @@ typedef struct HID_KEYBOARD_OUT_REPORT
      * 0x08) in the LED usage Page. See usb_hid_constants.h for the meaning
      * of each bit. The keyboard's HID Report Descriptor is defined as
      * <code>keyboardReportDescriptor</code> in usb_hid.c.
+     *
+     * Example usage:
+\code
+if (usbHidKeyboardOutput.leds & (1<<LED_CAPS_LOCK))
+{
+    // The Caps Lock LED is on.
+}
+\endcode
+     *
+     * This only works on Windows computers.
      */
     uint8 leds;
 } HID_KEYBOARD_OUT_REPORT;
@@ -84,21 +99,34 @@ typedef struct HID_MOUSE_IN_REPORT
     int8 wheel;
 } HID_MOUSE_IN_REPORT;
 
-/*! The \b output data received by the \b keyboard interface from the host is
- * read from this variable. See HID_KEYBOARD_OUT_REPORT for details. */
+/*! Contains \b output data received by the \b keyboard interface from the host.
+ * If the Wixel is connected to a Windows machine, you can use this variable to
+ * determine whether the Caps Lock, Num Lock, or Scroll Lock options are active.
+ * Mac OS and Linux computers, on the other hand, do not send that information
+ * to the device.  See HID_KEYBOARD_OUT_REPORT for details. */
 extern HID_KEYBOARD_OUT_REPORT XDATA usbHidKeyboardOutput;
-/*! The \b input data to be sent from the \b keyboard interface to the host is
- * written to this variable. See HID_KEYBOARD_IN_REPORT for details. */
+
+/*! Contains \b input data to be sent from the \b keyboard interface to the host.
+ * You can use this variable to send key presses to the computer.
+ * After writing data to this struct, set #usbHidKeyboardInputUpdated to 1 to
+ * tell the HID library to send that data to the computer.
+ * See HID_KEYBOARD_IN_REPORT for details. */
 extern HID_KEYBOARD_IN_REPORT XDATA usbHidKeyboardInput;
-/*! The \b input data to be sent from the \b mouse interface to the host is
- * written to this variable. See HID_MOUSE_IN_REPORT for details. */
+
+/*! Contains \b input data to be sent from the \b mouse interface to the host.
+ * You can use this variable to send X, Y and mouse wheel position changes to
+ * the computer and report the state of the mouse buttons.
+ * After writing data to this variable, set #usbHidMouseInputUpdated to 1 to
+ * tell the HID library to send that data to the computer.
+ * See HID_MOUSE_IN_REPORT for details. */
 extern HID_MOUSE_IN_REPORT XDATA usbHidMouseInput;
 
-/*! After writing data in usbHidKeyboardInput, set this bit to trigger an HID
+/*! After writing data in #usbHidKeyboardInput, set this bit to trigger an HID
  * report to be sent from the keyboard interface to the host. It is cleared
  * by the library once the report is sent. */
 extern BIT usbHidKeyboardInputUpdated;
-/*! After writing data in usbHidMouseInput, set this bit to trigger an HID
+
+/*! After writing data in #usbHidMouseInput, set this bit to trigger an HID
  * report to be sent from the mouse interface to the host. It is cleared by the
  * library once the report is sent. */
 extern BIT usbHidMouseInputUpdated;
@@ -106,6 +134,13 @@ extern BIT usbHidMouseInputUpdated;
 /*! This must be called regularly if you are implementing an HID device. */
 void usbHidService(void);
 
-uint8 hidAsciiCharToKeyCode(char asciiChar);
+/*! Converts an ASCII-encoded character in to the corresponding HID Key Code,
+ * suitable for the keyCodes array in HID_KEYBOARD_IN_REPORT.
+ * Note that many pairs of ASCII characters map to the same key code because
+ * they are on the same key.
+ * For example, both '4' and '$' map to 0x21 (KEY_4).
+ * To send a dollar sign to the computer, you must set the shift bit of the
+ * modifiers byte in the HID_KEYBOARD_IN_REPORT. */
+uint8 usbHidKeyCodeFromAsciiChar(char asciiChar);
 
 #endif
