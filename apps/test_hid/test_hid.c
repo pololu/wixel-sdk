@@ -2,10 +2,6 @@
  *
  * P0_0 = Left Mouse Button input
  * P0_1 = Right Mouse Button input
- *
- * P1_0 = Num Lock Output
- * P1_1 = Scroll Lock Output
- * P2_2 = Caps Lock Output (yellow LED)
  */
 
 #include <wixel.h>
@@ -20,10 +16,15 @@ uint8 lastKeyCodeSent = 0;
 void updateLeds()
 {
     usbShowStatusWithGreenLed();
+
     LED_YELLOW(usbHidKeyboardOutput.leds & (1 << LED_CAPS_LOCK));
 
-    setDigitalOutput(10, usbHidKeyboardOutput.leds & (1 << LED_NUM_LOCK));
-    setDigitalOutput(11, usbHidKeyboardOutput.leds & (1 << LED_SCROLL_LOCK));
+    // To see the Num Lock or Caps Lock state, you can use these lines instead of the above:
+    //LED_YELLOW(usbHidKeyboardOutput.leds & (1 << LED_NUM_LOCK));
+    //LED_YELLOW(usbHidKeyboardOutput.leds & (1 << LED_SCROLL_LOCK));
+
+    // NOTE: Reading the Caps Lock, Num Lock, and Scroll Lock states might not work
+    // if the USB host is a Linux or Mac OS machine.
 }
 
 void updateMouseState()
