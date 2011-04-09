@@ -8,8 +8,8 @@
 #include <usb.h>
 #include <usb_hid.h>
 
-int32 CODE param_move_cursor = 1;
-int32 CODE param_move_mouse_wheel = 1;
+int32 CODE param_move_cursor = 0;
+int32 CODE param_move_mouse_wheel = 0;
 
 uint8 lastKeyCodeSent = 0;
 
