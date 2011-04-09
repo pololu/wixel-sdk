@@ -225,7 +225,7 @@ CODE struct CONFIG1 {
         HID_CLASS,                                       // bInterfaceClass
         HID_SUBCLASS_BOOT,                               // bInterfaceSubClass
         HID_PROTOCOL_KEYBOARD,                           // bInterfaceProtocol
-        0                                                // iInterface
+        4                                                // iInterface
     },
     {
         sizeof(usbConfigurationDescriptor.keyboard_hid), // 9-byte HID Descriptor for keyboard (HID 1.11 Section 6.2.1)
@@ -253,7 +253,7 @@ CODE struct CONFIG1 {
         HID_CLASS,                                       // bInterfaceClass
         HID_SUBCLASS_BOOT,                               // bInterfaceSubClass
         HID_PROTOCOL_MOUSE,                              // bInterfaceProtocol
-        0                                                // iInterface
+        5                                                // iInterface
     },
     {
         sizeof(usbConfigurationDescriptor.mouse_hid),    // 9-byte HID Descriptor for mouse (HID 1.11 Section 6.2.1)
@@ -274,11 +274,13 @@ CODE struct CONFIG1 {
     },
 };
 
-uint8 CODE usbStringDescriptorCount = 4;
+uint8 CODE usbStringDescriptorCount = 6;
 DEFINE_STRING_DESCRIPTOR(languages, 1, USB_LANGUAGE_EN_US)
 DEFINE_STRING_DESCRIPTOR(manufacturer, 18, 'P','o','l','o','l','u',' ','C','o','r','p','o','r','a','t','i','o','n')
 DEFINE_STRING_DESCRIPTOR(product, 5, 'W','i','x','e','l')
-uint16 CODE * CODE usbStringDescriptors[] = { languages, manufacturer, product, serialNumberStringDescriptor };
+DEFINE_STRING_DESCRIPTOR(keyboardName, 14, 'W','i','x','e','l',' ','K','e','y','b','o','a','r','d')
+DEFINE_STRING_DESCRIPTOR(mouseName, 11, 'W','i','x','e','l',' ','M','o','u','s','e')
+uint16 CODE * CODE usbStringDescriptors[] = { languages, manufacturer, product, serialNumberStringDescriptor, keyboardName, mouseName };
 
 /* HID structs and global variables *******************************************/
 
