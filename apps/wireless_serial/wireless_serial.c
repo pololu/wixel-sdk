@@ -5,6 +5,7 @@
  */
 
 /*
+ * TODO: To avoid damage, don't enable nDTR and nRTS outputs by default.
  * TODO: Support for USB CDC ACM control signals.
  * TODO: use LEDs to give feedback about sending/receiving bytes.
  * TODO: UART flow control.
