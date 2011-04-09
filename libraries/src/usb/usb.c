@@ -346,8 +346,15 @@ static void usbStandardDeviceRequestHandler()
                 }
                 default:
                 {
-                    // unknown type of descriptor
-                    return;
+                    // see if the class recognizes the descriptor type; it should call usbControlRead if it does
+                    usbCallbackClassDescriptorHandler();
+
+                    if (controlTransferState == CONTROL_TRANSFER_STATE_NONE)
+                    {
+                        // unknown type of descriptor
+                        return;
+                    }
+                    break;
                 }
             }
 
@@ -411,6 +418,13 @@ static void usbStandardDeviceRequestHandler()
 
             // Get ready to provide a handshake.
             usbControlAcknowledge();
+            return;
+        }
+        case USB_REQUEST_GET_CONFIGURATION: // USB Spec 9.4.2 Get Configuration
+        {
+            // Assumption: there is only one configuration and its value is 1.
+            response[0] = (usbDeviceState == USB_STATE_CONFIGURED) ? 1 : 0;
+            usbControlRead(1, response);
             return;
         }
         case USB_REQUEST_GET_INTERFACE: // USB Spec 9.4.4 Get Interface

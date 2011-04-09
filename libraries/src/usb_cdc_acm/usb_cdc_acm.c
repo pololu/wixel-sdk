@@ -268,6 +268,11 @@ void usbCallbackSetupHandler()
     }
 }
 
+void usbCallbackClassDescriptorHandler(void)
+{
+    // Not used by CDC ACM
+}
+
 static void doNothing(void)
 {
     // Do nothing.

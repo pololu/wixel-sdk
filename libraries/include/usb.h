@@ -194,13 +194,13 @@ typedef struct USB_DESCRIPTOR_ENDPOINT // USB2.0 Table 9-13: Standard Endpoint D
 extern enum USB_DEVICE_STATES XDATA usbDeviceState;
 extern USB_SETUP_PACKET XDATA usbSetupPacket;
 
-void usbInit();
-void usbPoll();
+void usbInit(void);
+void usbPoll(void);
 
 void usbControlRead(uint16 bytesCount, uint8 XDATA * source);
 void usbControlWrite(uint16 bytesCount, uint8 XDATA * source);
-void usbControlAcknowledge();
-void usbControlStall();
+void usbControlAcknowledge(void);
+void usbControlStall(void);
 
 void usbInitEndpointIn(uint8 endpointNumber, uint8 maxPacketSize);
 void usbInitEndpointOut(uint8 endpointNumber, uint8 maxPacketSize);
@@ -213,7 +213,7 @@ void usbReadFifo(uint8 endpointNumber, uint8 count, uint8 XDATA * buffer);
  *
  * You can use this to know when it is time to turn
  * off the peripherals and go in to a power-saving mode. */
-BIT usbSuspended();
+BIT usbSuspended(void);
 
 /* TODO: document usbSleep
  *
@@ -228,7 +228,7 @@ BIT usbSuspended();
  *          // Here you should re-enable the things that were disabled.
  *      }
  */
-void usbSleep();
+void usbSleep(void);
 
 /*! usbSuspendMode:  Direct access to this bit is provided for applications that
  * need to use the P0 interrupt and want USB suspend mode to work.  If you don't
@@ -279,7 +279,7 @@ extern volatile BIT usbSuspendMode;
  *
  * See #usbActivityFlag for more information on the flickering.
  */
-void usbShowStatusWithGreenLed();
+void usbShowStatusWithGreenLed(void);
 
 /*! Libraries that directly access USB registers should set this bit to
  * 1 whenever they read or write data from USB.  This allows the
@@ -293,8 +293,9 @@ extern volatile BIT usbActivityFlag;
 extern USB_DESCRIPTOR_DEVICE CODE usbDeviceDescriptor;
 extern uint8 CODE usbStringDescriptorCount;
 extern uint16 CODE * CODE usbStringDescriptors[];
-void usbCallbackSetupHandler();
-void usbCallbackInitEndpoints();
-void usbCallbackControlWriteHandler();
+void usbCallbackSetupHandler(void);
+void usbCallbackClassDescriptorHandler(void);
+void usbCallbackInitEndpoints(void);
+void usbCallbackControlWriteHandler(void);
 
 #endif
