@@ -8,8 +8,8 @@
  *
  * == Pinout ==
  *
- * P0_1 = Mouse Y analog input (controls vertical cursor speed)
- * P0_2 = Mouse X analog input (controls horizontal cursor speed)
+ * P0_1 = Mouse vertical analog input
+ * P0_2 = Mouse horizontal analog input
  * P1_2 = left mouse button input (pulled high; low means button is pressed)
  * P1_7 = left mouse button input (pulled high; low means button is pressed)
  *
