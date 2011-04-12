@@ -98,6 +98,18 @@ typedef struct HID_MOUSE_IN_REPORT
     int8 wheel;
 } HID_MOUSE_IN_REPORT;
 
+typedef struct HID_JOYSTICK_IN_REPORT
+{
+    int8 x;
+    int8 y;
+    int8 z;
+    int8 rx;
+    int8 ry;
+    int8 rz;
+
+    uint16 buttons;
+} HID_JOYSTICK_IN_REPORT;
+
 /*! Contains \b output data received by the \b keyboard interface from the host.
  * If the Wixel is connected to a Windows machine, you can use this variable to
  * determine whether the Caps Lock, Num Lock, or Scroll Lock options are active.
@@ -120,6 +132,8 @@ extern HID_KEYBOARD_IN_REPORT XDATA usbHidKeyboardInput;
  * See HID_MOUSE_IN_REPORT for details. */
 extern HID_MOUSE_IN_REPORT XDATA usbHidMouseInput;
 
+extern HID_JOYSTICK_IN_REPORT XDATA usbHidJoystickInput;
+
 /*! After writing data in #usbHidKeyboardInput, set this bit to trigger an HID
  * report to be sent from the keyboard interface to the host. It is cleared
  * by the library once the report is sent. */
@@ -129,6 +143,8 @@ extern BIT usbHidKeyboardInputUpdated;
  * report to be sent from the mouse interface to the host. It is cleared by the
  * library once the report is sent. */
 extern BIT usbHidMouseInputUpdated;
+
+extern BIT usbHidJoystickInputUpdated;
 
 /*! This must be called regularly if you are implementing an HID device. */
 void usbHidService(void);

@@ -9,16 +9,19 @@
 
 /* HID Library Configuration **************************************************/
 
-#define HID_DATA_ENDPOINT             1
 #define HID_IN_PACKET_SIZE            8
 #define HID_KEYBOARD_INTERFACE_NUMBER 0
 #define HID_MOUSE_INTERFACE_NUMBER    1
+#define HID_JOYSTICK_INTERFACE_NUMBER 2
 
 #define HID_KEYBOARD_ENDPOINT         1
 #define HID_KEYBOARD_FIFO             USBF1   // This must match HID_KEYBOARD_ENDPOINT!
 
 #define HID_MOUSE_ENDPOINT            2
 #define HID_MOUSE_FIFO                USBF2   // This must match HID_MOUSE_ENDPOINT!
+
+#define HID_JOYSTICK_ENDPOINT         3
+#define HID_JOYSTICK_FIFO             USBF3   // This must match HID_JOYSTICK_ENDPOINT!
 
 /* HID Constants **************************************************************/
 
@@ -63,9 +66,14 @@
 // HID Report Usages from HID Usage Tables 1.12 Section 4, Table 6
 #define HID_USAGE_POINTER  0x01
 #define HID_USAGE_MOUSE    0x02
+#define HID_USAGE_JOYSTICK 0x04
 #define HID_USAGE_KEYBOARD 0x06
 #define HID_USAGE_X        0x30
 #define HID_USAGE_Y        0x31
+#define HID_USAGE_Z        0x32
+#define HID_USAGE_RX       0x33
+#define HID_USAGE_RY       0x34
+#define HID_USAGE_RZ       0x35
 #define HID_USAGE_WHEEL    0x38
 
 // HID Report Collection Types from HID 1.12 6.2.2.6
@@ -193,6 +201,44 @@ uint8 CODE mouseReportDescriptor[]
     HID_END_COLLECTION,
 };
 
+// joystick report descriptor
+// HID 1.11 Section 6.2.2: Report Descriptor
+uint8 CODE joystickReportDescriptor[]
+=
+{
+    HID_USAGE_PAGE, HID_USAGE_PAGE_GENERIC_DESKTOP,
+    HID_USAGE, HID_USAGE_JOYSTICK,
+    HID_COLLECTION, HID_COLLECTION_APPLICATION,
+
+        HID_USAGE, HID_USAGE_POINTER,
+        HID_COLLECTION, HID_COLLECTION_PHYSICAL,
+
+            HID_REPORT_COUNT, 6, // 6 Axes (X, Y, Z, Rx, Ry, Rz)
+            HID_REPORT_SIZE, 8,
+            HID_USAGE, HID_USAGE_X,
+            HID_USAGE, HID_USAGE_Y,
+            HID_USAGE, HID_USAGE_Z,
+            HID_USAGE, HID_USAGE_RX,
+            HID_USAGE, HID_USAGE_RY,
+            HID_USAGE, HID_USAGE_RZ,
+            HID_LOGICAL_MIN, -127,
+            HID_LOGICAL_MAX, 127,
+            HID_INPUT, HID_ITEM_VARIABLE,
+
+        HID_END_COLLECTION,
+
+        HID_REPORT_COUNT, 16, // 16 Joystick Buttons
+        HID_REPORT_SIZE, 1,
+        HID_USAGE_PAGE, HID_USAGE_PAGE_BUTTONS,
+        HID_USAGE_MIN, 1,
+        HID_USAGE_MAX, 16,
+        HID_LOGICAL_MIN, 0,
+        HID_LOGICAL_MAX, 1,
+        HID_INPUT, HID_ITEM_VARIABLE,
+
+    HID_END_COLLECTION,
+};
+
 CODE struct CONFIG1 {
     USB_DESCRIPTOR_CONFIGURATION configuration;
 
@@ -203,6 +249,10 @@ CODE struct CONFIG1 {
     USB_DESCRIPTOR_INTERFACE mouse_interface;
     uint8 mouse_hid[9]; // HID Descriptor
     USB_DESCRIPTOR_ENDPOINT mouse_in;
+
+    USB_DESCRIPTOR_INTERFACE joystick_interface;
+    uint8 joystick_hid[9]; // HID Descriptor
+    USB_DESCRIPTOR_ENDPOINT joystick_in;
 } usbConfigurationDescriptor
 =
 {
@@ -210,7 +260,7 @@ CODE struct CONFIG1 {
         sizeof(USB_DESCRIPTOR_CONFIGURATION),
         USB_DESCRIPTOR_TYPE_CONFIGURATION,
         sizeof(struct CONFIG1),                          // wTotalLength
-        2,                                               // bNumInterfaces
+        3,                                               // bNumInterfaces
         1,                                               // bConfigurationValue
         0,                                               // iConfiguration
         0xC0,                                            // bmAttributes: self powered (but may use bus power)
@@ -272,24 +322,55 @@ CODE struct CONFIG1 {
         HID_IN_PACKET_SIZE,                              // wMaxPacketSize
         10,                                              // bInterval
     },
+    {                                                    // Joystick Interface
+        sizeof(USB_DESCRIPTOR_INTERFACE),
+        USB_DESCRIPTOR_TYPE_INTERFACE,
+        HID_JOYSTICK_INTERFACE_NUMBER,                   // bInterfaceNumber
+        0,                                               // bAlternateSetting
+        1,                                               // bNumEndpoints
+        HID_CLASS,                                       // bInterfaceClass
+        0,                                               // bInterfaceSubClass
+        0,                                               // bInterfaceProtocol
+        6                                                // iInterface
+    },
+    {
+        sizeof(usbConfigurationDescriptor.joystick_hid), // 9-byte HID Descriptor for joystick (HID 1.11 Section 6.2.1)
+        HID_DESCRIPTOR_TYPE_HID,
+        0x11, 0x01,                                      // bcdHID.  We conform to HID 1.11.
+        HID_COUNTRY_NOT_LOCALIZED,                       // bCountryCode
+        1,                                               // bNumDescriptors
+        HID_DESCRIPTOR_TYPE_REPORT,                      // bDescriptorType
+        sizeof(joystickReportDescriptor), 0              // wDescriptorLength
+    },
+    {                                                    // Joystick IN Endpoint
+        sizeof(USB_DESCRIPTOR_ENDPOINT),
+        USB_DESCRIPTOR_TYPE_ENDPOINT,
+        USB_ENDPOINT_ADDRESS_IN | HID_JOYSTICK_ENDPOINT, // bEndpointAddress
+        USB_TRANSFER_TYPE_INTERRUPT,                     // bmAttributes
+        HID_IN_PACKET_SIZE,                              // wMaxPacketSize
+        10,                                              // bInterval
+    },
 };
 
-uint8 CODE usbStringDescriptorCount = 6;
+uint8 CODE usbStringDescriptorCount = 7;
 DEFINE_STRING_DESCRIPTOR(languages, 1, USB_LANGUAGE_EN_US)
 DEFINE_STRING_DESCRIPTOR(manufacturer, 18, 'P','o','l','o','l','u',' ','C','o','r','p','o','r','a','t','i','o','n')
 DEFINE_STRING_DESCRIPTOR(product, 5, 'W','i','x','e','l')
 DEFINE_STRING_DESCRIPTOR(keyboardName, 14, 'W','i','x','e','l',' ','K','e','y','b','o','a','r','d')
 DEFINE_STRING_DESCRIPTOR(mouseName, 11, 'W','i','x','e','l',' ','M','o','u','s','e')
-uint16 CODE * CODE usbStringDescriptors[] = { languages, manufacturer, product, serialNumberStringDescriptor, keyboardName, mouseName };
+DEFINE_STRING_DESCRIPTOR(joystickName, 14, 'W','i','x','e','l',' ','J','o','y','s','t','i','c','k')
+uint16 CODE * CODE usbStringDescriptors[] = { languages, manufacturer, product, serialNumberStringDescriptor, keyboardName, mouseName, joystickName };
 
 /* HID structs and global variables *******************************************/
 
 HID_KEYBOARD_OUT_REPORT XDATA usbHidKeyboardOutput = {0};
 HID_KEYBOARD_IN_REPORT XDATA usbHidKeyboardInput = {0, 0, {0}};
 HID_MOUSE_IN_REPORT XDATA usbHidMouseInput = {0, 0, 0, 0};
+HID_JOYSTICK_IN_REPORT XDATA usbHidJoystickInput = {0, 0, 0, 0, 0, 0, 0};
 
 BIT usbHidKeyboardInputUpdated = 0;
 BIT usbHidMouseInputUpdated    = 0;
+BIT usbHidJoystickInputUpdated    = 0;
 
 uint16 XDATA hidKeyboardIdleDuration = 500; // 0 to 1020 ms
 
@@ -304,6 +385,7 @@ void usbCallbackInitEndpoints(void)
 {
     usbInitEndpointIn(HID_KEYBOARD_ENDPOINT, HID_IN_PACKET_SIZE);
     usbInitEndpointIn(HID_MOUSE_ENDPOINT, HID_IN_PACKET_SIZE);
+    usbInitEndpointIn(HID_JOYSTICK_ENDPOINT, HID_IN_PACKET_SIZE);
 }
 
 // Implements all the control transfers that are required by Appendix G of HID 1.11.
@@ -329,6 +411,10 @@ void usbCallbackSetupHandler(void)
 
         case HID_MOUSE_INTERFACE_NUMBER:
             usbControlRead(sizeof(usbHidMouseInput), (uint8 XDATA *)&usbHidMouseInput);
+            return;
+
+        case HID_JOYSTICK_INTERFACE_NUMBER:
+            usbControlRead(sizeof(usbHidJoystickInput), (uint8 XDATA *)&usbHidJoystickInput);
             return;
 
         default:
@@ -428,6 +514,10 @@ void usbCallbackClassDescriptorHandler(void)
         case HID_MOUSE_INTERFACE_NUMBER:
             usbControlRead(sizeof(usbConfigurationDescriptor.mouse_hid), (uint8 XDATA *)&usbConfigurationDescriptor.mouse_hid);
             return;
+
+        case HID_JOYSTICK_INTERFACE_NUMBER:
+            usbControlRead(sizeof(usbConfigurationDescriptor.joystick_hid), (uint8 XDATA *)&usbConfigurationDescriptor.joystick_hid);
+            return;
         }
         return;
 
@@ -441,6 +531,10 @@ void usbCallbackClassDescriptorHandler(void)
 
         case HID_MOUSE_INTERFACE_NUMBER:
             usbControlRead(sizeof(mouseReportDescriptor), (uint8 XDATA *)&mouseReportDescriptor);
+            return;
+
+        case HID_JOYSTICK_INTERFACE_NUMBER:
+            usbControlRead(sizeof(joystickReportDescriptor), (uint8 XDATA *)&joystickReportDescriptor);
             return;
         }
         return;
@@ -482,6 +576,14 @@ void usbHidService(void)
         usbWriteFifo(HID_MOUSE_ENDPOINT, sizeof(usbHidMouseInput), (uint8 XDATA *)&usbHidMouseInput);
         USBCSIL |= USBCSIL_INPKT_RDY;
         usbHidMouseInputUpdated = 0; // reset updated flag
+    }
+
+    USBINDEX = HID_JOYSTICK_ENDPOINT;
+    // Check if joystick input has been updated.
+    if (usbHidJoystickInputUpdated && !(USBCSIL & USBCSIL_INPKT_RDY)) {
+        usbWriteFifo(HID_JOYSTICK_ENDPOINT, sizeof(usbHidJoystickInput), (uint8 XDATA *)&usbHidJoystickInput);
+        USBCSIL |= USBCSIL_INPKT_RDY;
+        usbHidJoystickInputUpdated = 0; // reset updated flag
     }
 }
 
