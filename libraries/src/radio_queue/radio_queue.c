@@ -66,6 +66,8 @@ BIT radioQueueAllowCrcErrors = 0;
 
 void radioQueueInit()
 {
+    randomSeedFromSerialNumber();
+
     PKTLEN = RADIO_MAX_PACKET_SIZE;
     CHANNR = param_radio_channel;
 

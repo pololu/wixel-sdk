@@ -161,8 +161,7 @@ void main()
     usbInit();
 
     radioQueueInit();
-    radioQueueAllowCrcErrors = 1;   
-    randomSeedFromSerialNumber();
+    radioQueueAllowCrcErrors = 1;
 
     while(1)
     {

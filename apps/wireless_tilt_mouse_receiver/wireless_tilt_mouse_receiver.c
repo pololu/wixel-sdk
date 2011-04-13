@@ -33,7 +33,6 @@ void main()
     usbInit();
 
     radioQueueInit();
-    randomSeedFromSerialNumber();
 
     while(1)
     {

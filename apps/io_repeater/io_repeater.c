@@ -160,7 +160,6 @@ void main(void)
     usbInit();
 
     radioQueueInit();
-    randomSeedFromSerialNumber();
 
     configurePins();
 

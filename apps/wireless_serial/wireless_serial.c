@@ -222,7 +222,6 @@ void main()
     {
         radioComRxEnforceOrdering = 1;
         radioComInit();
-        randomSeedFromSerialNumber();
     }
 
     // Set up P1_5 to be the radio's TX debug signal.

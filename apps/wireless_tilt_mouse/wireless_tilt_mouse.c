@@ -75,7 +75,6 @@ void main()
     usbInit();
 
     radioQueueInit();
-    randomSeedFromSerialNumber();
 
     // disable pull-ups on accelerometer outputs
     setDigitalInput(1, HIGH_IMPEDANCE);

@@ -99,6 +99,8 @@ static volatile BIT txSequenceBit;
 
 void radioLinkInit()
 {
+    randomSeedFromSerialNumber();
+
     rxSequenceBit = 1;
 
     txSequenceBit = 0;

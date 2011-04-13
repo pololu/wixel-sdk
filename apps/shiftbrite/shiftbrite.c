@@ -224,7 +224,6 @@ void main()
     shiftbriteInit();
 
     radioComInit();
-    randomSeedFromSerialNumber();
     
     while(1)
     {
