@@ -2,7 +2,7 @@
 define APP_template
 
 APP_RELS := $$(patsubst %.c,%.rel, $$(wildcard apps/$(1)/*.c)) $$(patsubst %.s,%.rel, $$(wildcard apps/$(1)/*.s))
-APP_LIBS := dma.lib radio_com.lib radio_link.lib radio_mac.lib radio_registers.lib random.lib uart.lib usb.lib usb_cdc_acm.lib wixel.lib adc.lib gpio.lib
+APP_LIBS := $$(DEFAULT_LIBRARIES)
 -include apps/$(1)/options.mk
 APP_LIBS := $$(foreach lib, $$(APP_LIBS), libraries/lib/$$(lib))
 
