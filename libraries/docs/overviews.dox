@@ -1,27 +1,34 @@
 /** \mainpage Wixel SDK Documentation
 
-The <a href="http://www.pololu.com/catalog/product/1336">Pololu Wixel</a> is
-a general-purpose programmable module featuring a 2.4 GHz radio and USB.
+The Pololu Wixel Software Development Kit (SDK) contains code and Makefiles
+that will help you create your own applications for the
+<a href="http://www.pololu.com/catalog/product/1336">Pololu Wixel</a>.
+The Wixel is a general-purpose programmable module featuring a 2.4&nbsp;GHz radio
+and USB.
 The Wixel is based on the
 <a href="http://focus.ti.com/docs/prod/folders/print/cc2511f32.html">CC2511F32</a>
 microcontroller from Texas Instruments, which has an integrated radio transceiver,
 32 KB of flash memory, 4 KB of RAM, and a full-speed USB interface.
-The Pololu Wixel Software Development Kit (SDK) contains code, utilities,
-and Makefiles which will help you build your own applications for the Wixel.
 
 \section starting Getting Started
 
-You will need to have a copy of the Wixel SDK,
+To load apps on to the Wixel, you will also need to have
+the Wixel's drivers and software installed on your system.
+See the <i>Getting Started</i> section of the 
+<a href="http://www.pololu.com/docs/0J46">Pololu Wixel User's Guide</a>.
+
+To develop your own apps or modify existing ones using the Wixel SDK,
+you will need to have a copy of the Wixel SDK,
 <a href="http://sdcc.sourceforge.net/">SDCC</a> version 3.0.0 or later,
 and you will need to have certain GNU utililties available on your path:
 cat, cp, echo, grep, make, mv, and rm.
 For Windows users, we recommend that you install all of these components
-by downloading the Wixel Development Bundle, available from the
+by downloading the <b>Wixel Development Bundle</b>, available from the
 <a href="http://www.pololu.com/docs/0J46">Pololu Wixel User's Guide</a>.
 
 The Wixel SDK is also available as a
-<a href="http://github.com/pololu/wixel-sdk">git repository hosted on GitHub</a>,
-so you can get it by installing <a href="http://git-scm.com/">git</a>
+<a href="http://github.com/pololu/wixel-sdk">git repository hosted on GitHub</a>.
+You can get the latest version by installing <a href="http://git-scm.com/">git</a>
 and running:
 <pre>
 git clone -o pololu git://github.com/pololu/wixel-sdk.git
@@ -33,13 +40,13 @@ For Windows users, we also recommend installing
 <a href="http://code.google.com/p/tortoisegit/">TortoiseGit</a>
 because it provides a good graphical user interface for git.
 
-\section building_app Building Your App
+\section building_app Building and Loading Apps
 
 Open a command-line terminal, navigate to the top level directory
 of the SDK, and type "make".  This will build all of the apps in
 the apps folder and all of the libraries that they depend on.
 
-To load your app on to all the Wixels connected to the computer,
+To load an app on to all the Wixels connected to the computer,
 type "make load_APPNAME" where APPNAME is the name of your app's
 folder in the apps directory.
 
@@ -49,14 +56,31 @@ type "make open_APPNAME".
 Running any of the commands above will rebuild your app if it
 is out of date.
 
-\section sdk_docs Documentation of Wixel SDK Libraries (incomplete!)
+\section creating_app Creating Your Own App
+
+To create your own app, simply copy one of the existing folders in the
+<code>apps</code> directory and change its name.
+You do not need to modify the Makefile;
+the Makefile will automatically detect the new app as long as it is in
+the <code>apps</code> folder.
+
+If your app doesn't use the default set of libraries defined in
+<code>libraries/libs.mk</code>, you can specify which libraries
+your app uses by creating a file called
+<code>options.mk</code> in your
+app directory and defining a GNU Make variable in it called <code>APP_LIBS</code>
+that contains a list of the file names of the libraries your app uses, separated
+by spaces.  See <code>apps/test_board/options.mk</code> for an example.
+\endcode
+
+\section sdk_docs Documentation of Wixel SDK Libraries
 
 The <a href="./group__libraries.html">Libraries</a> page contains an overview
 of all the libraries available in this SDK.
 
 The <a href="./files.html">File List</a> page links to the documentation
 for all the library functions, grouped by header file.
-This documentation is auto-generated from the .c and .h
+This documentation is auto-generated from the .h
 files in the SDK.
 
 The <a href="./globals.html">Globals</a> page contains an index of all

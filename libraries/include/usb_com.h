@@ -85,18 +85,80 @@ if (uart0RxParityErrorOccurred)
  */
 void usbComTxControlSignalEvents(uint8 signalEvents);
 
+/*! The current line coding.  This includes information such as the desired baud rate,
+ * and is controlled by the USB host. */
 extern ACM_LINE_CODING XDATA usbComLineCoding;
+
+/*! A pointer to a function that will be called whenever #usbComLineCoding gets set
+ * by the USB host. */
 extern HandlerFunction * usbComLineCodingChangeHandler;
 
-void usbComInit(void);
+/*! This function should be called regularly (at least every 50&nbsp;ms) if you are
+ * using this library.
+ * One of the things this function does is call usbPoll(). */
 void usbComService(void);    // This should be called regularly.
 
+/*! \return The number of bytes in the RX buffer that can be received
+ *   immediately.
+ *
+ * You can use this function to see if any bytes have been received, and then
+ * use usbComRxReceiveByte() to actually get the byte and process it.
+ *
+ * The return value of this function might be lower than the actual number of
+ * bytes that the USB host is trying to send.
+ * Higher-level code should not count on the return value of this function
+ * reaching anything higher than 1. */
 uint8 usbComRxAvailable(void);
+
+/*! \return A byte from the RX buffer.
+ *
+ * Bytes are returned in the order they were received from the USB host.
+ *
+ * This is a non-blocking function: you must call usbComRxAvailable() before calling
+ * this function and be sure not to read too many bytes.
+ * The number of times you call this should not exceed the last value returned by
+ * usbComRxAvailable(). */
 uint8 usbComRxReceiveByte(void);
+
+/*! Reads the specified number of bytes from USB and stores them in memory.
+ *
+ * \param buffer The buffer to store the data in.
+ * \param size The number of bytes to read.
+ *
+ * This is a non-blocking function: you must call usbComRxAvailable() before calling
+ * this function and be sure not to read too many bytes.
+ * The \p size parameter should not exceed the last value returned by
+ * usbComRxAvailable().
+ *
+ * See also usbComRxReceiveByte(). */
 void usbComRxReceive(const uint8 XDATA * buffer, uint8 size);
 
+/*! \return The number of bytes available in the TX buffers.
+ *
+ * The <code>usb_cdc_acm.lib</code> library uses a double-buffered endpoint
+ * with 64-byte buffers, so if the USB host keeps reading data from the device
+ * then this function will eventually return 128. */
 uint8 usbComTxAvailable(void);
+
+/*! Adds a byte to the TX buffer, which means it will be eventually
+ * sent to the USB host.
+ *
+ * \param byte  The byte to send.
+ *
+ * This is a non-blocking function: you must call usbComTxAvailable() before calling this
+ * function and be sure not to add too many bytes to the buffer.  The number of times you call
+ * this should not exceed the last value returned by usbComTxAvailable(). */
 void usbComTxSendByte(uint8 byte);
+
+/*! Adds bytes to the TX buffers, which means they will be eventually
+ * sent to the USB host.
+ *
+ * \param buffer A pointer to the bytes to send.
+ * \param size The number of bytes to send.
+ *
+ * This is a non-blocking function: you must call usbComTxAvailable() before calling this
+ * function and be sure not to add too many bytes to the buffer.
+ * The \p size parameter should not exceed the last value returned by usbComTxAvailable(). */
 void usbComTxSend(const uint8 XDATA * buffer, uint8 size);
 
 #endif

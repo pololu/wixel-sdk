@@ -345,11 +345,26 @@ SFRX(0xDE2A, USBF5)
 #define USBCS0     USBCSIL
 #define USBCNT0    USBCNTL
 
-// Most of the internal SFRs are also accessible in XDATA.
-// This macro allows you to get the XDATA address of an XFR.
+/*! Evaluates to the XDATA address of an SFR.
+ *
+ * Most of the internal SFRs are also part of the XDATA memory space,
+ * which means you can have pointers to them of type
+ * <code>uint8 XDATA *</code> and you can read or write to them using
+ * DMA transfers.
+ *
+ * This macro does NOT work with the SFRs that are highlighted in gray
+ * in Table 30 of the CC2511F32 datasheet (the "SFR Address Overview"
+ * table). */
 #define XDATA_SFR_ADDRESS(sfr) (0xDF00 + ((unsigned int)&(sfr)))
 
-
+/*! This struct represents the configuration of a single DMA channel.
+ * See the "DMA Controller" section of the CC2511F32 datasheet
+ * for information on how to use this struct and DMA in general.
+ *
+ * Also see dma.h.
+ *
+ * NOTE: You won't find DC6 or DC7 in the datasheet, the names of
+ * those bytes were invented for this struct. */
 typedef struct
 {
     unsigned char SRCADDRH;
@@ -357,13 +372,15 @@ typedef struct
     unsigned char DESTADDRH;
     unsigned char DESTADDRL;
 
-    unsigned char VLEN_LENH; // Bits 7:5 are VLEN, bits 4:0 are LEN[12:8]
-    unsigned char LENL;      // LEN[7:0]
+    /*! Bits 7:5 are VLEN, bits 4:0 are LEN[12:8] */
+    unsigned char VLEN_LENH;
+    unsigned char LENL;
 
-    // NOTE: You won't find DC6 or DC7 in the datasheet, those names were made up
-    // for this struct.
-    unsigned char DC6;     // Bit 7 is WORDSIZE, Bits 6:5 are TMODE, Bits 4:0 are TRIG.
-    unsigned char DC7;     // Bits 7:6 are SRCINC, 5:4 are DESTINC, 3 is IRQMASK, 2 is M8, 1:0 are PRIORITY.
+    /*! Bit 7 is WORDSIZE, Bits 6:5 are TMODE, Bits 4:0 are TRIG. */
+    unsigned char DC6;
+
+    /*! Bits 7:6 are SRCINC, 5:4 are DESTINC, 3 is IRQMASK, 2 is M8, 1:0 are PRIORITY. */
+    unsigned char DC7;
 } DMA_CONFIG;
 
 

@@ -58,12 +58,26 @@
  * - 1 = Activate carrier. */
 #define ACM_CONTROL_LINE_RTS 2
 
-/*! PSTN1.20 Table 17: Line Coding Structure */
+/*! Specifies the type of coding to use on an asynchronous serial line.
+ *
+ * This struct is defined in PSTN120.pdf in Table 17: Line Coding Structure.
+ * PSTN120.pdf is available for download from USB Implementers Forum at
+ * this url: http://www.usb.org/developers/devclass_docs */
 typedef struct ACM_LINE_CODING
 {
+    /*! Baud rate, in bits per second. */
     unsigned long dwDTERate;
+
+    /*! The number of stop bits.  Valid values are #STOP_BITS_1,
+     * #STOP_BITS_1_5, and #STOP_BITS_2. */
     unsigned char bCharFormat;
+
+    /*! The parity type.  Valid values are #PARITY_NONE, #PARITY_ODD,
+     * #PARITY_EVEN, #PARITY_MARK, and #PARITY_SPACE.*/
     unsigned char bParityType;
+
+    /*! The number of data bits in each byte.  Valid values
+     * are 5, 6, 7, 8 and 16. */
     unsigned char bDataBits;
 } ACM_LINE_CODING;
 
@@ -91,7 +105,7 @@ typedef struct ACM_LINE_CODING
 
 /*! The end of each serial byte will have 2 stop bits.
  * The CC2511's UARTs do not support this option very well;
- * our the uart library may fail to detect framing errors
+ * the UART library may fail to detect framing errors
  * from the second stop bit when this option is used.
  * */
 #define STOP_BITS_2     2

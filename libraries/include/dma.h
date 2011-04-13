@@ -1,7 +1,8 @@
 /*! \file dma.h
- * This file provides basic functions and variables for the CC2511's
- * DMA controller. The implementation of these things is in
- * <code>dma.lib</code>.
+ * The <code>dma.lib</code> library provides basic functions and variables for
+ * the CC2511's DMA controller.
+ * DMA provides a fast way to copy blocks of data from one memory region or
+ * peripheral to another.
  */
 
 #ifndef _DMA_H_
@@ -13,7 +14,7 @@
  * to ::dmaConfig.
  *
  * This function is called by systemInit(). */
-void dmaInit();
+void dmaInit(void);
 
 /*! This is the number of the DMA channel we have chosen to use for
  * transmitting and receiving radio packets. */

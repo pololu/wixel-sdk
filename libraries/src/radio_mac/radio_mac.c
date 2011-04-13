@@ -47,6 +47,11 @@ static volatile BIT strobe = 0;
 volatile BIT radioRxOverflowOccurred = 0;
 volatile BIT radioTxUnderflowOccurred = 0;
 
+// Radio MAC states
+#define RADIO_MAC_STATE_OFF      0
+#define RADIO_MAC_STATE_IDLE     1
+#define RADIO_MAC_STATE_RX       2
+#define RADIO_MAC_STATE_TX       3
 volatile uint8 DATA radioMacState = RADIO_MAC_STATE_OFF;
 
 ISR(RF, 1)
@@ -218,13 +223,11 @@ void radioMacInit()
     dmaConfig.radio.DC6 = 19; // WORDSIZE = 0, TMODE = 0, TRIG = 19
 }
 
-// Called by the user from radioMacEventHandler to tell the Mac that it should
-// start trying to receive a packet.  The timeout is in units of .922 ms.
 void radioMacRx(uint8 XDATA * packet, uint8 timeout)
 {
     if (timeout)
     {
-        MCSM2 = 0x00;   // RX_TIME = 1.  Helps determine the units of the RX timeout period.
+        MCSM2 = 0x00;   // RX_TIME = 0.  Helps determine the units of the RX timeout period.
         WORCTRL = 0;    // WOR_RES = 0.  Helps determine the units of the RX timeout period.
         WOREVT1 = timeout;
         WOREVT0 = 0;
