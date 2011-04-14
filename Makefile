@@ -19,6 +19,7 @@ CP := cp#           copies files
 CAT := cat#         outputs files
 ECHO := echo#       outputs some text to the standard output
 GREP := grep#       outputs lines from a file that match a given pattern
+SED := sed#         edits files
 WIXELCMD := wixelcmd# loads programs on the Wixel (command-line utility)
 WIXELCONFIG := wixelconfig # Wixel Configuration Utility (GUI)
 
@@ -176,7 +177,8 @@ endif
 	$(V)$(GREP) param $(<:%.hex=%.cdb) >> $@.tmp || echo "(This app has no params.)"
 	$(V)$(ECHO) ====== hex>> $@.tmp
 	$(V)$(PACKIHX) $< >> $@.tmp
-	$(V)mv -f $@.tmp $@
+	$(V)$(SED) -f libraries/dos_newlines.sed $@.tmp > $@
+	$(V)$(RM) $@.tmp
 
 # Include all the dependency files generated during compilation so that Make
 # knows which .rel files to recompile when a .h file changes.
