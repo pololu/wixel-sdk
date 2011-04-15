@@ -7,6 +7,8 @@
 # This installer expects to be passed the variable "STARTDIR" at the command line
 # E.g. "makensis /DSTARTDIR=c:\working\wixel-installer c:\working\wixel-installer\wixel_tools_mui.nsi"
 
+# TODO: improve the user experience in the case where they choose to not install the Wixel SDK
+
 !include FileFunc.nsh
 !include EnvVarUpdate.nsh
 #Modern UI for fun and profit
