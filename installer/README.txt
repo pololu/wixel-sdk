@@ -55,6 +55,3 @@ Finally, to create the installer:
    where "C:\...\bundle" is the full path to the bundle directory.
 
 For more info on command line NSIS, see http://nsis.sourceforge.net/Docs/Chapter3.html
-
-Notes:
-1. The wixel_tools_mui.nsi script will look for the GNU build tools installer (by default pololu_gnu_build_tools_DATE.exe) in the same directory as the wixel-sdk folder.  If your install script is in a default location (under \wixel-sdk\installer) it should end up there by default.
