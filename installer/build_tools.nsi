@@ -13,7 +13,7 @@
 
 
 #Small installer for the GNU build tools
-!define TOOLSVER "110322"
+!define TOOLSVER "110415"
 !include EnvVarUpdate.nsh
 
 ; !define STARTDIR "c:\foo\bar"
@@ -53,6 +53,7 @@ Section "Uninstall"
 	Delete "$INSTDIR\mv.exe"
 	Delete "$INSTDIR\readme.txt"
 	Delete "$INSTDIR\rm.exe"
+	Delete "$INSTDIR\sed.exe"
 	Delete "$INSTDIR\Uninstall Pololu GNU Build Utilities.exe"
 	DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\pololu_build_utilities"
 	${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR"
