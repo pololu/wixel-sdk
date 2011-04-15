@@ -20,7 +20,7 @@ RequestExecutionLevel admin
 ; !define STARTDIR=c:\foo\bar
 !define WIXELTOOLVERSION "110415"
 !define SDCCVER "3.0.0"
-!define NPVER "5.8.7"
+!define NPVER "5.9"
 !define MUI_HEADERIMAGE
 !define MUI_HEADERIMAGE_BITMAP "${STARTDIR}\wixel-sdk\installer\wixel_fullname_sm.bmp"
 !define MUI_HEADERIMAGE_BITMAP_NOSTRETCH 
