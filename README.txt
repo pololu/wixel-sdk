@@ -1,9 +1,11 @@
 Pololu Wixel Software Development Kit (SDK)
 
-This package contains code, utilities, and Makefiles that will
-help you build your own applications for the Pololu Wixel, a
-programmable USB wireless module based around the CC2511F32 chip
-from Texas Instruments.
+This pacakage contains code and Makefiles that will help you create
+your own applications for the Pololu Wixel.  The Wixel is a general-
+purpose programmable module featuring a 2.4 GHz radio and USB.  The
+Wixel is based on the CC2511F32 microcontroller from Texas Instruments,
+which has an integrated radio transceiver, 32 KB of flash memory, 4 KB
+of RAM, and a full-speed USB interface.
 
 For documentation of this SDK, see:
 http://pololu.github.com/wixel-sdk
