@@ -2,8 +2,6 @@
 #
 # wixel_tools_mui.nsi - installer script for the wixel development bundle
 #
-# Last modified: 110322 by KK
-#
 ####################
 
 # This installer expects to be passed the variable "STARTDIR" at the command line
