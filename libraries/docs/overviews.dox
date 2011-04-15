@@ -120,9 +120,8 @@ available from the <a href="http://www.pololu.com/docs/0J46">Pololu Wixel User's
 If the output from "make -v" shows some other version of make even after
 installing the Wixel Development Bundle, then you should remove that other version
 of make from your PATH or reorder your PATH so that that version 3.82-pololu1 is used.
-You can edit your PATH environment variable by going to <b>Control Panel ->
-System -> Advanced System Settings -> Environment Variables</b>.
-See <a href="https://github.com/pololu/make/wiki">pololu/make wiki on GitHub for
+You can edit your PATH environment variable from the Control Panel.
+See the <a href="https://github.com/pololu/make/wiki">pololu/make wiki on GitHub for
 more information</a>.
 
 \section help Getting Help
