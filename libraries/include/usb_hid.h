@@ -98,16 +98,19 @@ typedef struct HID_MOUSE_IN_REPORT
     int8 wheel;
 } HID_MOUSE_IN_REPORT;
 
+/*! \struct HID_JOYSTICK_IN_REPORT
+ * This struct contains \b input data sent in HID reports from the
+ * device's joystick interface to the host. */
 typedef struct HID_JOYSTICK_IN_REPORT
 {
-    int8 x;
-    int8 y;
-    int8 z;
-    int8 rx;
-    int8 ry;
-    int8 rz;
+    int8 x;  /*!< Joystick X axis position.  Valid values are from -127 to 127. */
+    int8 y;  /*!< Joystick Y axis position.  Valid values are from -127 to 127. */
+    int8 z;  /*!< Joystick Z axis position.  Valid values are from -127 to 127. */
+    int8 rx; /*!< Joystick's rotation about the X axis.  Valid values are from -127 to 127. */
+    int8 ry; /*!< Joystick's rotation about the Y axis.  Valid values are from -127 to 127. */
+    int8 rz; /*!< Joystick's rotation about the Z axis.  Valid values are from -127 to 127. */
 
-    uint16 buttons;
+    uint16 buttons; /*!< A bit map that specifies which buttons are pressed. */
 } HID_JOYSTICK_IN_REPORT;
 
 /*! Contains \b output data received by the \b keyboard interface from the host.
@@ -132,18 +135,27 @@ extern HID_KEYBOARD_IN_REPORT XDATA usbHidKeyboardInput;
  * See HID_MOUSE_IN_REPORT for details. */
 extern HID_MOUSE_IN_REPORT XDATA usbHidMouseInput;
 
+/*! Contains \b input data sent in HID reports from the
+ * device's joystick interface to the host.
+ * You can use this variable to send joystick position and button data to
+ * the USB host.
+ * After writing data to this variable, set #usbHidJoystickInputUpdated to 1
+ * to tell the HID library to send that data to the computer. */
 extern HID_JOYSTICK_IN_REPORT XDATA usbHidJoystickInput;
 
-/*! After writing data in #usbHidKeyboardInput, set this bit to trigger an HID
- * report to be sent from the keyboard interface to the host. It is cleared
+/*! After writing data to #usbHidKeyboardInput, set this bit to 1 to trigger an HID
+ * report to be sent from the keyboard interface to the host. This bit is cleared
  * by the library once the report is sent. */
 extern BIT usbHidKeyboardInputUpdated;
 
-/*! After writing data in #usbHidMouseInput, set this bit to trigger an HID
- * report to be sent from the mouse interface to the host. It is cleared by the
+/*! After writing data to #usbHidMouseInput, set this bit to 1 to trigger an HID
+ * report to be sent from the mouse interface to the host. This bit is cleared by the
  * library once the report is sent. */
 extern BIT usbHidMouseInputUpdated;
 
+/*! After writing data to #usbHidJoystickInput, set this bit to 1 to trigger an HID
+ * report to be sent from the joystick interface to the host. This bit is cleared by the
+ * library once the report is sent. */
 extern BIT usbHidJoystickInputUpdated;
 
 /*! This must be called regularly if you are implementing an HID device. */
