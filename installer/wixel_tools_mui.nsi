@@ -18,7 +18,7 @@ SetCompressor /solid lzma
 RequestExecutionLevel admin
 
 ; !define STARTDIR=c:\foo\bar
-!define WIXELTOOLVERSION "110322"
+!define WIXELTOOLVERSION "110415"
 !define SDCCVER "3.0.0"
 !define NPVER "5.8.7"
 !define MUI_HEADERIMAGE
@@ -52,7 +52,7 @@ Name "The Pololu Wixel Development Bundle"
 
 LangString DESC_SECTION1 ${LANG_ENGLISH} "The Wixel SDK contains source code (for libraries and applications) that will help you develop your own applications for the Wixel."
 LangString DESC_SECTION2 ${LANG_ENGLISH} "The Small Device C Compiler (SDCC) is a free compiler that is used to compile the code in the Wixel SDK."
-LangString DESC_SECTION3 ${LANG_ENGLISH} "The Pololu GNU Build Utilities are open-source utilities that are required by the Wixel SDK: cat, cp, echo, grep, make, mv, and rm."
+LangString DESC_SECTION3 ${LANG_ENGLISH} "The Pololu GNU Build Utilities are open-source utilities that are required by the Wixel SDK: cat, cp, echo, grep, make, mv, rm, and sed."
 LangString DESC_SECTION4 ${LANG_ENGLISH} "Notepad++ is a free source code editor which is convenient to use when editing Wixel code."
 
 
