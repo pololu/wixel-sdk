@@ -12,7 +12,7 @@ microcontroller from Texas Instruments, which has an integrated radio transceive
 
 \section starting Getting Started
 
-To load apps on to the Wixel, you will also need to have
+To load apps onto the Wixel, you will also need to have
 the Wixel's drivers and software installed on your system.
 See the <i>Getting Started</i> section of the 
 <a href="http://www.pololu.com/docs/0J46">Pololu Wixel User's Guide</a>.
@@ -46,7 +46,7 @@ Open a command-line terminal, navigate to the top level directory
 of the SDK, and type "make".  This will build all of the apps in
 the apps folder and all of the libraries that they depend on.
 
-To load an app on to all the Wixels connected to the computer,
+To load an app onto all the Wixels connected to the computer,
 type "make load_APPNAME" where APPNAME is the name of your app's
 folder in the apps directory.
 
@@ -105,6 +105,25 @@ Texas Instruments also provides many app notes and design notes on the
 <a href="http://focus.ti.com/docs/prod/folders/print/cc2511f32.html">CC2511F32</a> page.
 
 Documentation for SDCC is available on the <a href="http://sdcc.sourceforge.net/">SDCC website</a>.
+
+\section make_exception Make Interrupt/Exception Error
+
+You might get the following error message when trying to run make in Windows:
+<pre>
+make: Interrupt/Exception caught (code = 0xc00000fd, addr = 0x425073)
+</pre>
+
+If you get this error, please run "make -v" at a Command Prompt and make
+sure that you are running <a href="https://github.com/pololu/make">GNU Make 3.82-pololu1</a>.
+This version of make is included in the latest <b>Wixel Development Bundle</b>,
+available from the <a href="http://www.pololu.com/docs/0J46">Pololu Wixel User's Guide</a>.
+If the output from "make -v" shows some other version of make even after
+installing the Wixel Development Bundle, then you should remove that other version
+of make from your PATH or reorder your PATH so that that version 3.82-pololu1 is used.
+You can edit your PATH environment variable by going to <b>Control Panel ->
+System -> Advanced System Settings -> Environment Variables</b>.
+See <a href="https://github.com/pololu/make/wiki">pololu/make wiki on GitHub for
+more information</a>.
 
 \section help Getting Help
 

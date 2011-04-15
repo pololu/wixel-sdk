@@ -147,7 +147,7 @@ void radioLinkTxSendPacket(uint8 payloadType);
  * payload is at offset 0 and the data starts at offset 1.
  *
  * When you are done reading the packet you should call
- * radioLinkRxDoneWithPacket() to move on to the next packet.
+ * radioLinkRxDoneWithPacket() to advance to the next packet.
  */
 uint8 XDATA * radioLinkRxCurrentPacket(void);  // returns 0 if no packet is available.
 
@@ -158,7 +158,7 @@ uint8 XDATA * radioLinkRxCurrentPacket(void);  // returns 0 if no packet is avai
  * a non-zero pointer. */
 uint8 radioLinkRxCurrentPayloadType(void);
 
-/*! Frees the current RX packet so that you can move on to processing
+/*! Frees the current RX packet so that you can advance to processing
  * the next one.  See the radioLinkRxCurrentPacket() documentation for details. */
 void radioLinkRxDoneWithPacket(void);
 

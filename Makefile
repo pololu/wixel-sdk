@@ -98,7 +98,7 @@ include apps.mk
 #
 # .rel : This is an Object file, the result of compiling a .s or .c file.
 # .lib : This is a library (a collection of several object files).
-# .hex : This is a complete program that can be loaded on to a Wixel.
+# .hex : This is a complete program that can be loaded onto a Wixel.
 #
 # The lists of all .rel/lib/hex files compiled by this Makefile are in the
 # following variables: $(RELs) $(LIBs) $(HEXs)

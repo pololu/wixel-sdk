@@ -42,7 +42,7 @@ typedef struct DMA14_CONFIG
 /*! This structure in XDATA holds the configuration options
  for DMA channels 1-4.  We have to do it this way because the
  CC2511's DMA controller expects the configurations of those
- channels to be next to eachother in memory.  The configuration
+ channels to be next to each other in memory.  The configuration
  of channel 0 can be anywhere.  You must call dmaInit()
  (or systemInit()) for this struct to work. */
 extern DMA14_CONFIG XDATA dmaConfig;

@@ -1,6 +1,6 @@
 /* test_radio_signal_rx:
  *
- * You can load test_radio_signal_rx on to one Wixel and load test_radio_signal_tx on
+ * You can load test_radio_signal_rx onto one Wixel and load test_radio_signal_tx on
  * to another Wixel in order to test the quality of your radio signal.
  *
  * The transmitter (the Wixel loaded with test_radio_signal_tx) will transmit a
