@@ -6,10 +6,8 @@
 
 /*
  * TODO: To avoid damage, don't enable nDTR and nRTS outputs by default.
- * TODO: Support for USB CDC ACM control signals.
  * TODO: use LEDs to give feedback about sending/receiving bytes.
  * TODO: UART flow control.
- * TODO: Better radio protocol (see TODOs in radio_link.c).
  * TODO: Obey CDC-ACM Set Line Coding commands:
  *       In USB-RADIO mode, bauds 0-255 would correspond to radio channels.
  * TODO: shut down radio when we are in a different serial mode
