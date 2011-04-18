@@ -108,7 +108,7 @@ Documentation for SDCC is available on the <a href="http://sdcc.sourceforge.net/
 
 \section make_exception Make Interrupt/Exception Error
 
-You might get the following error message when trying to run make in Windows:
+You might get the following error message from make in Windows:
 <pre>
 make: Interrupt/Exception caught (code = 0xc00000fd, addr = 0x425073)
 </pre>
@@ -121,8 +121,8 @@ If the output from "make -v" shows some other version of make even after
 installing the Wixel Development Bundle, then you should remove that other version
 of make from your PATH or reorder your PATH so that version 3.82-pololu1 is used.
 You can edit your PATH environment variable from the Control Panel.
-See the <a href="https://github.com/pololu/make/wiki">pololu/make wiki on GitHub for
-more information</a>.
+See the <a href="https://github.com/pololu/make/wiki">pololu/make wiki on GitHub</a>
+for more information on this problem.
 
 \section help Getting Help
 
