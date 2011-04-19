@@ -25,6 +25,13 @@ void main()
     systemInit();
     usbInit();
 
+    P0_5 = 0;
+    P0DIR |= (1 << 5);
+    delayMs(1); P0_5 = 1;
+    delayMs(1); P0_5 = 0;
+    delayMs(1); P0_5 = 1;
+    delayMs(1); P0_5 = 0;
+
     while(1)
     {
         boardService();
