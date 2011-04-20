@@ -33,13 +33,13 @@ void i2cInit(uint16 kHzFreq)
     initialized = 1;
 }
 
-uint8 i2cReadScl()
+BIT i2cReadScl()
 {
     setDigitalInput(I2C_PIN_SCL, HIGH_IMPEDANCE);
     return isPinHigh(I2C_PIN_SCL);
 }
 
-uint8 i2cReadSda()
+BIT i2cReadSda()
 {
     setDigitalInput(I2C_PIN_SDA, HIGH_IMPEDANCE);
     return isPinHigh(I2C_PIN_SDA);
