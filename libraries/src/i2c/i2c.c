@@ -6,7 +6,7 @@
 #include <cc2511_map.h>
 #include <board.h>
 #include <time.h>
-#include "i2c.h"
+#include <i2c.h>
 
 
 
@@ -77,7 +77,7 @@ uint8 i2cStart()
 		i2cReadSda();			// let SDA line go high while SCL is low
 		delayMicroseconds(halfPeriodUs);
 	}
-	if (waitForHighSCL(10))			// handle clock stretching
+	if (i2cWaitForHighScl(10))			// handle clock stretching
 	{
 		i2cStop();
 		return 255;					// SCL never went high; timeout error
@@ -101,7 +101,7 @@ void i2cStop()
 {
 	i2cClearSda();		// drive SDA low while SCL is low
 	delayMicroseconds(halfPeriodUs);
-	waitForHighSCL(10)	// let SCL go high, handle clock stretching
+	i2cWaitForHighScl(10);	// let SCL go high, handle clock stretching
 	// TODO: detect timeout and indicate an error
 
 	/*if (i2cReadSda() == 0)
@@ -132,7 +132,7 @@ uint8 i2cWriteBit(uint8 b)
 		i2cClearSda();	// drive SDA low
 	}
 	delayMicroseconds(halfPeriodUs);
-	if (waitForHighSCL(10))			// handle clock stretching
+	if (i2cWaitForHighScl(10))			// handle clock stretching
 	{
 		i2cStop();
 		return 255;					// SCL never went high; timeout error
@@ -162,7 +162,7 @@ uint8 i2cReadBit()
 	uint8 b;
 	i2cReadSda();	// let slave transmitter control state of SDA line
 	delayMicroseconds(halfPeriodUs);
-	if (waitForHighSCL(10))			// handle clock stretching
+	if (i2cWaitForHighScl(10))			// handle clock stretching
 	{
 		i2cStop();
 		return 255;					// SCL never went high; timeout error
@@ -203,7 +203,7 @@ uint8 i2cWriteByte(uint8 byte, uint8 sendStart, uint8 sendStop)
 uint16 i2cReadByte(uint8 nack, uint8 sendStop)
 {
 	uint8 byte = 0;
-	uint8 i, b;
+	uint8 i;
 	for (i = 0; i < 8; i++)
 	{
 		byte <<= 1;
