@@ -97,7 +97,7 @@
 #define SERIAL_MODE_UART_RADIO  2
 #define SERIAL_MODE_USB_UART    3
 
-#define I2CDELAY				20		// units = us
+#define I2CDELAY                20        // units = us
 
 int32 CODE param_serial_mode = SERIAL_MODE_AUTO;
 
@@ -127,40 +127,40 @@ void updateLeds()
 
 uint8 currentSerialMode()
 {
-	if ((uint8)param_serial_mode > 0 && (uint8)param_serial_mode <= 3)
-	{
-		return (uint8)param_serial_mode;
-	}
+    if ((uint8)param_serial_mode > 0 && (uint8)param_serial_mode <= 3)
+    {
+        return (uint8)param_serial_mode;
+    }
 
     if (usbPowerPresent())
     {
         if (vinPowerPresent())
         {
-        	return SERIAL_MODE_USB_UART;
+            return SERIAL_MODE_USB_UART;
         }
         else
         {
-        	return SERIAL_MODE_USB_RADIO;
+            return SERIAL_MODE_USB_RADIO;
         }
     }
     else
     {
-    	return SERIAL_MODE_UART_RADIO;
+        return SERIAL_MODE_UART_RADIO;
     }
 }
 
 void usbToRadioService()
 {/*
-	while (usbComRxAvailable())
-	{
-		usbComRxReceiveByte();
-		i2cWriteByte(1, 0, 0xEE);
-		i2cWriteByte(0, 0, 0xAA);
-		i2cWriteByte(1, 0, 0xEF);
-		i2cReadByte(0, 0);
-		i2cReadByte(1, 1);
-		LED_RED(!LED_RED_STATE);
-	}
+    while (usbComRxAvailable())
+    {
+        usbComRxReceiveByte();
+        i2cWriteByte(1, 0, 0xEE);
+        i2cWriteByte(0, 0, 0xAA);
+        i2cWriteByte(1, 0, 0xEF);
+        i2cReadByte(0, 0);
+        i2cReadByte(1, 1);
+        LED_RED(!LED_RED_STATE);
+    }
 
     while(usbComRxAvailable() && radioComTxAvailable())
     {
@@ -202,17 +202,17 @@ void usbToUartService()
 
 uint16 cmpAccRead(uint8 reg)
 {
-	i2cWriteByte(0x30, 1, 0);
-	i2cWriteByte(reg, 0, 0);
-	i2cWriteByte(0x31, 1, 0);
-	return i2cReadByte(1, 1);
+    i2cWriteByte(0x30, 1, 0);
+    i2cWriteByte(reg, 0, 0);
+    i2cWriteByte(0x31, 1, 0);
+    return i2cReadByte(1, 1);
 }
 
 void cmpAccWrite(uint8 reg, uint8 val)
 {
-	i2cWriteByte(0x30, 1, 0);
-	i2cWriteByte(reg, 0, 0);
-	i2cWriteByte(val, 0, 1);
+    i2cWriteByte(0x30, 1, 0);
+    i2cWriteByte(reg, 0, 0);
+    i2cWriteByte(val, 0, 1);
 }
 
 void putchar(char c)
@@ -222,6 +222,8 @@ void putchar(char c)
 
 void main()
 {
+    uint16 hi, lo;
+
     systemInit();
     usbInit();
 
@@ -246,8 +248,14 @@ void main()
 
         if (usbComTxAvailable() >= 10)
         {
-            printf("%6d\r\n", ((int16)cmpAccRead(0x29) << 8) | cmpAccRead(0x28));
-		}
+            hi = cmpAccRead(0x29);
+            lo = cmpAccRead(0x28);
+
+            //if ((hi & I2C_READ_ERROR_MASK) || (lo & I2C_READ_ERROR_MASK))
+            //    printf("error!\r\n");
+            //else
+                printf("%6d\r\n", ((int16)(hi & I2C_READ_DATA_MASK) << 8) | (lo & I2C_READ_DATA_MASK));
+        }
     }
 }
 
