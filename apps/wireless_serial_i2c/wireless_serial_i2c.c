@@ -202,17 +202,24 @@ void usbToUartService()
 
 uint16 cmpAccRead(uint8 reg)
 {
-    i2cWriteByte(0x30, 1, 0);
-    i2cWriteByte(reg, 0, 0);
-    i2cWriteByte(0x31, 1, 0);
-    return i2cReadByte(1, 1);
+    if (!i2cTimeoutOccurred) i2cWriteByte(0x30, 1, 0);
+    if (!i2cTimeoutOccurred) i2cWriteByte(reg, 0, 0);
+    if (!i2cTimeoutOccurred) i2cWriteByte(0x31, 1, 0);
+    if (!i2cTimeoutOccurred)
+    {
+        return i2cReadByte(1, 1);
+    }
+    else
+    {
+        return 0;
+    }
 }
 
 void cmpAccWrite(uint8 reg, uint8 val)
 {
-    i2cWriteByte(0x30, 1, 0);
-    i2cWriteByte(reg, 0, 0);
-    i2cWriteByte(val, 0, 1);
+    if (!i2cTimeoutOccurred) i2cWriteByte(0x30, 1, 0);
+    if (!i2cTimeoutOccurred) i2cWriteByte(reg, 0, 0);
+    if (!i2cTimeoutOccurred) i2cWriteByte(val, 0, 1);
 }
 
 void putchar(char c)
@@ -222,7 +229,7 @@ void putchar(char c)
 
 void main()
 {
-    uint16 hi, lo;
+    uint16 hi = 0, lo = 0;
 
     systemInit();
     usbInit();
@@ -233,7 +240,7 @@ void main()
     P1_0 = 0;
     P1_1 = 0;
 
-    delayMs(20);
+    i2cInit(100, 10); // 100 kHz, 10 ms timeout
 
     cmpAccWrite(0x20, 0x3f); //enable accelerometer
 
@@ -251,10 +258,13 @@ void main()
             hi = cmpAccRead(0x29);
             lo = cmpAccRead(0x28);
 
-            //if ((hi & I2C_READ_ERROR_MASK) || (lo & I2C_READ_ERROR_MASK))
-            //    printf("error!\r\n");
-            //else
-                printf("%6d\r\n", ((int16)(hi & I2C_READ_DATA_MASK) << 8) | (lo & I2C_READ_DATA_MASK));
+            if (i2cTimeoutOccurred)
+            {
+                printf("error!\r\n");
+                i2cTimeoutOccurred = 0;
+            }
+            else
+                printf("%6d\r\n", ((int16)hi << 8) | lo);
         }
     }
 }
