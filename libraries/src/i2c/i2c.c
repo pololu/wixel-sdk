@@ -1,5 +1,6 @@
-/* i2c.c:  Functions for performing implementing master I2C communication
- * in software (the CC2511 does not have a hardware I2C module).
+/* i2c.c: A basic implementation of a master node for I2C communication
+ * in software (the CC2511 does not have a hardware I2C module). This library
+ * does not support multi-master I2C buses.
  */
 
 /** Dependencies **************************************************************/
@@ -12,10 +13,9 @@
 #define I2C_PIN_SCL 10 // P1_0
 #define I2C_PIN_SDA 11 // P1_1
 
-uint16 XDATA halfPeriodUs = 5; // freq = 100 kHz
-uint16 XDATA timeout = 10;
-uint8 XDATA started = 0;
-uint8 XDATA initialized = 0;
+static uint16 XDATA halfPeriodUs = 5; // freq = 100 kHz
+static uint16 XDATA timeout = 10;
+static uint8 XDATA started = 0;
 
 /* i2cTimeoutOccurred is the publicly readable error flag. It must be manually
  * cleared.
@@ -24,28 +24,26 @@ uint8 XDATA initialized = 0;
  * i2cReadByte so an earlier timeout doesn't affect a later call.
  */
 BIT i2cTimeoutOccurred = 0;
-BIT internalTimeoutOccurred = 0;
+static BIT internalTimeoutOccurred = 0;
 
 
 /** Functions *****************************************************************/
-void i2cInit(uint16 freqKHz, uint16 timeoutMs)
+void i2cSetFrequency(uint16 freqKHz)
 {
-    if (freqKHz == 0)
+    // delayMicroseconds takes a uint8, so halfPeriodUs cannot be more than 255
+    if (freqKHz < 2)
     {
-        freqKHz = 1;
+        freqKHz = 2;
     }
 
-    halfPeriodUs = 500 / freqKHz;
-    if (halfPeriodUs == 0)
-    {
-        halfPeriodUs = 1;
-    }
+    // force halfPeriodUs to round up so we don't use a higher frequency than what was chosen
+    // TODO: implement a timing function with better resolution than delayMicroseconds to allow finer-grained frequency control?
+    halfPeriodUs = (500 + freqKHz - 1) / freqKHz;
+}
 
+void i2cSetTimeout(uint16 timeoutMs)
+{
     timeout = timeoutMs;
-
-    setDigitalInput(I2C_PIN_SCL, HIGH_IMPEDANCE);
-    setDigitalInput(I2C_PIN_SDA, HIGH_IMPEDANCE);
-    initialized = 1;
 }
 
 BIT i2cReadScl()
@@ -78,6 +76,7 @@ void i2cWaitForHighScl(uint16 timeoutMs)
         if (getMs() - time > timeoutMs)
         {
             internalTimeoutOccurred = 1;
+            i2cTimeoutOccurred = 1;
             return;
         }
     }
@@ -93,11 +92,7 @@ void i2cStop()
 
     // handle clock stretching
     i2cWaitForHighScl(timeout);
-    if (internalTimeoutOccurred)
-    {
-        i2cTimeoutOccurred = 1;
-        return;
-    }
+    if (internalTimeoutOccurred) return;
 
     // SCL is now high
     i2cReadSda(); // let SDA line go high while SCL is high
@@ -119,13 +114,7 @@ void i2cStart()
 
     // handle clock stretching
     i2cWaitForHighScl(timeout);
-    if (internalTimeoutOccurred)
-    {
-        // SCL never went high; timeout error
-        i2cTimeoutOccurred = 1;
-        i2cStop();
-        return;
-    }
+    if (internalTimeoutOccurred) return;
 
     // SCL is now high
     i2cClearSda(); // drive SDA low while SCL is high
@@ -156,13 +145,7 @@ void i2cWriteBit(uint8 b)
 
     // handle clock stretching
     i2cWaitForHighScl(timeout);
-    if (internalTimeoutOccurred)
-    {
-        // SCL never went high; timeout error
-        i2cTimeoutOccurred = 1;
-        i2cStop();
-        return;
-    }
+    if (internalTimeoutOccurred) return;
 
     // SCL is now high, data is valid
     delayMicroseconds(halfPeriodUs);
@@ -187,13 +170,7 @@ BIT i2cReadBit()
 
     // handle clock stretching
     i2cWaitForHighScl(timeout);
-    if (internalTimeoutOccurred)
-    {
-        // SCL never went high; timeout error
-        i2cTimeoutOccurred = 1;
-        i2cStop();
-        return 0;
-    }
+    if (internalTimeoutOccurred) return 0;
 
     // SCL is now high, data is valid
     b = i2cReadSda(); // store state of SDA line now that SCL is high
@@ -215,31 +192,20 @@ BIT i2cWriteByte(uint8 byte, uint8 sendStart, uint8 sendStop)
     if (sendStart)
     {
         i2cStart();
-        if (internalTimeoutOccurred)
-        {
-            i2cTimeoutOccurred = 1;
-            return 0;
-        }
+        if (internalTimeoutOccurred) return 0;
     }
     for (i = 0; i < 8; i++)
     {
         i2cWriteBit(byte & 0x80);
-        if (internalTimeoutOccurred)
-        {
-            i2cTimeoutOccurred = 1;
-            return 0;
-        }
+        if (internalTimeoutOccurred) return 0;
         byte <<= 1;
     }
     nack = i2cReadBit();
-    if ((sendStop && nack != 255) || nack == 1)
+    if (internalTimeoutOccurred) return 0;
+    if (sendStop || nack == 1)
     {
         i2cStop();
-        if (internalTimeoutOccurred)
-        {
-            i2cTimeoutOccurred = 1;
-            return 0;
-        }
+        if (internalTimeoutOccurred) return 0;
     }
     return nack;
 }
@@ -255,22 +221,16 @@ uint8 i2cReadByte(uint8 nack, uint8 sendStop)
     for (i = 0; i < 8; i++)
     {
         b = i2cReadBit();
-        if (internalTimeoutOccurred)
-        {
-            i2cTimeoutOccurred = 1;
-            return 0;
-        }
+        if (internalTimeoutOccurred) return 0;
         byte = (byte << 1) | b;
     }
     i2cWriteBit(nack);
+    if (internalTimeoutOccurred) return 0;
+
     if (sendStop)
     {
         i2cStop();
-        if (internalTimeoutOccurred)
-        {
-            i2cTimeoutOccurred = 1;
-            return 0;
-        }
+        if (internalTimeoutOccurred) return 0;
     }
     return byte;
 }
