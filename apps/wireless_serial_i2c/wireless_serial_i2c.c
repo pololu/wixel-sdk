@@ -90,19 +90,43 @@
 
 #include <stdio.h>
 
-
 /** Parameters ****************************************************************/
-#define SERIAL_MODE_AUTO        0
-#define SERIAL_MODE_USB_RADIO   1
-#define SERIAL_MODE_UART_RADIO  2
-#define SERIAL_MODE_USB_UART    3
+#define SERIAL_MODE_RADIO_I2C 0
+#define SERIAL_MODE_UART_I2C  1
+#define SERIAL_MODE_USB_I2C   2
 
-#define I2CDELAY                20        // units = us
-
-int32 CODE param_serial_mode = SERIAL_MODE_AUTO;
-
+int32 CODE param_serial_mode = SERIAL_MODE_RADIO_I2C;
 int32 CODE param_baud_rate = 9600;
+int32 CODE param_I2C_freq_kHz = 100;
+int32 CODE param_I2C_timeout_ms = 10;
+int32 CODE param_cmd_timeout_ms = 500;
 
+/** Global Constants & Variables **********************************************/
+uint16 lastCmd = 0;
+
+#define CMD_START      'S'
+#define CMD_STOP       'P'
+#define CMD_GET_ERRORS 'E'
+
+#define ERR_I2C_NACK_ADDRESS 0x1
+#define ERR_I2C_NACK_DATA    0x2
+#define ERR_I2C_TIMEOUT      0x8
+
+static uint8 errors = 0;
+
+static uint8 response = 0;
+static BIT returnResponse = 0;
+
+static BIT started = 0;
+static BIT addrSet = 0;
+static BIT dataDirIsRead = 0;
+static BIT lengthSet = 0;
+static uint8 dataLength = 0;
+
+uint8 (*rxAvailableFunction)(void) = NULL;
+uint8 (*rxReceiveByteFunction)(void) = NULL;
+uint8 (*txAvailableFunction)(void) = NULL;
+void (*txSendByteFunction)(uint8) = NULL;
 
 /** Functions *****************************************************************/
 
@@ -111,161 +135,197 @@ void updateLeds()
     usbShowStatusWithGreenLed();
 
     LED_YELLOW(vinPowerPresent());
+    LED_RED(errors);
+}
 
-    // Turn on the red LED if the radio is in the RX_OVERFLOW state.
-    // There used to be several bugs in the radio libraries that would cause
-    // the radio to go in to this state, but hopefully they are all fixed now.
-    /*if (MARCSTATE == 0x11)
+void parseCmd(uint8 byte)
+{
+    BIT nack;
+
+    if (!started)
     {
-        LED_RED(1);
+        if ((char)byte == CMD_START)
+        {
+            // send start
+            i2cStart();
+            addrSet = 0;
+            lengthSet = 0;
+            started = 1;
+        }
+        else if ((char)byte == CMD_GET_ERRORS)
+        {
+            response = errors;
+            returnResponse = 1;
+            errors = 0;
+        }
     }
     else
     {
-        LED_RED(0);
-    }*/
+        if (!addrSet)
+        {
+            // write slave address
+            dataDirIsRead = byte & 1; // lowest bit of slave address determines direction (0 = write, 1 = read)
+            nack = i2cWriteByte(byte, 0, 0);
+            if (i2cTimeoutOccurred)
+            {
+                errors |= ERR_I2C_TIMEOUT;
+                i2cTimeoutOccurred = 0;
+            }
+            else if (nack)
+            {
+                errors |= ERR_I2C_NACK_ADDRESS;
+            }
+            addrSet = 1;
+        }
+        else if (!lengthSet)
+        {
+            // store data length
+            dataLength = byte;
+            lengthSet = 1;
+        }
+        else if (!dataDirIsRead && dataLength)
+        {
+            // write data
+            nack = i2cWriteByte(byte, 0, 0);
+            if (i2cTimeoutOccurred)
+            {
+                errors |= ERR_I2C_TIMEOUT;
+                i2cTimeoutOccurred = 0;
+            }
+            else if (nack)
+            {
+                errors |= ERR_I2C_NACK_DATA;
+            }
+            dataLength--;
+        }
+        else if ((char)byte == CMD_START)
+        {
+            // repeated start
+            i2cStart();
+            addrSet = 0;
+            lengthSet = 0;
+        }
+        else if ((char)byte == CMD_STOP)
+        {
+            i2cStop();
+            started = 0;
+        }
+        else if ((char)byte == CMD_GET_ERRORS)
+        {
+            response = errors;
+            returnResponse = 1;
+            errors = 0;
+        }
+    }
 }
 
-uint8 currentSerialMode()
+void i2cRead()
 {
-    if ((uint8)param_serial_mode > 0 && (uint8)param_serial_mode <= 3)
-    {
-        return (uint8)param_serial_mode;
-    }
+    uint8 byte;
 
-    if (usbPowerPresent())
+    byte = i2cReadByte(0, (dataLength == 1));
+    if (i2cTimeoutOccurred)
     {
-        if (vinPowerPresent())
+        errors |= ERR_I2C_TIMEOUT;
+        i2cTimeoutOccurred = 0;
+        response = 0;
+    }
+    else
+    {
+        response = byte;
+    }
+    dataLength--;
+    returnResponse = 1;
+}
+
+
+void i2cService()
+{
+    if (!returnResponse)
+    {
+        if (dataDirIsRead && lengthSet && dataLength)
         {
-            return SERIAL_MODE_USB_UART;
+            i2cRead();
         }
         else
         {
-            return SERIAL_MODE_USB_RADIO;
+            if (rxAvailableFunction())
+            {
+                parseCmd(rxReceiveByteFunction());
+                lastCmd = getMs();
+            }
+            else
+            {
+                if (started && (uint16)(getMs() - lastCmd) > param_cmd_timeout_ms)
+                {
+                    // do something else here?
+                    started = 0;
+                }
+            }
         }
     }
-    else
+
+    if (returnResponse && txAvailableFunction())
     {
-        return SERIAL_MODE_UART_RADIO;
+        txSendByteFunction(response);
+        returnResponse = 0;
     }
-}
-
-void usbToRadioService()
-{/*
-    while (usbComRxAvailable())
-    {
-        usbComRxReceiveByte();
-        i2cWriteByte(1, 0, 0xEE);
-        i2cWriteByte(0, 0, 0xAA);
-        i2cWriteByte(1, 0, 0xEF);
-        i2cReadByte(0, 0);
-        i2cReadByte(1, 1);
-        LED_RED(!LED_RED_STATE);
-    }
-
-    while(usbComRxAvailable() && radioComTxAvailable())
-    {
-        radioComTxSendByte(usbComRxReceiveByte());
-    }
-
-    while(radioComRxAvailable() && usbComTxAvailable())
-    {
-        usbComTxSendByte(radioComRxReceiveByte());
-    }*/
-}
-
-void uartToRadioService()
-{
-    while(uart1RxAvailable() && radioComTxAvailable())
-    {
-        radioComTxSendByte(uart1RxReceiveByte());
-    }
-
-    while(radioComRxAvailable() && uart1TxAvailable())
-    {
-        uart1TxSendByte(radioComRxReceiveByte());
-    }
-}
-
-void usbToUartService()
-{
-    while(usbComRxAvailable() && uart1TxAvailable())
-    {
-        uart1TxSendByte(usbComRxReceiveByte());
-    }
-
-    while(uart1RxAvailable() && usbComTxAvailable())
-    {
-        usbComTxSendByte(uart1RxReceiveByte());
-    }
-}
-
-
-uint16 cmpAccRead(uint8 reg)
-{
-    if (!i2cTimeoutOccurred) i2cWriteByte(0x30, 1, 0);
-    if (!i2cTimeoutOccurred) i2cWriteByte(reg, 0, 0);
-    if (!i2cTimeoutOccurred) i2cWriteByte(0x31, 1, 0);
-    if (!i2cTimeoutOccurred)
-    {
-        return i2cReadByte(1, 1);
-    }
-    else
-    {
-        return 0;
-    }
-}
-
-void cmpAccWrite(uint8 reg, uint8 val)
-{
-    if (!i2cTimeoutOccurred) i2cWriteByte(0x30, 1, 0);
-    if (!i2cTimeoutOccurred) i2cWriteByte(reg, 0, 0);
-    if (!i2cTimeoutOccurred) i2cWriteByte(val, 0, 1);
-}
-
-void putchar(char c)
-{
-    usbComTxSendByte(c);
 }
 
 void main()
 {
-    uint16 hi = 0, lo = 0;
-
     systemInit();
     usbInit();
 
-    uart1Init();
-    uart1SetBaudRate(param_baud_rate);
+    if (param_serial_mode == SERIAL_MODE_RADIO_I2C)
+    {
+        radioComRxEnforceOrdering = 1;
+        radioComInit();
+    }
+    else if  (param_serial_mode == SERIAL_MODE_UART_I2C)
+    {
+        uart1Init();
+        uart1SetBaudRate(param_baud_rate);
+    }
 
-    P1_0 = 0;
-    P1_1 = 0;
+    i2cSetFrequency(param_I2C_freq_kHz);
+    i2cSetTimeout(param_I2C_timeout_ms);
 
-    i2cInit(100, 10); // 100 kHz, 10 ms timeout
-
-    cmpAccWrite(0x20, 0x3f); //enable accelerometer
+    switch(param_serial_mode)
+    {
+    case SERIAL_MODE_RADIO_I2C:
+        rxAvailableFunction   = radioComRxAvailable;
+        rxReceiveByteFunction = radioComRxReceiveByte;
+        txAvailableFunction   = radioComTxAvailable;
+        txSendByteFunction    = radioComTxSendByte;
+        break;
+    case SERIAL_MODE_UART_I2C:
+        rxAvailableFunction   = uart1RxAvailable;
+        rxReceiveByteFunction = uart1RxReceiveByte;
+        txAvailableFunction   = uart1TxAvailable;
+        txSendByteFunction    = uart1TxSendByte;
+        break;
+    case SERIAL_MODE_USB_I2C:
+        rxAvailableFunction   = usbComRxAvailable;
+        rxReceiveByteFunction = usbComRxReceiveByte;
+        txAvailableFunction   = usbComTxAvailable;
+        txSendByteFunction    = usbComTxSendByte;
+        break;
+    }
 
     while (1)
     {
         boardService();
         updateLeds();
 
+        if (param_serial_mode == SERIAL_MODE_RADIO_I2C)
+        {
+            radioComTxService();
+        }
+
         usbComService();
 
-
-
-        if (usbComTxAvailable() >= 10)
-        {
-            hi = cmpAccRead(0x29);
-            lo = cmpAccRead(0x28);
-
-            if (i2cTimeoutOccurred)
-            {
-                printf("error!\r\n");
-                i2cTimeoutOccurred = 0;
-            }
-            else
-                printf("%6d\r\n", ((int16)hi << 8) | lo);
-        }
+        i2cService();
     }
 }
 
