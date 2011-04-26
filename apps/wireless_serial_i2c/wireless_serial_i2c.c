@@ -223,7 +223,7 @@ void i2cRead()
 {
     uint8 byte;
 
-    byte = i2cReadByte(0, (dataLength == 1));
+    byte = i2cReadByte((dataLength == 1), 0);
     if (i2cTimeoutOccurred)
     {
         errors |= ERR_I2C_TIMEOUT;
@@ -241,14 +241,18 @@ void i2cRead()
 
 void i2cService()
 {
+    // don't try to process I2C if there's a response waiting to be returned on serial
     if (!returnResponse)
     {
+
         if (dataDirIsRead && lengthSet && dataLength)
         {
+            // if we're doing an I2C read, handle that
             i2cRead();
         }
         else
         {
+            // check if a command is available on serial
             if (rxAvailableFunction())
             {
                 parseCmd(rxReceiveByteFunction());
@@ -258,7 +262,8 @@ void i2cService()
             {
                 if (started && (uint16)(getMs() - lastCmd) > param_cmd_timeout_ms)
                 {
-                    // do something else here?
+                    // command timeout
+                    i2cStop();
                     started = 0;
                 }
             }
@@ -279,7 +284,6 @@ void main()
 
     if (param_serial_mode == SERIAL_MODE_RADIO_I2C)
     {
-        radioComRxEnforceOrdering = 1;
         radioComInit();
     }
     else if  (param_serial_mode == SERIAL_MODE_UART_I2C)
