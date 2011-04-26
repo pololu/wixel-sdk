@@ -1,21 +1,24 @@
-/* i2c.c: A basic implementation of a master node for I2C communication
- * in software (the CC2511 does not have a hardware I2C module). This library
- * does not support multi-master I2C buses.
+/* i2c.c: A basic software implementation of a master node for I2C communication
+ * (the CC2511 does not have a hardware I2C module). This library does not
+ * support multi-master I2C buses.
  */
 
-/** Dependencies **************************************************************/
+/* Dependencies ***************************************************************/
+
 #include <cc2511_map.h>
 #include <board.h>
 #include <time.h>
 #include <gpio.h>
 #include <i2c.h>
 
+/* Global Constants & Variables ***********************************************/
+
 #define I2C_PIN_SCL 10 // P1_0
 #define I2C_PIN_SDA 11 // P1_1
 
 static uint16 XDATA halfPeriodUs = 5; // freq = 100 kHz
 static uint16 XDATA timeout = 10;
-static uint8 XDATA started = 0;
+static BIT started = 0;
 
 /* i2cTimeoutOccurred is the publicly readable error flag. It must be manually
  * cleared.
@@ -27,7 +30,8 @@ BIT i2cTimeoutOccurred = 0;
 static BIT internalTimeoutOccurred = 0;
 
 
-/** Functions *****************************************************************/
+/* Functions ******************************************************************/
+
 void i2cSetFrequency(uint16 freqKHz)
 {
     // delayMicroseconds takes a uint8, so halfPeriodUs cannot be more than 255
@@ -77,6 +81,7 @@ void i2cWaitForHighScl(uint16 timeoutMs)
         {
             internalTimeoutOccurred = 1;
             i2cTimeoutOccurred = 1;
+            started = 0;
             return;
         }
     }
@@ -131,7 +136,7 @@ void i2cStart()
  * indicates the on SDA is valid.  This function drives SCL low again
  * before it returns.
  */
-void i2cWriteBit(uint8 b)
+void i2cWriteBit(BIT b)
 {
     if (b)
     {
@@ -182,10 +187,10 @@ BIT i2cReadBit()
 /* Write a byte to I2C bus. Return 0 if ack by the slave, 1 if nack.
  * The return value is not meaningful if a timeout occurs.
  * */
-BIT i2cWriteByte(uint8 byte, uint8 sendStart, uint8 sendStop)
+BIT i2cWriteByte(uint8 byte, BIT sendStart, BIT sendStop)
 {
     uint8 i;
-    uint8 nack;
+    BIT nack;
 
     internalTimeoutOccurred = 0;
 
@@ -211,10 +216,11 @@ BIT i2cWriteByte(uint8 byte, uint8 sendStart, uint8 sendStop)
 }
 
 /* Read a byte from I2C bus */
-uint8 i2cReadByte(uint8 nack, uint8 sendStop)
+uint8 i2cReadByte(BIT nack, BIT sendStop)
 {
     uint16 byte = 0;
-    uint8 b, i;
+    uint8 i;
+    BIT b;
 
     internalTimeoutOccurred = 0;
 
