@@ -4,15 +4,24 @@
  * does not have a hardware I<sup>2</sup>C module). This library does not
  * support multi-master I<sup>2</sup>C buses.
  *
- * This library defaults to operation at 100 kHz with a 10 ms timeout, unless
- * these settings are changed with the i2cSetFrequency() and i2cSetTimeout()
- * functions.
+ * By default, the SCL pin is assigned to P1_0, the SDA pin is
+ * assigned to P1_1, and the bus frequency is 100 kHz with a 10 ms timeout.
  */
 
 #ifndef _I2C_H
 #define _I2C_H
 
 #include <cc2511_types.h>
+
+/*! Number of the pin to use as the SCL line of the I<sup>2</sup>C bus. See
+ * the gpio.h documentation for pin number values.
+ */
+extern uint8 DATA i2cPinScl;
+
+/*! Number of the pin to use as the SDA line of the I<sup>2</sup>C bus. See
+ * the gpio.h documentation for pin number values.
+ */
+extern uint8 DATA i2cPinSda;
 
 /*! This bit is a flag that is set whenever a timeout occurs on the
  * I<sup>2</sup>C bus waiting for the SCL line to go high. The flag must be
@@ -21,10 +30,11 @@
  */
 extern BIT i2cTimeoutOccurred;
 
-/*! Sets the I<sup>2</sup>C bus clock frequency. Because of rounding
- * inaccuracies and timing constraints, the actual frequency might be lower than
+/*! Sets the I<sup>2</sup>C bus clock frequency. This implementation limits the
+ * range of possible frequencies to 2-500 kHz; because of rounding inaccuracies and timing constraints, the actual frequency might be lower than
  * the selected frequency, but it is guaranteed never to be higher. The default
- * frequency is 100 kHz.
+ * frequency is 100 kHz. Common I<sup>2</sup>C speeds are 10 kHz (low speed),
+ * 100 kHz (standard), and 400 kHz (high speed).
  *
  * \param freqKHz Frequency in kHz.
  */
@@ -49,33 +59,24 @@ void i2cStop();
 /*! Writes a byte to the I<sup>2</sup>C bus (performs a master transmit).
  *
  * \param byte      The byte to be transmitted.
- * \param sendStart If 1, an I<sup>2</sup>C START condition will be generated
- *                  before this byte is transmitted. (This is equivalent to
- *                  calling i2cStart(), then i2cWriteByte() with sendStart = 0.)
- * \param sendStop  If 1, an I<sup>2</sup>C STOP condition will be generated
- *                  after this byte is transmitted. (This is equivalent to
- *                  calling i2cWriteByte() with sendStop = 0, then i2cStop().)
  *
  * \return  0 if an ACK is received from the slave device, 1 if a NACK is
  *          received. This return value is not meaningful if a timeout occurs
  *          during the write transaction (indicated by the #i2cTimeoutOccurred
  *          flag).
  */
-BIT i2cWriteByte(uint8 byte, BIT sendStart, BIT sendStop);
+BIT i2cWriteByte(uint8 byte);
 
 /*! Reads a byte from the I<sup>2</sup>C bus (performs a master receive).
  *
  * \param nack      If 1, a NACK will be sent to the slave device instead of an
  *                  ACK after this byte is received. (This is used to signal
  *                  conclusion of a transfer from the slave to the master.)
- * \param sendStop  If 1, an I<sup>2</sup>C STOP condition will be generated
- *                  after this byte is received. (This is equivalent to calling
- *                  i2cReadByte() with sendStop = 0, then i2cStop().)
  *
  * \return  The byte received from the slave device. This return value is not
  *          meaningful if a timeout occurs during the read transaction
  *          (indicated by the #i2cTimeoutOccurred flag).
  */
-uint8 i2cReadByte(BIT nack, BIT sendStop);
+uint8 i2cReadByte(BIT nack);
 
 #endif

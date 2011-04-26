@@ -24,9 +24,9 @@
  *    the virtual COM port get sent on the UART's TX line and bytes from
  *    the UART's RX line get sent to the virtual COM port.
  *
- * You can select which serial mode you want to use by setting the serial_mode
+ * You can select which serial mode you want to use by setting the bridge_mode
  * parameter to the appropriate number (using the numbers above).  Or, you can
- * leave the serial mode at 0 (which is the default).  If the serial_mode is 0,
+ * leave the serial mode at 0 (which is the default).  If the bridge_mode is 0,
  * then the Wixel will automatically choose a serial mode based on how it is
  * being powered, and it will switch between the different serial modes on the
  * fly.
@@ -38,7 +38,7 @@
  * USB and VIN  | USB-to-UART
  *
  * == Parameters ==
- *   serial_mode   : Selects the serial mode or auto mode (0-3).
+ *   bridge_mode   : Selects the serial mode or auto mode (0-3).
  *   baud_rate     : The baud rate to use for the UART, in bits per second.
  *   radio_channel : See description in radio_link.h.
  *
@@ -53,7 +53,7 @@
  *    that is connected to the microcontroller.
  *
  * 3) If you are doing option 2 and using the the auto-detect serial mode
- *    (serial_mode = 0), then you have the option to (at any time) plug a USB
+ *    (bridge_mode = 0), then you have the option to (at any time) plug a USB
  *    cable directly in to the Wixel that is connected to your microcontroller
  *    to establish a more direct (wired) serial connection with the
  *    microcontroller.  (You would, of course, also have to switch to the other
@@ -91,17 +91,19 @@
 #include <stdio.h>
 
 /** Parameters ****************************************************************/
-#define SERIAL_MODE_RADIO_I2C 0
-#define SERIAL_MODE_UART_I2C  1
-#define SERIAL_MODE_USB_I2C   2
 
-int32 CODE param_serial_mode = SERIAL_MODE_RADIO_I2C;
+#define BRIDGE_MODE_RADIO_I2C 0
+#define BRIDGE_MODE_UART_I2C  1
+#define BRIDGE_MODE_USB_I2C   2
+
+int32 CODE param_bridge_mode = BRIDGE_MODE_RADIO_I2C;
 int32 CODE param_baud_rate = 9600;
 int32 CODE param_I2C_freq_kHz = 100;
 int32 CODE param_I2C_timeout_ms = 10;
 int32 CODE param_cmd_timeout_ms = 500;
 
 /** Global Constants & Variables **********************************************/
+
 uint16 lastCmd = 0;
 
 #define CMD_START      'S'
@@ -165,7 +167,8 @@ void parseCmd(uint8 byte)
         {
             // write slave address
             dataDirIsRead = byte & 1; // lowest bit of slave address determines direction (0 = write, 1 = read)
-            nack = i2cWriteByte(byte, 0, 0);
+            nack = i2cWriteByte(byte);
+
             if (i2cTimeoutOccurred)
             {
                 errors |= ERR_I2C_TIMEOUT;
@@ -186,7 +189,7 @@ void parseCmd(uint8 byte)
         else if (!dataDirIsRead && dataLength)
         {
             // write data
-            nack = i2cWriteByte(byte, 0, 0);
+            nack = i2cWriteByte(byte);
             if (i2cTimeoutOccurred)
             {
                 errors |= ERR_I2C_TIMEOUT;
@@ -223,7 +226,8 @@ void i2cRead()
 {
     uint8 byte;
 
-    byte = i2cReadByte((dataLength == 1), 0);
+    // read one byte; send a nack if this is the last byte
+    byte = i2cReadByte(dataLength == 1);
     if (i2cTimeoutOccurred)
     {
         errors |= ERR_I2C_TIMEOUT;
@@ -260,7 +264,7 @@ void i2cService()
             }
             else
             {
-                if (started && (uint16)(getMs() - lastCmd) > param_cmd_timeout_ms)
+                if (started && (param_cmd_timeout_ms > 0) && ((uint16)(getMs() - lastCmd) > param_cmd_timeout_ms))
                 {
                     // command timeout
                     i2cStop();
@@ -282,11 +286,11 @@ void main()
     systemInit();
     usbInit();
 
-    if (param_serial_mode == SERIAL_MODE_RADIO_I2C)
+    if (param_bridge_mode == BRIDGE_MODE_RADIO_I2C)
     {
         radioComInit();
     }
-    else if  (param_serial_mode == SERIAL_MODE_UART_I2C)
+    else if  (param_bridge_mode == BRIDGE_MODE_UART_I2C)
     {
         uart1Init();
         uart1SetBaudRate(param_baud_rate);
@@ -295,21 +299,21 @@ void main()
     i2cSetFrequency(param_I2C_freq_kHz);
     i2cSetTimeout(param_I2C_timeout_ms);
 
-    switch(param_serial_mode)
+    switch(param_bridge_mode)
     {
-    case SERIAL_MODE_RADIO_I2C:
+    case BRIDGE_MODE_RADIO_I2C:
         rxAvailableFunction   = radioComRxAvailable;
         rxReceiveByteFunction = radioComRxReceiveByte;
         txAvailableFunction   = radioComTxAvailable;
         txSendByteFunction    = radioComTxSendByte;
         break;
-    case SERIAL_MODE_UART_I2C:
+    case BRIDGE_MODE_UART_I2C:
         rxAvailableFunction   = uart1RxAvailable;
         rxReceiveByteFunction = uart1RxReceiveByte;
         txAvailableFunction   = uart1TxAvailable;
         txSendByteFunction    = uart1TxSendByte;
         break;
-    case SERIAL_MODE_USB_I2C:
+    case BRIDGE_MODE_USB_I2C:
         rxAvailableFunction   = usbComRxAvailable;
         rxReceiveByteFunction = usbComRxReceiveByte;
         txAvailableFunction   = usbComTxAvailable;
@@ -322,7 +326,7 @@ void main()
         boardService();
         updateLeds();
 
-        if (param_serial_mode == SERIAL_MODE_RADIO_I2C)
+        if (param_bridge_mode == BRIDGE_MODE_RADIO_I2C)
         {
             radioComTxService();
         }

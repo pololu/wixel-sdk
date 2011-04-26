@@ -13,8 +13,8 @@
 
 /* Global Constants & Variables ***********************************************/
 
-#define I2C_PIN_SCL 10 // P1_0
-#define I2C_PIN_SDA 11 // P1_1
+uint8 DATA i2cPinScl = 10; // P1_0
+uint8 DATA i2cPinSda = 11; // P1_1
 
 static uint16 XDATA halfPeriodUs = 5; // freq = 100 kHz
 static uint16 XDATA timeout = 10;
@@ -52,24 +52,24 @@ void i2cSetTimeout(uint16 timeoutMs)
 
 BIT i2cReadScl()
 {
-    setDigitalInput(I2C_PIN_SCL, HIGH_IMPEDANCE);
-    return isPinHigh(I2C_PIN_SCL);
+    setDigitalInput(i2cPinScl, HIGH_IMPEDANCE);
+    return isPinHigh(i2cPinScl);
 }
 
 BIT i2cReadSda()
 {
-    setDigitalInput(I2C_PIN_SDA, HIGH_IMPEDANCE);
-    return isPinHigh(I2C_PIN_SDA);
+    setDigitalInput(i2cPinSda, HIGH_IMPEDANCE);
+    return isPinHigh(i2cPinSda);
 }
 
 void i2cClearScl()
 {
-    setDigitalOutput(I2C_PIN_SCL, LOW);
+    setDigitalOutput(i2cPinScl, LOW);
 }
 
 void i2cClearSda()
 {
-    setDigitalOutput(I2C_PIN_SDA, LOW);
+    setDigitalOutput(i2cPinSda, LOW);
 }
 
 void i2cWaitForHighScl(uint16 timeoutMs)
@@ -186,19 +186,14 @@ BIT i2cReadBit()
 
 /* Write a byte to I2C bus. Return 0 if ack by the slave, 1 if nack.
  * The return value is not meaningful if a timeout occurs.
- * */
-BIT i2cWriteByte(uint8 byte, BIT sendStart, BIT sendStop)
+ */
+BIT i2cWriteByte(uint8 byte)
 {
     uint8 i;
     BIT nack;
 
     internalTimeoutOccurred = 0;
 
-    if (sendStart)
-    {
-        i2cStart();
-        if (internalTimeoutOccurred) return 0;
-    }
     for (i = 0; i < 8; i++)
     {
         i2cWriteBit(byte & 0x80);
@@ -207,7 +202,8 @@ BIT i2cWriteByte(uint8 byte, BIT sendStart, BIT sendStop)
     }
     nack = i2cReadBit();
     if (internalTimeoutOccurred) return 0;
-    if (sendStop || nack == 1)
+
+    if (nack)
     {
         i2cStop();
         if (internalTimeoutOccurred) return 0;
@@ -215,8 +211,10 @@ BIT i2cWriteByte(uint8 byte, BIT sendStart, BIT sendStop)
     return nack;
 }
 
-/* Read a byte from I2C bus */
-uint8 i2cReadByte(BIT nack, BIT sendStop)
+/* Read a byte from I2C bus.
+ * The return value is not meaningful if a timeout occurs.
+ */
+uint8 i2cReadByte(BIT nack)
 {
     uint16 byte = 0;
     uint8 i;
@@ -230,13 +228,9 @@ uint8 i2cReadByte(BIT nack, BIT sendStop)
         if (internalTimeoutOccurred) return 0;
         byte = (byte << 1) | b;
     }
+
     i2cWriteBit(nack);
     if (internalTimeoutOccurred) return 0;
 
-    if (sendStop)
-    {
-        i2cStop();
-        if (internalTimeoutOccurred) return 0;
-    }
     return byte;
 }
