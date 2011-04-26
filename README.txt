@@ -1,6 +1,6 @@
 Pololu Wixel Software Development Kit (SDK)
 
-This pacakage contains code and Makefiles that will help you create
+This package contains code and Makefiles that will help you create
 your own applications for the Pololu Wixel.  The Wixel is a general-
 purpose programmable module featuring a 2.4 GHz radio and USB.  The
 Wixel is based on the CC2511F32 microcontroller from Texas Instruments,
