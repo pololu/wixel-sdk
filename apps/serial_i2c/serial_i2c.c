@@ -35,8 +35,8 @@
 
 int32 CODE param_bridge_mode = BRIDGE_MODE_RADIO_I2C;
 int32 CODE param_baud_rate = 9600;
-int32 CODE param_I2C_pin_SCL = 10;
-int32 CODE param_I2C_pin_SDA = 11;
+int32 CODE param_I2C_SCL_pin = 10;
+int32 CODE param_I2C_SDA_pin = 11;
 int32 CODE param_I2C_freq_kHz = 100;
 int32 CODE param_I2C_timeout_ms = 10;
 int32 CODE param_cmd_timeout_ms = 500;
@@ -45,10 +45,12 @@ int32 CODE param_cmd_timeout_ms = 500;
 
 uint16 lastCmd = 0;
 
+// ASCII commands
 #define CMD_START      'S'
 #define CMD_STOP       'P'
 #define CMD_GET_ERRORS 'E'
 
+// error flags
 #define ERR_I2C_NACK_ADDRESS 0x1
 #define ERR_I2C_NACK_DATA    0x2
 #define ERR_I2C_TIMEOUT      0x8
@@ -64,6 +66,7 @@ static BIT dataDirIsRead = 0;
 static BIT lengthSet = 0;
 static uint8 dataLength = 0;
 
+// function pointers to selected serial interface
 uint8 (*rxAvailableFunction)(void)   = NULL;
 uint8 (*rxReceiveByteFunction)(void) = NULL;
 uint8 (*txAvailableFunction)(void)   = NULL;

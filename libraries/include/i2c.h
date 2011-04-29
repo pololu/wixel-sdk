@@ -13,13 +13,13 @@
 
 #include <cc2511_types.h>
 
-/*! Number of the pin to use as the SCL line of the I<sup>2</sup>C bus. See
- * the gpio.h documentation for pin number values.
+/*! Number of the pin to use as the SCL (clock) line of the I<sup>2</sup>C bus.
+ * See the gpio.h documentation for pin number values.
  */
 extern uint8 DATA i2cPinScl;
 
-/*! Number of the pin to use as the SDA line of the I<sup>2</sup>C bus. See
- * the gpio.h documentation for pin number values.
+/*! Number of the pin to use as the SDA (data) line of the I<sup>2</sup>C bus.
+ * See the gpio.h documentation for pin number values.
  */
 extern uint8 DATA i2cPinSda;
 
