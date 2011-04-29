@@ -1,4 +1,4 @@
-/* wireless_serial_i2c app:
+/* serial_i2c app:
  *
  * Pin out:
  * P0_3 = TX
@@ -8,6 +8,7 @@
  *
  * This app allows you use a Wixel as an I2C bus master, controlled by a
  * wireless, UART, or USB interface.
+ */
 
 /** Dependencies **************************************************************/
 #include <cc2511_map.h>
@@ -34,6 +35,8 @@
 
 int32 CODE param_bridge_mode = BRIDGE_MODE_RADIO_I2C;
 int32 CODE param_baud_rate = 9600;
+int32 CODE param_I2C_pin_SCL = 10;
+int32 CODE param_I2C_pin_SDA = 11;
 int32 CODE param_I2C_freq_kHz = 100;
 int32 CODE param_I2C_timeout_ms = 10;
 int32 CODE param_cmd_timeout_ms = 500;
@@ -231,6 +234,9 @@ void main()
         uart1Init();
         uart1SetBaudRate(param_baud_rate);
     }
+
+    i2cPinScl = param_I2C_pin_SCL;
+    i2cPinSda = param_I2C_pin_SDA;
 
     i2cSetFrequency(param_I2C_freq_kHz);
     i2cSetTimeout(param_I2C_timeout_ms);
