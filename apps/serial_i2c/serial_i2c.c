@@ -51,9 +51,11 @@ uint16 lastCmd = 0;
 #define CMD_GET_ERRORS 'E'
 
 // error flags
-#define ERR_I2C_NACK_ADDRESS 0x1
-#define ERR_I2C_NACK_DATA    0x2
-#define ERR_I2C_TIMEOUT      0x8
+#define ERR_I2C_NACK_ADDRESS (1 << 0)
+#define ERR_I2C_NACK_DATA    (1 << 1)
+#define ERR_I2C_TIMEOUT      (1 << 2)
+#define ERR_CMD_INVALID      (1 << 3)
+#define ERR_CMD_TIMEOUT      (1 << 4)
 
 static uint8 errors = 0;
 
@@ -101,6 +103,10 @@ void parseCmd(uint8 byte)
             response = errors;
             returnResponse = 1;
             errors = 0;
+        }
+        else
+        {
+            errors |= ERR_CMD_INVALID;
         }
     }
     else
@@ -161,6 +167,10 @@ void parseCmd(uint8 byte)
             returnResponse = 1;
             errors = 0;
         }
+        else
+        {
+            errors |= ERR_CMD_INVALID;
+        }
     }
 }
 
@@ -211,6 +221,7 @@ void i2cService()
                     // command timeout
                     i2cStop();
                     started = 0;
+                    errors |= ERR_CMD_TIMEOUT;
                 }
             }
         }
