@@ -197,33 +197,26 @@ void i2cRead()
 
 void i2cService()
 {
-    // don't try to process I2C if there's a response waiting to be returned on serial
+    // Don't try to process I2C if there's a response waiting to be returned on serial.
     if (!returnResponse)
     {
-
         if (dataDirIsRead && lengthSet && dataLength)
         {
-            // if we're doing an I2C read, handle that
+            // We are doing an I2C read, so handle that.
             i2cRead();
         }
-        else
+        else if (rxAvailableFunction())
         {
-            // check if a command is available on serial
-            if (rxAvailableFunction())
-            {
-                parseCmd(rxReceiveByteFunction());
-                lastCmd = getMs();
-            }
-            else
-            {
-                if (started && (param_cmd_timeout_ms > 0) && ((uint16)(getMs() - lastCmd) > param_cmd_timeout_ms))
-                {
-                    // command timeout
-                    i2cStop();
-                    started = 0;
-                    errors |= ERR_CMD_TIMEOUT;
-                }
-            }
+            // A command byte is available, so process it.
+            parseCmd(rxReceiveByteFunction());
+            lastCmd = getMs();
+        }
+        else if (started && (param_cmd_timeout_ms > 0) && ((uint16)(getMs() - lastCmd) > param_cmd_timeout_ms))
+        {
+            // The current command has timed out.
+            i2cStop();
+            started = 0;
+            errors |= ERR_CMD_TIMEOUT;
         }
     }
 
@@ -239,16 +232,6 @@ void main()
     systemInit();
     usbInit();
 
-    if (param_bridge_mode == BRIDGE_MODE_RADIO_I2C)
-    {
-        radioComInit();
-    }
-    else if  (param_bridge_mode == BRIDGE_MODE_UART_I2C)
-    {
-        uart1Init();
-        uart1SetBaudRate(param_baud_rate);
-    }
-
     i2cPinScl = param_I2C_pin_SCL;
     i2cPinSda = param_I2C_pin_SDA;
 
@@ -258,12 +241,15 @@ void main()
     switch(param_bridge_mode)
     {
     case BRIDGE_MODE_RADIO_I2C:
+        radioComInit();
         rxAvailableFunction   = radioComRxAvailable;
         rxReceiveByteFunction = radioComRxReceiveByte;
         txAvailableFunction   = radioComTxAvailable;
         txSendByteFunction    = radioComTxSendByte;
         break;
     case BRIDGE_MODE_UART_I2C:
+        uart1Init();
+        uart1SetBaudRate(param_baud_rate);
         rxAvailableFunction   = uart1RxAvailable;
         rxReceiveByteFunction = uart1RxReceiveByte;
         txAvailableFunction   = uart1TxAvailable;
