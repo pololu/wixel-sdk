@@ -56,16 +56,19 @@ uint16 lastCmd = 0;
 #define ERR_I2C_TIMEOUT      (1 << 2)
 #define ERR_CMD_INVALID      (1 << 3)
 #define ERR_CMD_TIMEOUT      (1 << 4)
+#define ERR_UART_OVERFLOW    (1 << 5)
+#define ERR_UART_FRAMING     (1 << 6)
 
 static uint8 errors = 0;
 
 static uint8 response = 0;
 static BIT returnResponse = 0;
 
+enum i2cState {IDLE, GET_ADDR, GET_LEN, GET_DATA};
+enum i2cState state = IDLE;
+
 static BIT started = 0;
-static BIT addrSet = 0;
 static BIT dataDirIsRead = 0;
-static BIT lengthSet = 0;
 static uint8 dataLength = 0;
 
 // function pointers to selected serial interface
@@ -76,7 +79,7 @@ void  (*txSendByteFunction)(uint8)   = NULL;
 
 /** Functions *****************************************************************/
 
-void updateLeds()
+void updateLeds(void)
 {
     usbShowStatusWithGreenLed();
 
@@ -88,53 +91,67 @@ void parseCmd(uint8 byte)
 {
     BIT nack;
 
-    if (!started)
+    switch (state)
     {
-        if ((char)byte == CMD_START)
+    case IDLE:
+        switch ((char)byte)
         {
-            // send start
-            i2cStart();
-            addrSet = 0;
-            lengthSet = 0;
-            started = 1;
-        }
-        else if ((char)byte == CMD_GET_ERRORS)
-        {
+        case CMD_GET_ERRORS:
             response = errors;
             returnResponse = 1;
             errors = 0;
+            break;
+
+        case CMD_START:
+            i2cStart();
+            started = 1;
+            state = GET_ADDR;
+            break;
+
+        case CMD_STOP:
+            if (started)
+            {
+                i2cStop();
+                started = 0;
+                break;
+            }
+            // otherwise fall through to error
+
+        default:
+            errors |= ERR_CMD_INVALID;
+            break;
         }
-        else
+        break;
+
+    case GET_ADDR:
+        // write slave address
+        dataDirIsRead = byte & 1; // lowest bit of slave address determines direction (0 = write, 1 = read)
+        nack = i2cWriteByte(byte);
+
+        if (i2cTimeoutOccurred)
+        {
+            errors |= ERR_I2C_TIMEOUT;
+            i2cTimeoutOccurred = 0;
+        }
+        else if (nack)
+        {
+            errors |= ERR_I2C_NACK_ADDRESS;
+        }
+        state = GET_LEN;
+        break;
+
+    case GET_LEN:
+        // store data length
+        dataLength = byte;
+        state = GET_DATA;
+        break;
+
+    case GET_DATA:
+        if (dataDirIsRead)
         {
             errors |= ERR_CMD_INVALID;
         }
-    }
-    else
-    {
-        if (!addrSet)
-        {
-            // write slave address
-            dataDirIsRead = byte & 1; // lowest bit of slave address determines direction (0 = write, 1 = read)
-            nack = i2cWriteByte(byte);
-
-            if (i2cTimeoutOccurred)
-            {
-                errors |= ERR_I2C_TIMEOUT;
-                i2cTimeoutOccurred = 0;
-            }
-            else if (nack)
-            {
-                errors |= ERR_I2C_NACK_ADDRESS;
-            }
-            addrSet = 1;
-        }
-        else if (!lengthSet)
-        {
-            // store data length
-            dataLength = byte;
-            lengthSet = 1;
-        }
-        else if (!dataDirIsRead && dataLength)
+        else
         {
             // write data
             nack = i2cWriteByte(byte);
@@ -147,34 +164,17 @@ void parseCmd(uint8 byte)
             {
                 errors |= ERR_I2C_NACK_DATA;
             }
-            dataLength--;
+
+            if (--dataLength == 0)
+            {
+                state = IDLE;
+            }
         }
-        else if ((char)byte == CMD_START)
-        {
-            // repeated start
-            i2cStart();
-            addrSet = 0;
-            lengthSet = 0;
-        }
-        else if ((char)byte == CMD_STOP)
-        {
-            i2cStop();
-            started = 0;
-        }
-        else if ((char)byte == CMD_GET_ERRORS)
-        {
-            response = errors;
-            returnResponse = 1;
-            errors = 0;
-        }
-        else
-        {
-            errors |= ERR_CMD_INVALID;
-        }
+        break;
     }
 }
 
-void i2cRead()
+void i2cRead(void)
 {
     uint8 byte;
 
@@ -190,39 +190,38 @@ void i2cRead()
     {
         response = byte;
     }
-    dataLength--;
+
+    if (--dataLength == 0)
+    {
+        state = IDLE;
+    }
     returnResponse = 1;
 }
 
 
-void i2cService()
+void i2cService(void)
 {
-    // don't try to process I2C if there's a response waiting to be returned on serial
+    // only try to process I2C if there isn't a response still waiting to be returned on serial
     if (!returnResponse)
     {
-
-        if (dataDirIsRead && lengthSet && dataLength)
+        if (dataDirIsRead && state == GET_DATA)
         {
             // if we're doing an I2C read, handle that
             i2cRead();
         }
         else
         {
-            // check if a command is available on serial
             if (rxAvailableFunction())
             {
+                //  if a byte is available on serial, try to parse it
                 parseCmd(rxReceiveByteFunction());
-                lastCmd = getMs();
+                lastCmd = getMs(); // store the time of the last byte received
             }
-            else
+            else if ((param_cmd_timeout_ms > 0) && started && ((uint16)(getMs() - lastCmd) > param_cmd_timeout_ms))
             {
-                if (started && (param_cmd_timeout_ms > 0) && ((uint16)(getMs() - lastCmd) > param_cmd_timeout_ms))
-                {
-                    // command timeout
-                    i2cStop();
-                    started = 0;
-                    errors |= ERR_CMD_TIMEOUT;
-                }
+                i2cStop();
+                started = 0;
+                errors |= ERR_CMD_TIMEOUT;
             }
         }
     }
@@ -234,7 +233,21 @@ void i2cService()
     }
 }
 
-void main()
+void uartCheckErrors(void)
+{
+    if (uart1RxBufferFullOccurred)
+    {
+        errors |= ERR_UART_OVERFLOW;
+        uart1RxBufferFullOccurred = 0;
+    }
+    if (uart1RxFramingErrorOccurred)
+    {
+        errors |= ERR_UART_FRAMING;
+        uart1RxFramingErrorOccurred = 0;
+    }
+}
+
+void main(void)
 {
     systemInit();
     usbInit();
@@ -249,8 +262,8 @@ void main()
         uart1SetBaudRate(param_baud_rate);
     }
 
-    i2cPinScl = param_I2C_pin_SCL;
-    i2cPinSda = param_I2C_pin_SDA;
+    i2cPinScl = param_I2C_SCL_pin;
+    i2cPinSda = param_I2C_SDA_pin;
 
     i2cSetFrequency(param_I2C_freq_kHz);
     i2cSetTimeout(param_I2C_timeout_ms);
@@ -285,6 +298,10 @@ void main()
         if (param_bridge_mode == BRIDGE_MODE_RADIO_I2C)
         {
             radioComTxService();
+        }
+        else if (param_bridge_mode == BRIDGE_MODE_UART_I2C)
+        {
+            uartCheckErrors();
         }
 
         usbComService();

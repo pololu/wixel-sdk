@@ -50,24 +50,24 @@ void i2cSetTimeout(uint16 timeoutMs)
     timeout = timeoutMs;
 }
 
-BIT i2cReadScl()
+BIT i2cReadScl(void)
 {
     setDigitalInput(i2cPinScl, HIGH_IMPEDANCE);
     return isPinHigh(i2cPinScl);
 }
 
-BIT i2cReadSda()
+BIT i2cReadSda(void)
 {
     setDigitalInput(i2cPinSda, HIGH_IMPEDANCE);
     return isPinHigh(i2cPinSda);
 }
 
-void i2cClearScl()
+void i2cClearScl(void)
 {
     setDigitalOutput(i2cPinScl, LOW);
 }
 
-void i2cClearSda()
+void i2cClearSda(void)
 {
     setDigitalOutput(i2cPinSda, LOW);
 }
@@ -90,7 +90,7 @@ void i2cWaitForHighScl(uint16 timeoutMs)
 /* Generate an I2C STOP condition (P):
  *  SDA goes high while SCL is high
  */
-void i2cStop()
+void i2cStop(void)
 {
     i2cClearSda(); // drive SDA low while SCL is low
     delayMicroseconds(halfPeriodUs);
@@ -108,7 +108,7 @@ void i2cStop()
 /* Generate an I2C START or repeated START condition (S):
  *  SDA goes low while SCL is high
  */
-void i2cStart()
+void i2cStart(void)
 {
     // if started == 1, do a repeated start
     if (started)
@@ -166,7 +166,7 @@ void i2cWriteBit(BIT b)
  * low again before it returns. Return value is not meaningful if timeout
  * occurs.
  */
-BIT i2cReadBit()
+BIT i2cReadBit(void)
 {
     BIT b;
 

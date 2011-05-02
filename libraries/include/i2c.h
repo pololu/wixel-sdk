@@ -50,11 +50,11 @@ void i2cSetTimeout(uint16 timeoutMs);
 
 /*! Generates an I<sup>2</sup>C START condition.
  */
-void i2cStart();
+void i2cStart(void);
 
 /*! Generates an I<sup>2</sup>C STOP condition.
  */
-void i2cStop();
+void i2cStop(void);
 
 /*! Writes a byte to the I<sup>2</sup>C bus (performs a master transmit).
  *
