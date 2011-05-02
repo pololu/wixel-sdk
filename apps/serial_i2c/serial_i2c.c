@@ -1,10 +1,10 @@
 /* serial_i2c app:
  *
- * Pin out:
- * P0_3 = TX
- * P0_2 = RX
+ * Default pinout:
  * P1_0 = I2C SCL
  * P1_1 = I2C SDA
+ * P0_3 = UART TX
+ * P0_2 = UART RX
  *
  * This app allows you use a Wixel as an I2C bus master, controlled by a
  * wireless, UART, or USB interface.
@@ -115,7 +115,7 @@ void parseCmd(uint8 byte)
                 started = 0;
                 break;
             }
-            // otherwise fall through to error
+            // if not started, fall through to error
 
         default:
             errors |= ERR_CMD_INVALID;
@@ -143,12 +143,13 @@ void parseCmd(uint8 byte)
     case GET_LEN:
         // store data length
         dataLength = byte;
-        state = GET_DATA;
+        state = (dataLength > 0) ? GET_DATA : IDLE;
         break;
 
     case GET_DATA:
         if (dataDirIsRead)
         {
+            // this should never happen, because i2cService should not call parseCmd until i2cRead has read all response bytes and set state = IDLE
             errors |= ERR_CMD_INVALID;
         }
         else
@@ -256,7 +257,7 @@ void main(void)
     i2cSetFrequency(param_I2C_freq_kHz);
     i2cSetTimeout(param_I2C_timeout_ms);
 
-    switch(param_bridge_mode)
+    switch (param_bridge_mode)
     {
     case BRIDGE_MODE_RADIO_I2C:
         radioComInit();
@@ -286,13 +287,15 @@ void main(void)
         boardService();
         updateLeds();
 
-        if (param_bridge_mode == BRIDGE_MODE_RADIO_I2C)
+        switch (param_bridge_mode)
         {
+        case BRIDGE_MODE_RADIO_I2C:
             radioComTxService();
-        }
-        else if (param_bridge_mode == BRIDGE_MODE_UART_I2C)
-        {
+            break;
+
+        case BRIDGE_MODE_UART_I2C:
             uartCheckErrors();
+            break;
         }
 
         usbComService();
