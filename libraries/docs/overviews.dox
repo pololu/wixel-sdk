@@ -176,13 +176,15 @@ If you have a problem or question, feel free to ask us on the
 
 - <b>adc.lib (adc.h):</b> Uses the Analog-to-Digital Converter (ADC) to read analog voltages.
 - <b>gpio.lib (gpio.h):</b> Uses the CC2511's pins as general purpose inputs or outputs (GPIO).
+- <b>i2c.lib (i2c.h):</b> Provides a basic software (bit-banging) implementation of a master
+  node for I<sup>2</sup>C communication.  Depends on <b>gpio.lib</b>.
 - <b>uart.lib (uart0.h, uart1.h):</b> Uses USART0 and/or USART1 in UART mode to send and
   receive serial bytes.
 
 \section basic_libs Basic Libraries
 
 - <b>wixel.lib (board.h, time.h)</b>: Takes care of everything that is specific
-  to the Wixel hardware, including managing LEDs and other IO lines, detecting
+  to the Wixel hardware, including managing LEDs and other I/O lines, detecting
   the current power source, keeping track of time, and providing delay
   functions.
 - <b>dma.lib (dma.h)</b>: Coordinates the use of DMA channels 1-3.  Does not touch DMA channel 0.
