@@ -177,7 +177,7 @@ If you have a problem or question, feel free to ask us on the
 - <b>adc.lib (adc.h):</b> Uses the Analog-to-Digital Converter (ADC) to read analog voltages.
 - <b>gpio.lib (gpio.h):</b> Uses the CC2511's pins as general purpose inputs or outputs (GPIO).
 - <b>i2c.lib (i2c.h):</b> Provides a basic software (bit-banging) implementation of a master
-  node for I<sup>2</sup>C communication.  Depends on <b>gpio.lib</b>.
+  node for I<sup>2</sup>C communication.  Depends on <b>gpio.lib</b> and <b>wixel.lib</b>.
 - <b>uart.lib (uart0.h, uart1.h):</b> Uses USART0 and/or USART1 in UART mode to send and
   receive serial bytes.
 
