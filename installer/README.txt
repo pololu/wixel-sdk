@@ -43,7 +43,7 @@ in that folder:
      [core] section of .git/config)
    - Has Doxygen-generated docs in wixel-sdk/docs/html.  Run
      "make docs" to generate these docs.
-	 
+
 Finally, to create the installer:
 1. Open a Command Prompt and navigate to the bundle directory.
 2. Compile build_tools.nsi by running:
