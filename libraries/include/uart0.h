@@ -17,6 +17,10 @@
  * The API for using UART 1 is the same as the API for using UART 0 that is
  * documented here, except all the function and variable names begin with
  * "uart1" instead of "uart0".
+ *
+ * For UART0, this library uses Alternative Location 1: P0_3 is TX, P0_2 is RX.
+ * For UART1, this library uses Alternative Location 2: P1_6 is TX, P1_7 is RX.
+ * This library does not yet allow you to choose which UART location to use.
  */
 
 #ifndef _UART0_H
