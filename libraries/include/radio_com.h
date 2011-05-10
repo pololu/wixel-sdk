@@ -42,7 +42,7 @@ void radioComInit(void);
  *
  * We recommend that if you call radioComRxControlSignals(), you should call it regularly
  * and set #radioComRxEnforceOrdering to 1 at the beginning of your program.  If you are not
- * using the control signals, you can leave this bit at 0. */
+ * using the control signals, you should leave this bit at 0. */
 extern BIT radioComRxEnforceOrdering;
 
 /*! \return The number of bytes in the RX buffer.
