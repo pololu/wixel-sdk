@@ -1,14 +1,22 @@
-/* serial_i2c app:
- *
- * Default pinout:
- * P1_0 = I2C SCL
- * P1_1 = I2C SDA
- * P0_3 = UART TX
- * P0_2 = UART RX
- *
- * This app allows you use a Wixel as an I2C bus master, controlled by a
- * wireless, UART, or USB interface.
- */
+/** serial_i2c app:
+
+This app turns a Wixel into a serial-to-I2C bridge, acting as a master
+controller on a single-master I2C bus. To perform I2C operations, another
+device can issue serial ASCII commands to the Wixel on its radio, UART, or USB
+interface.
+
+For complete documentation and a precompiled version of this app, see the
+"Serial-to-I2C App" section of the Pololu Wixel User's Guide:
+http://www.pololu.com/docs/0J46
+ 
+
+== Default pinout ==
+
+P1_0 = I2C SCL
+P1_1 = I2C SDA
+P0_3 = UART TX
+P0_2 = UART RX
+*/
 
 /** Dependencies **************************************************************/
 #include <cc2511_map.h>

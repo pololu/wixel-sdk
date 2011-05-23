@@ -1,24 +1,23 @@
-/* usb_serial app:
- *
- * == Pinout ==
- *
- * P1_0 = nDTR: general purpose output pin controlled by computer
- * P1_1 = nRTS: general purpose output pin controlled by computer
- * P1_2 = nDSR: general purpose input pin reported to computer
- * P1_3 = nCD: general purpose input pin reported to computer
- * (P1_4: Reserved for CT flow control line in future version.)
- * (P1_5: Reserved for RT flow control line in future version.)
- * P1_6 = TX:  transmits data from computer
- * P1_7 = RX:  receives data and sends it to the computer
- *
- * == Overview ==
- *
- * == Technical Description ==
- *
- * == Parameters ==
- *
- * == Example Uses ==
- */
+/** usb_serial app:
+
+This app allows you to turn a Wixel into a USB-to-TTL serial adapter.
+
+For complete documentation and a precompiled version of this app, see the
+"USB-to-Serial App" section of the Pololu Wixel User's Guide:
+http://www.pololu.com/docs/0J46
+
+
+== Pinout ==
+
+P1_0 = nDTR: general purpose output pin controlled by computer
+P1_1 = nRTS: general purpose output pin controlled by computer
+P1_2 = nDSR: general purpose input pin reported to computer
+P1_3 = nCD: general purpose input pin reported to computer
+(P1_4: Reserved for CT flow control line in future version.)
+(P1_5: Reserved for RT flow control line in future version.)
+P1_6 = TX:  transmits data from computer
+P1_7 = RX:  receives data and sends it to the computer
+*/
 
 /*
  * TODO: Support for USB CDC ACM control signals.

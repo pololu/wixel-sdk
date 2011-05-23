@@ -1,3 +1,28 @@
+/** test_adc app:
+
+This app uses the CC2511's analog-to-digital converter (ADC) to read the
+voltages on all 6 analog inputs and measure the voltage of the Wixel's VDD (3V3)
+line.  The results are reported to the computer either in CSV format or
+as a bar graph.
+
+
+== Parameters ==
+
+input_mode:  Specifies whether to enable internal pull-down resistors, 
+    enable internal pull-up resistors, or just let the analog lines float.
+     1 = Pull-ups
+     0 = Float (default)
+    -1 = Pull-downs
+
+bar_graph:  Specifies whether to print out a bar graph or not.
+    1 = Print a bar graph (default, requires you to use a terminal program that
+        supports VT100 commands)
+    0 = Print the 7 readings on a single line, separated by commas.
+
+report_period_ms: Specifies the number of milliseconds to wait between
+    reports to the computer.  The default is 40.
+*/
+
 #include <wixel.h>
 #include <usb.h>
 #include <usb_com.h>
@@ -5,22 +30,8 @@
 
 /* PARAMETERS *****************************************************************/
 
-/*! Specifies whether to use pull-down resistors, pull-up resistors, or just
- * let the analog lines float.
- *  1 = Pull-ups
- *  0 = Float
- * -1 = Pull-downs */
 int32 CODE param_input_mode = 0;
-
-/*! Specifies whether to print out a fancy bargraph or not.
- * 1 = Print a bar graph (requires you to use a terminal program that supports VT100 commands)
- * 0 = Print the 7 readings on a single line, separated by commas.
- */
 int32 CODE param_bar_graph = 1;
-
-/*! Specifies the number of milliseconds to wait between reports
- * to the computer.
- */
 int32 CODE param_report_period_ms = 40;
 
 /* VARIABLES ******************************************************************/

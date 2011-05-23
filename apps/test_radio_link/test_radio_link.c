@@ -1,4 +1,8 @@
-// test_radio_link.c: A little program that lets you test the radio_link library.
+/** test_radio_link app:
+
+This app lets you test the radio_link library.  This app is mainly intended for
+people who are debugging the library.
+*/
 
 #include <wixel.h>
 #include <usb.h>

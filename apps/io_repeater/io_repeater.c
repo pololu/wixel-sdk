@@ -1,3 +1,13 @@
+/** io_repeater app:
+
+This app allows you to wirelessly extend the reach of your microcontroller's
+I/O lines using two or more Wixels.
+
+For complete documentation and a precompiled version of this app, see the
+"I/O Repeater App" section of the Pololu Wixel User's Guide:
+http://www.pololu.com/docs/0J46
+*/
+
 /** Dependencies **************************************************************/
 #include <cc2511_map.h>
 #include <board.h>

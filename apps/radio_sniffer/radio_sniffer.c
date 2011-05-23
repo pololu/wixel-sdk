@@ -1,42 +1,45 @@
-/* radio_sniffer app:
- *
- * == Overview ==
- * This app shows the radio packets being transmitted by other Wixels on the
- * same channel.
- *
- * == Technical Description ==
- * A Wixel running this app appears to the USB host as a Virtual COM Port,
- * with USB product ID 0x2200.  To view the output of this app, connect to
- * the Wixel's virtual COM port using a terminal program.  Be sure to set your
- * terminal's line width to 120 characters or more to avoid line wrapping.
- *
- * The app uses the radio_queue libray to receive packets.  It does not
- * transmit any packets.
- *
- * The output from this app takes the following format:
- *
- * 147> "hello world!"       ! R: -50 L: 104 s:0 PING  p:0 0D0068656C6C6F20776F726C64212A68
- *  (1)      (2)            (3)  (4)    (5)  (6)  (7)  (8)    (9)
- *
- * (1) index (line number)
- * (2) ASCII representation of packet contents (unprintable bytes are replaced with '?')
- * (3) '!' indicates packet failed CRC check
- * (4) RSSI
- * (5) LQI
- * (6) sequence bit (only applies to RF communications using radio_link)
- * (7) packet type (only applies to RF communications using radio_link)
- * (8) payload type (only applies to RF communications using radio_link)
- * (9) hexadecimal representation of raw packet contents, including length byte
- *     and any header bytes at beginning
- *
- * The red LED indicates activity on the radio channel (packets being received).
- * Since every radio packet has a chance of being lost, there is no guarantee
- * that this app will pick up all the packets being sent, and some of
- * what it does pick up will be corrupted (indicated by a failed CRC check).
- *
- * == Parameters ==
- *   radio_channel : See description in radio_link.h.
- */
+/** radio_sniffer app:
+
+This app shows the radio packets being transmitted by other Wixels on the
+same channel.
+
+
+== Description ==
+
+A Wixel running this app appears to the USB host as a Virtual COM Port,
+with USB product ID 0x2200.  To view the output of this app, connect to
+the Wixel's virtual COM port using a terminal program.  Be sure to set your
+terminal's line width to 120 characters or more to avoid line wrapping.
+ 
+The app uses the radio_queue libray to receive packets.  It does not
+transmit any packets.
+
+The output from this app takes the following format:
+
+147> "hello world!"       ! R: -50 L: 104 s:0 PING  p:0 0D0068656C6C6F20776F726C64212A68
+ (1)      (2)            (3)  (4)    (5)  (6)  (7)  (8)    (9)
+
+(1) index (line number)
+(2) ASCII representation of packet contents (unprintable bytes are replaced with '?')
+(3) '!' indicates packet failed CRC check
+(4) RSSI
+(5) LQI
+(6) sequence bit (only applies to RF communications using radio_link)
+(7) packet type (only applies to RF communications using radio_link)
+(8) payload type (only applies to RF communications using radio_link)
+(9) hexadecimal representation of raw packet contents, including length byte
+    and any header bytes at beginning
+
+The red LED indicates activity on the radio channel (packets being received).
+Since every radio packet has a chance of being lost, there is no guarantee
+that this app will pick up all the packets being sent, and some of
+what it does pick up will be corrupted (indicated by a failed CRC check).
+
+
+== Parameters ==
+
+radio_channel: See description in radio_link.h.
+*/
 
 /** Dependencies **************************************************************/
 #include <cc2511_map.h>

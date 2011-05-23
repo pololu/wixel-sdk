@@ -55,7 +55,7 @@ void updateLeds()
 
     // Turn on the red LED if the radio is in the RX_OVERFLOW state.
     // There used to be several bugs in the radio libraries that would cause
-    // the radio to go in to this state, but hopefully they are all fixed now.
+    // the radio to go into this state, but hopefully they are all fixed now.
     if (MARCSTATE == 0x11)
     {
         LED_RED(1);

@@ -1,32 +1,32 @@
-/* test_radio_signal_rx:
- *
- * You can load test_radio_signal_rx onto one Wixel and load test_radio_signal_tx on
- * to another Wixel in order to test the quality of your radio signal.
- *
- * The transmitter (the Wixel loaded with test_radio_signal_tx) will transmit a
- * burst of 100 packets every second.
- *
- * The receivers(s) (the Wixel(s) loaded with test_radio_signal_rx) will listen for
- * the bursts.  Every time a burst is received, the receiver will send a report to
- * the USB virtual COM port with three statistics in it:
- * 1) The number of packets successfully received.  This is your packet success
- *    percentage.  Bigger values are better, and a value of 100 is perfect.
- *    This is the most important statistic because it determines the amount of
- *    data that the radios can transfer per second.
- *
- * 2) Average signal strength of the packets received in dBm.  This will be a number
- *    typically between -100 and -10 that indicates how strong the signal is.  A
- *    higher number (closer to zero if negative) is better.
- *
- * 3) The average Link Quality Indicator (LQI) of the packets received.  According to
- *    the CC2511F32 datasheet, the LQI is a metric of the quality of the received signal.
- *    "LQI is best used as a relative measurement of link quality (a high value indicates
- *    a better link than what a low value does), since the value is dependent on the
- *    modulation format."
- *
- * The radio_channel parameter determines what frequency will be used, and should be the
- * same in both the transmitter and receiver.
- */
+/** test_radio_signal_rx app:
+
+You can load test_radio_signal_rx onto one Wixel and load test_radio_signal_tx
+onto another Wixel in order to test the quality of your radio signal.
+
+The transmitter (the Wixel loaded with test_radio_signal_tx) will transmit a
+burst of 100 packets every second.
+
+The receivers(s) (the Wixel(s) loaded with test_radio_signal_rx) will listen for
+the bursts.  Every time a burst is received, the receiver will send a report to
+the USB virtual COM port with three statistics in it:
+1) The number of packets successfully received.  This is your packet success
+   percentage.  Bigger values are better, and a value of 100 is perfect.
+   This is the most important statistic because it determines the amount of
+   data that the radios can transfer per second.
+
+2) Average signal strength of the packets received in dBm.  This will be a number
+   typically between -100 and -10 that indicates how strong the signal is.  A
+   higher number (closer to zero if negative) is better.
+
+3) The average Link Quality Indicator (LQI) of the packets received.  According to
+   the CC2511F32 datasheet, the LQI is a metric of the quality of the received signal.
+   "LQI is best used as a relative measurement of link quality (a high value indicates
+   a better link than what a low value does), since the value is dependent on the
+   modulation format."
+
+The radio_channel parameter determines what frequency will be used, and should be the
+same in both the transmitter and receiver.
+*/
 
 #include <wixel.h>
 #include <radio_registers.h>

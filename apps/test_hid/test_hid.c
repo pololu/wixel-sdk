@@ -1,9 +1,33 @@
-/* pinout:
- *
- * P0_0 = Left Mouse Button input
- * P0_1 = Right Mouse Button input
- * P0_2 = Button to trigger keyboard input
- */
+/** test_hid_app:
+
+This is app tests the USB Human Interface Device (HID) library that allows
+the Wixel to emulate a mouse, keyboard, and joystick simultaneously.
+
+The yellow LED shows whether Caps Lock is turned on.  This might not work if
+the USB host is a Linux or Mac OS machine.
+
+The code in keyboardService() demonstrates how to send a sequence of characters
+to the computer as fast as possible.
+
+
+== Default Pinout ==
+
+P0_0 = Left Mouse Button input (active low, pulled up internally)
+P0_1 = Right Mouse Button input (active low, pulled up internally)
+P0_2 = Button to trigger keyboard input (active low, pulled up internally)
+
+
+== Parameters ==
+
+move_cursor: Setting this to 1 will make the app move the cursor in a square
+    path.
+  
+move_mouse_wheel: Setting this to 1 will make the app move the virtual mouse
+    wheel up and down.
+
+move_joystick:  Settings this to 1 will make the app move the virtual joystick
+    and press all the joystick buttons in sequence.
+*/
 
 #include <wixel.h>
 #include <usb.h>

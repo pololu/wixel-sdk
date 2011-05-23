@@ -1,9 +1,11 @@
-#include <wixel.h>
-#include <usb.h>
-#include <usb_com.h>
-#include <stdio.h>
+/** example_usb_com app:
 
-/* Serial Command Protocol *****************************************************
+This example app shows how to process and respond to commands received from
+a USB virtual COM port.  The command protocol is documented below.
+
+
+== Serial Command Protocol ==
+
 Command Name: Toggle Yellow LED
 Protocol:
   Computer sends 0x81 OR the ASCII encoding of character 'y' (0x79).
@@ -28,6 +30,11 @@ Protocol:
   Wixel sends back an ASCII string that includes the number of
   milliseconds that the Wixel has been running for.
 */
+
+#include <wixel.h>
+#include <usb.h>
+#include <usb_com.h>
+#include <stdio.h>
 
 #define COMMAND_TOGGLE_YELLOW_LED   0x81
 #define COMMAND_GET_X               0x82
@@ -179,7 +186,7 @@ void processByte(uint8 byteReceived)
         case 't':
             time = getMs();
             // SDCC's default sprintf doesn't seem to support 32-bit ints, so we will
-            // split getMs in to two parts and print it in hex.
+            // split getMs into two parts and print it in hex.
             responseLength = sprintf(response, "time=0x%04x%04x\r\n", (uint16)(time >> 16), (uint16)time);
             usbComTxSend(response, responseLength);
             break;

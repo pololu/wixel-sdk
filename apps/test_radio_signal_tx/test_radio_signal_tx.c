@@ -1,7 +1,9 @@
-/* This app is meant to go along with the test_radio_signal_rx app.
- * See the comments in test_radio_signal_rx.c for information on how
- * to use this app.
- */
+/** test_radio_signal_tx app:
+
+This app is meant to go along with the test_radio_signal_rx app.
+See the comments in test_radio_signal_rx.c for information on how
+to use this app.
+*/
 
 #include <wixel.h>
 #include <radio_registers.h>

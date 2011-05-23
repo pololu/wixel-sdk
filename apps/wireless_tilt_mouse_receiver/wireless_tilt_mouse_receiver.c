@@ -1,7 +1,10 @@
-/*! wireless_tilt_mouse app:
- * Receives signals from the wireless_tilt_mouse app and reports them to the
- * computer using its USB HID interface.
- * See the wireless_tilt_mouse app (wireless_tilt_mouse.c) for details. */
+/** wireless_tilt_mouse_receiver app:
+
+Receives signals from the wireless_tilt_mouse app and reports them to the
+computer using its USB HID interface.
+
+See the wireless_tilt_mouse app (wireless_tilt_mouse.c) for details.
+*/
 
 #include <wixel.h>
 #include <usb.h>

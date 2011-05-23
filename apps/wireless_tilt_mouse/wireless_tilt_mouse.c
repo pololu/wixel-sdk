@@ -1,23 +1,31 @@
-/* wireless_tilt_mouse app:
- * Allows you to make a wireless tilt mouse using two Wixels, an accelerometer,
- * and two pushbuttons (optional).
- *
- * One Wixel should be running the wireless_tilt_mouse_receiver app and be
- * connected to a computer via USB.  The other Wixel should be running this app,
- * and be connected to the accelerometer and two optional pushbuttons.
- *
- * == Pinout ==
- *
- * P0_1 = Mouse vertical analog input
- * P0_2 = Mouse horizontal analog input
- * P1_2 = left mouse button input (pulled high; low means button is pressed)
- * P1_7 = left mouse button input (pulled high; low means button is pressed)
- *
- * == Parameters ==
- * - invert_x:  Default is 0.  Set to 1 to invert the X axis movement.
- * - invert_y:  Default is 0.  Set to 1 to invert the Y axis movement.
- * - speed: Controls how fast the mouse moves.  Default is 100.
- */
+/** wireless_tilt_mouse app:
+
+Allows you to make a wireless tilt mouse using two Wixels, an accelerometer,
+and two pushbuttons (optional).
+
+One Wixel should be running the wireless_tilt_mouse_receiver app and be
+connected to a computer via USB.  The other Wixel should be running this app,
+and be connected to the accelerometer and two optional pushbuttons.
+
+For complete documentation and a precompiled version of this app, see the
+"Wireless Tilt Mouse App" section of the Pololu Wixel User's Guide:
+http://www.pololu.com/docs/0J46
+
+== Pinout ==
+
+P0_1 = Mouse vertical analog input
+P0_2 = Mouse horizontal analog input
+P1_2 = left mouse button input (pulled high; low means button is pressed)
+P1_7 = left mouse button input (pulled high; low means button is pressed)
+
+
+== Parameters ==
+
+invert_x:  Default is 0.  Set to 1 to invert the X axis movement.
+invert_y:  Default is 0.  Set to 1 to invert the Y axis movement.
+speed: Controls how fast the mouse moves.  Default is 100.
+
+*/
 
 #include <wixel.h>
 #include <usb.h>

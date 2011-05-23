@@ -1,3 +1,11 @@
+/** example_blink_led app:
+This app blinks the red LED.
+
+For a precompiled version of this app and a tutorial on how to load this app
+onto your Wixel, see the Pololu Wixel User's Guide:
+http://www.pololu.com/docs/0J46
+*/
+
 #include <wixel.h>
 #include <usb.h>
 #include <usb_com.h>

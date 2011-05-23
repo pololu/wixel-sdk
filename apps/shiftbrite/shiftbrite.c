@@ -1,3 +1,13 @@
+/** shiftbrite app:
+
+This app allows you to wirelessly control a chain of one more ShiftBrite RGB LED
+modules.
+
+For complete documentation and a precompiled version of this app, see the
+"Shiftbrite App" section of the Pololu Wixel User's Guide:
+http://www.pololu.com/docs/0J46
+*/
+
 #include <cc2511_map.h>
 #include <board.h>
 #include <random.h>
