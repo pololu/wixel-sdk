@@ -91,7 +91,7 @@ HandlerFunction * usbComLineCodingChangeHandler = doNothing;
 // is less than full length, so sometimes we need to send empty packets.
 static BIT sendEmptyPacketSoon = 0;
 
-// The number of bytes that we have loaded in to the IN FIFO that are NOT yet
+// The number of bytes that we have loaded into the IN FIFO that are NOT yet
 // queued up to be sent.  This will always be less than CDC_IN_PACKET_SIZE because
 // once we've loaded up a full packet we should always send it immediately.
 static uint8 DATA inFifoBytesLoaded = 0;
@@ -445,7 +445,7 @@ void usbComService(void)
 }
 
 // Assumption: We are using double buffering, so we can load either 0, 1, or 2
-// packets in to the FIFO at this time.
+// packets into the FIFO at this time.
 uint8 usbComTxAvailable()
 {
     uint8 tmp;

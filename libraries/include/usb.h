@@ -126,7 +126,7 @@ typedef union
         uint16 wLength;
     };
 
-    /*! This struct breaks down bmRequestType in to its components. */
+    /*! This struct breaks down bmRequestType into its components. */
     struct
     {
         unsigned recipient:5;   //see REQUEST_RECIPIENT_*
@@ -333,7 +333,7 @@ void usbReadFifo(uint8 endpointNumber, uint8 count, uint8 XDATA * buffer);
  * Returns 0 otherwise.
  *
  * You can use this to know when it is time to turn
- * off the peripherals and go in to a power-saving mode. */
+ * off the peripherals and go into a power-saving mode. */
 BIT usbSuspended(void);
 
 /*! Sleeps until we receive USB resume signaling.
@@ -355,7 +355,7 @@ void usbSleep(void);
 
 /*! Direct access to this bit is provided for applications that
  * need to use the P0 interrupt and want USB suspend mode to work.  If you don't
- * fall in to that category, please don't use this bit directly: instead you
+ * fall into that category, please don't use this bit directly: instead you
  * should call usbSuspended() because that function is less likely to change in
  * future versions.  If you want to have a P0 interrupt AND USB Suspend, you
  * should write your ISR like this:

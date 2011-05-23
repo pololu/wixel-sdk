@@ -10,7 +10,7 @@
  *
  * \section ports Ports
  *
- * The pins on the CC2511 are divided in to three ports: Port 0 (P0), Port 1 (P1),
+ * The pins on the CC2511 are divided into three ports: Port 0 (P0), Port 1 (P1),
  * and Port 2 (P2).  Every pin's name is prefixed by the name of the port it is on.
  * For example, P0_3 starts with "P0" so it is a pin on Port 0.
  *

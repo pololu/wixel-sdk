@@ -158,7 +158,7 @@ void radioLinkTxSendPacket(uint8 payloadType)
     // Now we set the length byte.
     radioLinkTxPacket[radioLinkTxMainLoopIndex][0] = radioLinkTxPacket[radioLinkTxMainLoopIndex][RADIO_LINK_PACKET_HEADER_LENGTH] + RADIO_LINK_PACKET_HEADER_LENGTH;
 
-    // Put the payloadType in to the packet header.
+    // Put the payloadType into the packet header.
     radioLinkTxPacket[radioLinkTxMainLoopIndex][RADIO_LINK_PACKET_TYPE_OFFSET] = payloadType << RADIO_LINK_PAYLOAD_TYPE_BIT_OFFSET;
 
     // Update our index of which packet to populate in the main loop.
@@ -406,7 +406,7 @@ void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
         else
         {
             // TODO: if radioLinkTxCurrentPacketTries > 200 then we should probably just go
-            // in to RX mode here so we can avoid having this conversation 4 times per second:
+            // into RX mode here so we can avoid having this conversation 4 times per second:
             // DATA, NAK, DATA, NAK, DATA, NAK, DATA, NAK, DATA, NAK, ...
             // (It starts when the sender takes initiative and sends his (failing) data every
             // 250ms, and it ends as soon as one packet is lost.)

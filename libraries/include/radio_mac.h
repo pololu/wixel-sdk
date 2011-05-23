@@ -49,7 +49,7 @@ void radioMacInit(void);
  *
  * The idea behind this function is that higher-level code running
  * in the main loop would call it whenever it has placed new
- * data in to a buffer, in order to wake up the interrupt-based
+ * data into a buffer, in order to wake up the interrupt-based
  * code to so it can use the new data. */
 void radioMacStrobe(void);
 

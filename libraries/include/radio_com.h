@@ -5,7 +5,7 @@
  *
  * For many applications, this library is easier to use than
  * <code>radio_link.lib</code> because this library takes care of
- * dividing the stream of bytes in to packets.
+ * dividing the stream of bytes into packets.
  *
  * This library has the same limitations as <code>radio_link.lib</code>:
  * It does not work if there are more than two Wixels broadcasting

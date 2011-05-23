@@ -107,7 +107,7 @@ void boardService();
  * boardStartBootloader.
  * This function is called by boardService.
  * If you call this function regularly, then it provides a relatively
- * easy way to get in to bootloader mode if you can't do it with a
+ * easy way to get into bootloader mode if you can't do it with a
  * USB command.
  * Currently this function only works while the yellow LED is off. */
 void boardStartBootloaderIfNeeded();

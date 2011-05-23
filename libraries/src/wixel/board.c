@@ -2,9 +2,9 @@
 // hardware on the Wixel.  Includes LED, power detection, and common
 // timing/delay functions.
 
-// TODO: Allow for getting in to bootloader mode when the yellow LED is on
+// TODO: Allow for getting into bootloader mode when the yellow LED is on
 //    (need to turn it off for a brief time).
-// TODO: only go in to bootloader mode if there is USB power
+// TODO: only go into bootloader mode if there is USB power
 // TODO: add a section of the library for using the watchdog timer
 // TODO: let delayMicroseconds take a 16-bit argument
 // TODO: WHY does this interrupt only result in a 6 us pulse?

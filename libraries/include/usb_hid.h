@@ -161,7 +161,7 @@ extern BIT usbHidJoystickInputUpdated;
 /*! This must be called regularly if you are implementing an HID device. */
 void usbHidService(void);
 
-/*! Converts an ASCII-encoded character in to the corresponding HID Key Code,
+/*! Converts an ASCII-encoded character into the corresponding HID Key Code,
  * suitable for the keyCodes array in HID_KEYBOARD_IN_REPORT.
  * Note that many pairs of ASCII characters map to the same key code because
  * they are on the same key.

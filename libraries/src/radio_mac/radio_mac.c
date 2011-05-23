@@ -1,10 +1,10 @@
 /*  NOTE: Calibration of the frequency synthesizer and other RF hardware takes about 800 us and
  *  must be done regularly.  There are several options for when to do the calibration and not.
  *  We configured the radio to automatically calibrate whenever going from the IDLE state to TX
- *  or RX (MCSM0.FS_AUTOCAL = 01).  The radio will go in to the idle state whenever the is an RX
+ *  or RX (MCSM0.FS_AUTOCAL = 01).  The radio will go into the idle state whenever the is an RX
  *  timeout.  However, to enable a quick turnaround between TX and RX, we configured the radio to
- *  automatically go in to the FSTXON mode after it is done with RX or TX mode.  FSTXON means that
- *  the frequency synthesizer is on and the radio is ready to go in to RX or TX mode quickly
+ *  automatically go into the FSTXON mode after it is done with RX or TX mode.  FSTXON means that
+ *  the frequency synthesizer is on and the radio is ready to go into RX or TX mode quickly
  *  (but it goes to TX mode faster).
  *
  *  So basically we are depending on the RX timeout feature to schedule our calibrations for us,
@@ -112,8 +112,8 @@ ISR(RF, 1)
 
 
         /* The code below is necessary because we found that if the radio is in the
-           process of calibrating itself to go in to RX mode, it won't respond
-           correctly to an STX strobe (it goes in to RX mode instead of TX).
+           process of calibrating itself to go into RX mode, it won't respond
+           correctly to an STX strobe (it goes into RX mode instead of TX).
            We only need to worry about that here, and not in the other events,
            because those other events only happen at times when the radio should not
            be in the middle of calibrating itself. */
@@ -213,7 +213,7 @@ void radioMacInit()
     // MCSM.FS_AUTOCAL = 1: Calibrate freq when going from IDLE to RX or TX (or FSTXON).
     MCSM0 = 0x14;    // Main Radio Control State Machine Configuration
     MCSM1 = 0x05;    // Disable CCA.  After RX, go to FSTXON.  After TX, go to FSTXON.
-    MCSM2 = 0x07;    // NOTE: MCSM2 also gets set every time we go in to RX mode.
+    MCSM2 = 0x07;    // NOTE: MCSM2 also gets set every time we go into RX mode.
 
     IEN2 |= 0x01;    // Enable RF general interrupt
     RFIM = 0xF0;     // Enable these interrupts: DONE, RXOVF, TXUNF, TIMEOUT

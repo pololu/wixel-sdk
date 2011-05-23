@@ -539,7 +539,7 @@ BIT usbSuspended()
 
 // Sleeps until we receive USB resume signaling.
 // This uses PM1.  ( PM2 and PM3 are not usable because they will reset the USB module. )
-// NOTE: For some reason, USB suspend does not work if you plug your device in to a computer
+// NOTE: For some reason, USB suspend does not work if you plug your device into a computer
 // that is already sleeping.  If you do that, the device will remain awake with
 // usbDeviceState == USB_STATE_POWERED and it will draw more power than it should from USB.
 // TODO: figure out how to wake up when self power is connected.  Probably we should use the
