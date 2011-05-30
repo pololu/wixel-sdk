@@ -4,7 +4,7 @@ http://www.pololu.com/docs/0J46
 
 == Overview ==
 
-This app allows you to connect two Wixels together to make a wireless, bidirectional, lossless serial link.  It uses an RF bit rate of 350 kbps, is capable of carrying up to 10 KB of payload data per second, and can reach a range of approximately 40 feet (under typical conditions indoors).  You can also use it to turn one Wixel in to a USB-to-TTL serial adapter.
+This app allows you to connect two Wixels together to make a wireless, bidirectional, lossless serial link.  It uses an RF bit rate of 350 kbps, is capable of carrying up to 10 KB of payload data per second, and can reach a range of approximately 40 feet (under typical conditions indoors).  You can also use it to turn one Wixel into a USB-to-TTL serial adapter.
 
 This app can run on multiple pairs of Wixels as long as each pair operates on a different radio channel (the channels should be separated by 2 to avoid interference).
 
@@ -104,7 +104,7 @@ You should not simultaneously enable the non-inverted and inverted input for the
 
 # This application can be used to make a wireless serial link between two microcontrollers, with no USB involved (except for initially configuring the Wixels).  To do this, use the UART-to-Radio mode on both Wixels.
 # This application can be used to make a wireless serial link between a computer and a microcontroller.  Use USB-to-Radio mode on the Wixel that is connected to the computer and use UART-to-Radio mode on the Wixel that is connected to the microcontroller.  If you are powering both Wixels in the usual way, you should be able to use auto-detect serial mode (serial_mode = 0).
-# If you are doing option 2 above and using the the auto-detect serial mode (serial_mode = 0), then you have the option to (at any time) plug a USB cable directly in to the Wixel that is connected to your microcontroller to establish a more direct (wired) serial connection with the microcontroller.  (You would, of course, have to tell your computer to switch to the other COM port when you do this.)
+# If you are doing option 2 above and using the the auto-detect serial mode (serial_mode = 0), then you have the option to (at any time) plug a USB cable directly into the Wixel that is connected to your microcontroller to establish a more direct (wired) serial connection with the microcontroller.  (You would, of course, have to tell your computer to switch to the other COM port when you do this.)
 
 
 == Caveats ==
