@@ -2,10 +2,15 @@
  * The <code>radio_com.lib</code> library provides reliable, ordered
  * delivery and reception of a stream of bytes between two devices.
  * This library depends on <code>radio_link.lib</code>.
- *
  * For many applications, this library is easier to use than
  * <code>radio_link.lib</code> because this library takes care of
  * dividing the stream of bytes into packets.
+ *
+ * This library depends on <code>radio_link.lib</code>, which depends on
+ * <code>radio_mac.lib</code>, which uses an interrupt.
+ * For this library to work, you must write
+ * <code>include <radio_com.h></code>
+ * in the source file that contains your main() function.
  *
  * This library has the same limitations as <code>radio_link.lib</code>:
  * It does not work if there are more than two Wixels broadcasting
@@ -19,6 +24,8 @@
 
 #ifndef _RADIO_COM_H_
 #define _RADIO_COM_H_
+
+#include <radio_link.h>
 
 /*! Initializes the <code>radio_com.lib</code> library and the
  * lower-level libraries that it depends on.

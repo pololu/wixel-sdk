@@ -7,7 +7,7 @@
  * <pre>include <time.h></pre>
  * or
  * <pre>include <wixel.h></pre>
- * in the same source file that contains your main() function.
+ * in the source file that contains your main() function.
  * Also, you must call boardClockInit() or else the timing will
  * be wrong.
  *

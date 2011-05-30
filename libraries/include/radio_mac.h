@@ -15,6 +15,11 @@
  *
  * This library defines an ISR, so radio_mac.h must be included in the
  * file that defines main() in order for this library to work.
+ *
+ * This library uses an interrupt.
+ * For this library to work, you must write
+ * <code>include <radio_mac.h></code>
+ * in the source file that contains your main() function.
  */
 
 #ifndef _RADIO_MAC_H_

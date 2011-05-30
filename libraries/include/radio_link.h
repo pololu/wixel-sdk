@@ -11,12 +11,15 @@
  * For wireless communication between more than two Wixels, you can use
  * <code>radio_queue.lib</code> (see radio_queue.h).
  *
- * Similarly, this library also restricts us to only having one logical data pipe.
- * If you wanted to send some extra data that doesn't get NAKed, or gets NAKed at
+ * Similarly, this library also restricts the Wixels to only having one logical data pipe.
+ * If you want to send some extra data that doesn't get NAKed, or gets NAKed at
  * different times then the regular data, you would need to replace this library with
  * something more complicated that keeps track of different streams and schedules them.
  *
- * This library depends on <code>radio_mac.lib</code>.
+ * This library depends on <code>radio_mac.lib</code>, which uses an interrupt.
+ * For this library to work, you must write
+ * <code>include <radio_link.h></code>
+ * in the source file that contains your main() function.
  */
 
 #ifndef _RADIO_LINK
