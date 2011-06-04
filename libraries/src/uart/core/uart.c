@@ -145,9 +145,16 @@ void uartNSetBaudRate(uint32 baud)
     uint32 baudMPlus256;
     uint8 baudE = 0;
 
-    // actual max baud rate is 1500000 (F/16) - we are limited by the way we calculate the exponent and mantissa
-    if (baud < 23 || baud > 495782)
+    // max baud rate is 1500000 (F/16); min is 23 (baudM = 1)
+    if (baud < 23 || baud > 1500000)
         return;
+
+    // 495782 is the largest value that will not overflow the following calculation
+    while (baud > 495782)
+    {
+        baudE++;
+        baud /= 2;
+    }
 
     // calculate baud rate - see datasheet 12.14.3
     // this is derived from (baudM + 256) = baud * 2^28 / 24000000
