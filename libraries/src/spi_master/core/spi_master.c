@@ -5,6 +5,7 @@
 
 #include <cc2511_map.h>
 #include <cc2511_types.h>
+#include <board.h>
 
 #if defined(__CDT_PARSER__)
 #define SPI0
@@ -14,77 +15,42 @@
 #include <spi0_master.h>
 #define INTERRUPT_PRIORITY_GROUP    2
 #define ISR_URX()  void ISR_URX0()  __interrupt(URX0_VECTOR) __using(1)
-#define ISR_UTX()  void ISR_UTX0()  __interrupt(UTX0_VECTOR) __using(1)
-#define UTXNIF                      UTX0IF
 #define URXNIF                      URX0IF
 #define URXNIE                      URX0IE
-#define UNCSR                       U0CSR
 #define UNGCR                       U0GCR
-#define UNUCR                       U0UCR
 #define UNBAUD                      U0BAUD
 #define UNDBUF                      U0DBUF
-#define BV_UTXNIE                   (1<<2)
-#define uartNRxParityErrorOccurred  uart0RxParityErrorOccurred
-#define uartNRxFramingErrorOccurred uart0RxFramingErrorOccurred
-#define uartNRxBufferFullOccurred   uart0RxBufferFullOccurred
-#define uartNRxAvailable            uart0RxAvailable
-#define uartNTxAvailable            uart0TxAvailable
-#define uartNInit                   uart0Init
-#define uartNSetBaudRate            uart0SetBaudRate
-#define uartNSetParity              uart0SetParity
-#define uartNSetStopBits            uart0SetStopBits
-#define uartNTxSend                 uart0TxSend
-#define uartNRxReceiveByte          uart0RxReceiveByte
-#define uartNTxSend                 uart0TxSend
-#define uartNTxSendByte             uart0TxSendByte
+#define spiNMasterInit              spi0MasterInit
+#define spiNMasterSetFrequency      spi0MasterSetFrequency
+#define spiNMasterSetClockPolarity  spi0MasterSetClockPolarity
+#define spiNMasterSetClockPhase     spi0MasterSetClockPhase
+#define spiNMasterSetBitOrder       spi0MasterSetBitOrder
+#define spiNMasterBytesLeft         spi0MasterBytesLeft
+#define spiNMasterTransfer          spi0MasterTransfer
 
 #elif defined(SPI1)
 #include <spi1_master.h>
-#define INTERRUPT_PRIORITY_GROUP     3
-#define ISR_URX()  void ISR_URX1() __interrupt(URX1_VECTOR) __using(1)
-#define ISR_UTX()  void ISR_UTX1() __interrupt(UTX1_VECTOR) __using(1)
-#define UTXNIF                       UTX1IF
-#define URXNIF                       URX1IF
-#define URXNIE                       URX1IE
-#define UNCSR                        U1CSR
-#define UNGCR                        U1GCR
-#define UNUCR                        U1UCR
-#define UNBAUD                       U1BAUD
-#define UNDBUF                       U1DBUF
-#define BV_UTXNIE                    (1<<3)
-#define uartNRxParityErrorOccurred   uart1RxParityErrorOccurred
-#define uartNRxFramingErrorOccurred  uart1RxFramingErrorOccurred
-#define uartNRxBufferFullOccurred    uart1RxBufferFullOccurred
-#define uartNRxAvailable             uart1RxAvailable
-#define uartNTxAvailable             uart1TxAvailable
-#define uartNInit                    uart1Init
-#define uartNSetBaudRate             uart1SetBaudRate
-#define uartNSetParity               uart1SetParity
-#define uartNSetStopBits             uart1SetStopBits
-#define uartNTxSend                  uart1TxSend
-#define uartNRxReceiveByte           uart1RxReceiveByte
-#define uartNTxSend                  uart1TxSend
-#define uartNTxSendByte              uart1TxSendByte
+#define INTERRUPT_PRIORITY_GROUP    3
+#define ISR_URX()  void ISR_URX1()  __interrupt(URX1_VECTOR) __using(1)
+#define URXNIF                      URX1IF
+#define URXNIE                      URX1IE
+#define UNGCR                       U1GCR
+#define UNBAUD                      U1BAUD
+#define UNDBUF                      U1DBUF
+#define spiNMasterInit              spi1MasterInit
+#define spiNMasterSetFrequency      spi1MasterSetFrequency
+#define spiNMasterSetClockPolarity  spi1MasterSetClockPolarity
+#define spiNMasterSetClockPhase     spi1MasterSetClockPhase
+#define spiNMasterSetBitOrder       spi1MasterSetBitOrder
+#define spiNMasterBytesLeft         spi1MasterBytesLeft
+#define spiNMasterTransfer          spi1MasterTransfer
 #endif
 
-static volatile uint8 XDATA uartTxBuffer[256];         // sizeof(uartTxBuffer) must be a power of two
-static volatile uint8 DATA uartTxBufferMainLoopIndex;  // Index of next byte main loop will write.
-static volatile uint8 DATA uartTxBufferInterruptIndex; // Index of next byte interrupt will read.
+static volatile uint8 XDATA * DATA txPointer = 0;
+static volatile uint8 XDATA * DATA rxPointer = 0;
+static volatile uint16 DATA bytesLeft = 0;
 
-#define UART_TX_BUFFER_FREE_BYTES() ((uartTxBufferInterruptIndex - uartTxBufferMainLoopIndex - 1) & (sizeof(uartTxBuffer) - 1))
-
-static volatile uint8 XDATA uartRxBuffer[256];     // sizeof(uartRxBuffer) must be a power of two
-static volatile uint8 DATA uartRxBufferMainLoopIndex;  // Index of next byte main loop will read.
-static volatile uint8 DATA uartRxBufferInterruptIndex; // Index of next byte interrupt will write.
-
-#define UART_RX_BUFFER_FREE_BYTES() ((uartRxBufferMainLoopIndex - uartRxBufferInterruptIndex - 1) & (sizeof(uartRxBuffer) - 1))
-#define UART_RX_BUFFER_USED_BYTES() ((uartRxBufferInterruptIndex - uartRxBufferMainLoopIndex) & (sizeof(uartRxBuffer) - 1))
-
-volatile BIT uartNRxParityErrorOccurred;
-volatile BIT uartNRxFramingErrorOccurred;
-volatile BIT uartNRxBufferFullOccurred;
-
-void uartNInit(void)
+void spiNMasterInit(void)
 {
     /* From datasheet Table 50 */
 
@@ -166,106 +132,58 @@ void spiNMasterSetFrequency(uint32 freq)
     UNBAUD = baudMPlus256; // UNBAUD.BAUD_M (7:0) - only the lowest 8 bits of baudMPlus256 are used, so this is effectively baudMPlus256 - 256
 }
 
-void uartNSetParity(uint8 parity)
+void spiNMasterSetClockPolarity(BIT polarity)
 {
-    // parity     D9    BIT9    PARITY
-    // 0 None     x     0       x
-    // 1 Odd      1     1       1
-    // 2 Even     0     1       1
-    // 3 Mark     1     1       0
-    // 4 Space    0     1       0
-
-    uint8 tmp = 0;
-
-    switch(parity)
+    if (polarity == POLARITY_IDLE_LOW)
     {
-    case PARITY_ODD:   tmp = 0b111 << 3; break;
-    case PARITY_EVEN:  tmp = 0b011 << 3; break;
-    case PARITY_MARK:  tmp = 0b110 << 3; break;
-    case PARITY_SPACE: tmp = 0b010 << 3; break;
-    }
-
-    UNUCR = (UNUCR & 0b01000111) | tmp;
-}
-
-void uartNSetStopBits(uint8 stopBits)
-{
-    if (stopBits == STOP_BITS_2)
-    {
-        UNUCR |= (1<<2);    // 2 stop bits
+        UNGCR &= ~(1<<7);   // SCK idle low (negative polarity)
     }
     else
     {
-        UNUCR &= ~(1<<2);   // 1 stop bit
-        // NOTE: An argument of STOP_BITS_1_5 is treated the same as STOP_BITS_1.
+        UNGCR |= (1<<7);    // SCK idle high (positive polarity)
     }
 }
 
-uint8 uartNTxAvailable(void)
+void spiNMasterSetClockPhase(BIT phase)
 {
-    return UART_TX_BUFFER_FREE_BYTES();
-}
-
-void uartNTxSend(const uint8 XDATA * buffer, uint8 size)
-{
-    // Assumption: uartNTxSend() was recently called and it returned a number at least as big as 'size'.
-    // TODO: after DMA memcpy is implemented, use it to make this function faster
-
-    while (size)
+    if (phase == PHASE_EDGE_LEADING)
     {
-        uartTxBuffer[uartTxBufferMainLoopIndex] = *buffer;
-
-        buffer++;
-        uartTxBufferMainLoopIndex = (uartTxBufferMainLoopIndex + 1) & (sizeof(uartTxBuffer) - 1);
-        size--;
-
-        IEN2 |= BV_UTXNIE; // Enable TX interrupt
-    }
-}
-
-void uartNTxSendByte(uint8 byte)
-{
-    // Assumption: uartNTxAvailable() was recently called and it returned a non-zero number.
-
-    uartTxBuffer[uartTxBufferMainLoopIndex] = byte;
-    uartTxBufferMainLoopIndex = (uartTxBufferMainLoopIndex + 1) & (sizeof(uartTxBuffer) - 1);
-
-    IEN2 |= BV_UTXNIE; // Enable TX interrupt
-}
-
-uint8 uartNRxAvailable(void)
-{
-    return UART_RX_BUFFER_USED_BYTES();
-}
-
-uint8 uartNRxReceiveByte(void)
-{
-    // Assumption: uartNRxAvailable was recently called and it returned a non-zero value.
-
-    uint8 byte = uartRxBuffer[uartRxBufferMainLoopIndex];
-    uartRxBufferMainLoopIndex = (uartRxBufferMainLoopIndex + 1) & (sizeof(uartRxBuffer) - 1);
-    return byte;
-}
-
-ISR_UTX()
-{
-    // A byte has just started transmitting on TX and there is room in
-    // the UART's hardware buffer for us to add another byte.
-
-    if (uartTxBufferInterruptIndex != uartTxBufferMainLoopIndex)
-    {
-        // There more bytes available in our software buffer, so send
-        // the next byte.
-
-        UTXNIF = 0;
-
-        UNDBUF = uartTxBuffer[uartTxBufferInterruptIndex];
-        uartTxBufferInterruptIndex = (uartTxBufferInterruptIndex + 1) & (sizeof(uartTxBuffer) - 1);
+        UNGCR &= ~(1<<6);   // data centered on leading (first) edge - rising for idle low, falling for idle high
     }
     else
     {
-        // There are no more bytes to send in our buffer, so disable the TX interrupt.
-        IEN2 &= ~BV_UTXNIE;
+        UNGCR |= (1<<6);    // data centered on trailing (second) edge - falling for idle low, rising for idle high
+    }
+}
+
+void spiNMasterSetBitOrder(BIT bitOrder)
+{
+    if (bitOrder == BIT_ORDER_LSB_FIRST)
+    {
+        UNGCR &= ~(1<<5);   // LSB first
+    }
+    else
+    {
+        UNGCR |= (1<<5);    // MSB first
+    }
+}
+
+uint16 spiNMasterBytesLeft(void)
+{
+    return bytesLeft;
+}
+
+void spiNMasterTransfer(const uint8 XDATA * txBuffer, const uint8 XDATA * rxBuffer, uint16 size)
+{
+    LED_RED(1);
+    if (size)
+    {
+        txPointer = txBuffer;
+        rxPointer = rxBuffer;
+        bytesLeft = size;
+
+        UNDBUF = *txBuffer; // transmit first byte
+        URXNIE = 1;         // Enable RX interrupt.
     }
 }
 
@@ -273,32 +191,17 @@ ISR_URX()
 {
     URXNIF = 0;
 
-    // check for frame and parity errors
-    if (!(UNCSR & 0x18)) // UNCSR.FE (4) == 0; UNCSR.ERR (3) == 0
-    {
-        // There were no errors.
+    *rxPointer = UNDBUF;
+    rxPointer++;
+    bytesLeft--;
 
-        if (UART_RX_BUFFER_FREE_BYTES())
-        {
-            // The software RX buffer has space, so add this new byte to the buffer.
-            uartRxBuffer[uartRxBufferInterruptIndex] = UNDBUF;
-            uartRxBufferInterruptIndex = (uartRxBufferInterruptIndex + 1) & (sizeof(uartRxBuffer) - 1);
-        }
-        else
-        {
-            // The buffer is full, so discard the received byte and report and overflow error.
-            uartNRxBufferFullOccurred = 1;
-        }
+    if (bytesLeft)
+    {
+        txPointer++;
+        UNDBUF = *txPointer;
     }
     else
     {
-        if (UNCSR & 0x10) // UNCSR.FE (4) == 1
-        {
-            uartNRxFramingErrorOccurred = 1;
-        }
-        if (UNCSR & 0x08) // UNCSR.ERR (3) == 1
-        {
-            uartNRxParityErrorOccurred = 1;
-        }
+        URXNIE = 0;
     }
 }
