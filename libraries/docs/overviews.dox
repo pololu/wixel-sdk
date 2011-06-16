@@ -21,7 +21,7 @@ To develop your own apps or modify existing ones using the Wixel SDK,
 you will need to have a copy of the Wixel SDK,
 <a href="http://sdcc.sourceforge.net/">SDCC</a> version 3.0.0 or later,
 and you will need to have certain GNU utililties available on your path:
-cat, cp, echo, grep, make, mv, and rm.
+cat, cp, echo, grep, make, mv, rm, and sed.
 For Windows users, we recommend that you install all of these components
 by downloading the <b>Wixel Development Bundle</b>, available from the
 <a href="http://www.pololu.com/docs/0J46">Pololu Wixel User's Guide</a>.
