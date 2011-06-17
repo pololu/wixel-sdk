@@ -11,6 +11,8 @@
  * TODO: Obey CDC-ACM Set Line Coding commands:
  *       In USB-RADIO mode, bauds 0-255 would correspond to radio channels.
  * TODO: shut down radio when we are in a different serial mode
+ * TODO: make the heartbeat blinks on the Wixels be synchronized (will require
+ *       major changes to the radio_link library)
  */
 
 /** Dependencies **************************************************************/
@@ -51,8 +53,8 @@ int32 CODE param_arduino_DTR_pin = 0;
 // Valid values are 0-250.
 // A value of 0 disables the feature (the UART's receiver will not be disabled).
 // The actual number of milliseconds that the receiver is disabled for will be
-// between param_fe_recovery_ms and param_fe_recovery_ms + 1.
-int32 CODE param_fe_recovery_ms = 0;
+// between param_framing_error_ms and param_framing_error_ms + 1.
+int32 CODE param_framing_error_ms = 0;
 
 /** Global Variables **********************************************************/
 
@@ -63,25 +65,47 @@ int32 CODE param_fe_recovery_ms = 0;
 // would not receive notice of those errors.
 BIT uartRxDisabled = 0;
 
+uint8 DATA currentSerialMode;
+
+BIT dimYellowLed = 0;
 
 /** Functions *****************************************************************/
 
 void updateLeds()
 {
+    uint16 now;
     usbShowStatusWithGreenLed();
 
-    LED_YELLOW(vinPowerPresent());
+    now = (uint16)getMs();
 
-    // Turn on the red LED if the radio is in the RX_OVERFLOW state.
-    // There used to be several bugs in the radio libraries that would cause
-    // the radio to go into this state, but hopefully they are all fixed now.
-    if (MARCSTATE == 0x11)
+    if (currentSerialMode == SERIAL_MODE_USB_UART)
     {
-        LED_RED(1);
+        // The radio is not being used, so turn off the yellow LED.
+        LED_YELLOW(0);
+    }
+    else if (!radioLinkConnected())
+    {
+        // We have not connected to another device wirelessly yet, so do a
+        // 50% blink with a period of 1024 ms.
+        LED_YELLOW(now & 0x200 ? 1 : 0);
     }
     else
     {
-        LED_RED(0);
+        // We have connected.
+
+        if ((now & 0x3F0)==0)
+        {
+            // Do a heartbeat every 1024ms.
+            LED_YELLOW(1);
+        }
+        else if (dimYellowLed)
+        {
+            LED_YELLOW(!(now & 0xF));
+        }
+        else
+        {
+            LED_YELLOW(0);
+        }
     }
 }
 
@@ -146,7 +170,7 @@ void framingErrorService()
 {
     static uint8 lastErrorTime;
 
-    if (param_fe_recovery_ms <= 0)
+    if (param_framing_error_ms <= 0)
     {
         // This feature is disabled.
         return;
@@ -168,7 +192,7 @@ void framingErrorService()
             // The line is still low.
             lastErrorTime = (uint8)getMs();
         }
-        else if ((uint8)(getMs() - lastErrorTime) > param_fe_recovery_ms)
+        else if ((uint8)(getMs() - lastErrorTime) > param_framing_error_ms)
         {
             // The line has been high for long enough, so re-enable the receiver.
             U1CSR |= 0x40;
@@ -177,27 +201,27 @@ void framingErrorService()
     }
 }
 
-uint8 currentSerialMode()
+void updateSerialMode()
 {
     if ((uint8)param_serial_mode > 0 && (uint8)param_serial_mode <= 3)
     {
-        return (uint8)param_serial_mode;
+        currentSerialMode = (uint8)param_serial_mode;
     }
 
     if (usbPowerPresent())
     {
         if (vinPowerPresent())
         {
-            return SERIAL_MODE_USB_UART;
+            currentSerialMode = SERIAL_MODE_USB_UART;
         }
         else
         {
-            return SERIAL_MODE_USB_RADIO;
+            currentSerialMode = SERIAL_MODE_USB_RADIO;
         }
     }
     else
     {
-        return SERIAL_MODE_UART_RADIO;
+        currentSerialMode = SERIAL_MODE_UART_RADIO;
     }
 }
 
@@ -291,6 +315,7 @@ void main()
 
     while(1)
     {
+        updateSerialMode();
         boardService();
         updateLeds();
         framingErrorService();
@@ -302,7 +327,7 @@ void main()
 
         usbComService();
 
-        switch(currentSerialMode())
+        switch(currentSerialMode)
         {
         case SERIAL_MODE_USB_RADIO:  usbToRadioService();  break;
         case SERIAL_MODE_UART_RADIO: uartToRadioService(); break;
