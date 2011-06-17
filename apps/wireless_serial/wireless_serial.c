@@ -67,13 +67,19 @@ BIT uartRxDisabled = 0;
 
 uint8 DATA currentSerialMode;
 
-BIT dimYellowLed = 0;
+BIT framingErrorActive = 0;
+
+BIT errorOccurredRecently = 0;
+uint8 lastErrorTime;
 
 /** Functions *****************************************************************/
 
 void updateLeds()
 {
+    static BIT dimYellowLed = 0;
+    static uint16 lastRadioActivityTime;
     uint16 now;
+
     usbShowStatusWithGreenLed();
 
     now = (uint16)getMs();
@@ -93,20 +99,42 @@ void updateLeds()
     {
         // We have connected.
 
-        if ((now & 0x3F0)==0)
+        if ((now & 0x3FF) <= 20)
         {
-            // Do a heartbeat every 1024ms.
+            // Do a heartbeat every 1024ms for 16ms.
             LED_YELLOW(1);
         }
         else if (dimYellowLed)
         {
-            LED_YELLOW(!(now & 0xF));
+            static uint8 DATA count;
+            count++;
+            LED_YELLOW((count & 0x7)==0);
         }
         else
         {
             LED_YELLOW(0);
         }
     }
+
+    if (radioLinkActivityOccurred)
+    {
+        radioLinkActivityOccurred = 0;
+        dimYellowLed ^= 1;
+        //dimYellowLed = 1;
+        lastRadioActivityTime = now;
+    }
+
+    if ((uint16)(now - lastRadioActivityTime) > 32)
+    {
+        dimYellowLed = 0;
+    }
+
+    if ((uint8)(now - lastErrorTime) > 100)
+    {
+        errorOccurredRecently = 0;
+    }
+
+    LED_RED(errorOccurredRecently);
 }
 
 /* Returns the logical values of the input control signal pins.
@@ -164,40 +192,59 @@ void ioTxSignals(uint8 signals)
     lastSignals = signals;
 }
 
-/* This function takes care of shutting down the UART's receiver temporarily when
- * there is a framing error. */
-void framingErrorService()
+void errorOccurred()
 {
-    static uint8 lastErrorTime;
+    lastErrorTime = (uint8)getMs();
+    errorOccurredRecently = 1;
+}
 
-    if (param_framing_error_ms <= 0)
+void errorService()
+{
+    static uint8 lastFramingErrorTime;
+
+    if (uart1RxBufferFullOccurred)
     {
-        // This feature is disabled.
-        return;
+        uart1RxBufferFullOccurred = 0;
+        errorOccurred();
     }
 
     if (uart1RxFramingErrorOccurred)
     {
-        // A framing error occured, so disable the UART's receiver.
         uart1RxFramingErrorOccurred = 0;
-        U1CSR &= ~0x40;    // U1CSR.RE = 0.  Disables reception of bytes on the UART.
-        lastErrorTime = (uint8)getMs();
-        uartRxDisabled = 1;
+
+        // A framing error occurred.
+
+        if (param_framing_error_ms <= 0)
+        {
+            // Disable the UART's receiver.
+            U1CSR &= ~0x40;    // U1CSR.RE = 0.  Disables reception of bytes on the UART.
+            lastFramingErrorTime = (uint8)getMs();
+            framingErrorActive = 1;
+            uartRxDisabled = 1;
+        }
+
+        errorOccurred();
     }
 
-    if (uartRxDisabled)
+    if (framingErrorActive)
     {
         if (!isPinHigh(17))
         {
             // The line is still low.
-            lastErrorTime = (uint8)getMs();
+            lastFramingErrorTime = (uint8)getMs();
+            errorOccurred();
         }
-        else if ((uint8)(getMs() - lastErrorTime) > param_framing_error_ms)
+        else
         {
-            // The line has been high for long enough, so re-enable the receiver.
-            U1CSR |= 0x40;
-            uartRxDisabled = 0;
+            framingErrorActive = 0;
         }
+    }
+
+    if (uartRxDisabled && ((uint8)(getMs() - lastFramingErrorTime) > param_framing_error_ms))
+    {
+        // The line has been high for long enough, so re-enable the receiver.
+        U1CSR |= 0x40;
+        uartRxDisabled = 0;
     }
 }
 
@@ -318,7 +365,7 @@ void main()
         updateSerialMode();
         boardService();
         updateLeds();
-        framingErrorService();
+        errorService();
 
         if (param_serial_mode != SERIAL_MODE_USB_UART)
         {
