@@ -95,6 +95,11 @@ static volatile BIT rxSequenceBit;
 // send.
 static volatile BIT txSequenceBit;
 
+
+/* GENERAL VARIABLES **********************************************************/
+
+volatile BIT radioLinkActivityOccurred;
+
 /* GENERAL FUNCTIONS **********************************************************/
 
 void radioLinkInit()
@@ -240,11 +245,13 @@ static void takeInitiative()
     {
         // Try to send a reset packet.
         txResetPacket();
+        radioLinkActivityOccurred = 1;
     }
     else if (radioLinkTxInterruptIndex != radioLinkTxMainLoopIndex)
     {
         // Try to send the next data packet.
         txDataPacket(PACKET_TYPE_PING);
+        radioLinkActivityOccurred = 1;
     }
     else
     {
@@ -295,6 +302,8 @@ void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
             shortTxPacket[RADIO_LINK_PACKET_LENGTH_OFFSET] = 1;
             shortTxPacket[RADIO_LINK_PACKET_TYPE_OFFSET] = PACKET_TYPE_ACK;
             radioMacTx(shortTxPacket);
+
+            radioLinkActivityOccurred = 1;
 
             return;
         }
@@ -407,6 +416,8 @@ void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
                 shortTxPacket[RADIO_LINK_PACKET_TYPE_OFFSET] = responsePacketType;
                 radioMacTx(shortTxPacket);
             }
+
+            radioLinkActivityOccurred = 1;
         }
         else
         {

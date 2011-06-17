@@ -171,4 +171,9 @@ void radioLinkRxDoneWithPacket(void);
  * will never change from 1 to 0. */
 BIT radioLinkConnected(void);
 
+/*! The library will set this bit to 1 whenever it receives a packet that
+ * has payload data in it or sends a packet.
+ * Higher-level code may check this bit and clear it. */
+extern volatile BIT radioLinkActivityOccurred;
+
 #endif
