@@ -268,10 +268,17 @@ ISR_UTX()
 
 ISR_URX()
 {
+    uint8 csr;
+
     URXNIF = 0;
 
+    // Read the Control and Status register for the UART.
+    // Reading this register clears the FE and ERR bits,
+    // which we need to check later.
+    csr = UNCSR;
+
     // check for frame and parity errors
-    if (!(UNCSR & 0x18)) // UNCSR.FE (4) == 0; UNCSR.ERR (3) == 0
+    if (!(csr & 0x18)) // UNCSR.FE (4) == 0; UNCSR.ERR (3) == 0
     {
         // There were no errors.
 
@@ -289,11 +296,11 @@ ISR_URX()
     }
     else
     {
-        if (UNCSR & 0x10) // UNCSR.FE (4) == 1
+        if (csr & 0x10) // UNCSR.FE (4) == 1
         {
             uartNRxFramingErrorOccurred = 1;
         }
-        if (UNCSR & 0x08) // UNCSR.ERR (3) == 1
+        if (csr & 0x08) // UNCSR.ERR (3) == 1
         {
             uartNRxParityErrorOccurred = 1;
         }
