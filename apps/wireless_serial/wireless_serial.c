@@ -46,7 +46,26 @@ int32 CODE param_CD_pin = -1;
 
 int32 CODE param_arduino_DTR_pin = 0;
 
+// Approximate number of milliseconds to disable UART's receiver for after a
+// framing error is encountered.
+// Valid values are 0-250.
+// A value of 0 disables the feature (the UART's receiver will not be disabled).
+// The actual number of milliseconds that the receiver is disabled for will be
+// between param_fe_recovery_ms and param_fe_recovery_ms + 1.
+int32 CODE param_fe_recovery_ms = 0;
+
+/** Global Variables **********************************************************/
+
+// This bit is 1 if the UART's receiver has been disabled due to a framing error.
+// This bit should be equal to !U1CSR.RE, but we need this variable because we
+// don't want to be reading U1CSR in the main loop, because reading it might
+// cause the FE or ERR bits to be cleared and then the ISR
+// would not receive notice of those errors.
+BIT uartRxDisabled = 0;
+
+
 /** Functions *****************************************************************/
+
 void updateLeds()
 {
     usbShowStatusWithGreenLed();
@@ -66,6 +85,9 @@ void updateLeds()
     }
 }
 
+/* Returns the logical values of the input control signal pins.
+   Bit 0 is DSR.
+   Bit 1 is CD. */
 uint8 ioRxSignals()
 {
     uint8 signals = 0;
@@ -85,6 +107,10 @@ uint8 ioRxSignals()
     return signals;
 }
 
+/* Sets the logical values of the output control signal pins.
+   This should be called frequently (not just when the values change).
+   Bit 0 is DTR.
+   Bit 1 is RTS. */
 void ioTxSignals(uint8 signals)
 {
     static uint8 nTrstPulseStartTime;
@@ -112,6 +138,43 @@ void ioTxSignals(uint8 signals)
     }
 
     lastSignals = signals;
+}
+
+/* This function takes care of shutting down the UART's receiver temporarily when
+ * there is a framing error. */
+void framingErrorService()
+{
+    static uint8 lastErrorTime;
+
+    if (param_fe_recovery_ms <= 0)
+    {
+        // This feature is disabled.
+        return;
+    }
+
+    if (uart1RxFramingErrorOccurred)
+    {
+        // A framing error occured, so disable the UART's receiver.
+        uart1RxFramingErrorOccurred = 0;
+        U1CSR &= ~0x40;    // U1CSR.RE = 0.  Disables reception of bytes on the UART.
+        lastErrorTime = (uint8)getMs();
+        uartRxDisabled = 1;
+    }
+
+    if (uartRxDisabled)
+    {
+        if (!isPinHigh(17))
+        {
+            // The line is still low.
+            lastErrorTime = (uint8)getMs();
+        }
+        else if ((uint8)(getMs() - lastErrorTime) > param_fe_recovery_ms)
+        {
+            // The line has been high for long enough, so re-enable the receiver.
+            U1CSR |= 0x40;
+            uartRxDisabled = 0;
+        }
+    }
 }
 
 uint8 currentSerialMode()
@@ -230,6 +293,7 @@ void main()
     {
         boardService();
         updateLeds();
+        framingErrorService();
 
         if (param_serial_mode != SERIAL_MODE_USB_UART)
         {
