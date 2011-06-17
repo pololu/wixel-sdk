@@ -30,6 +30,8 @@ void updateLeds()
     {
         LED_RED(0);
     }
+
+    LED_YELLOW(radioLinkConnected());
 }
 
 uint8 nibbleToAscii(uint8 nibble)
@@ -86,9 +88,9 @@ void handleCommands()
         uint8 byte = usbComRxReceiveByte();
         if (byte == (uint8)'?')
         {
-            responseLength = sprintf(response, "? RX=%d/%d, TX=%d/%d\r\n",
+            responseLength = sprintf(response, "? RX=%d/%d, TX=%d/%d, M=%02x\r\n",
                     radioLinkRxMainLoopIndex, radioLinkRxInterruptIndex,
-                    radioLinkTxMainLoopIndex, radioLinkTxInterruptIndex);
+                    radioLinkTxMainLoopIndex, radioLinkTxInterruptIndex, MARCSTATE);
             usbComTxSend(response, responseLength);
         }
         else if (byte >= (uint8)'a' && byte <= (uint8)'g')

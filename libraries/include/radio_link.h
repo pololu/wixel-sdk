@@ -165,4 +165,10 @@ uint8 radioLinkRxCurrentPayloadType(void);
  * the next one.  See the radioLinkRxCurrentPacket() documentation for details. */
 void radioLinkRxDoneWithPacket(void);
 
+/*! \return 1 if a connection to another Wixel has been established.
+ *
+ * Currently the radio_link library does not detect disconnection, so this value
+ * will never change from 1 to 0. */
+BIT radioLinkConnected(void);
+
 #endif

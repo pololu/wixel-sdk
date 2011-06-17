@@ -130,6 +130,11 @@ static uint8 randomTxDelay()
     return (radioLinkTxCurrentPacketTries > 200 ? 250 : 1) + (randomNumber() & 3);
 }
 
+BIT radioLinkConnected()
+{
+    return !sendingReset;
+}
+
 /* TX FUNCTIONS (called by higher-level code in main loop) ********************/
 
 uint8 radioLinkTxAvailable(void)
