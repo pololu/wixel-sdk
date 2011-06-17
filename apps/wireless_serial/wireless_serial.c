@@ -200,7 +200,7 @@ void errorOccurred()
 
 void errorService()
 {
-    static uint8 lastFramingErrorTime;
+    static uint8 lastRxLowTime;
 
     if (uart1RxBufferFullOccurred)
     {
@@ -213,38 +213,36 @@ void errorService()
         uart1RxFramingErrorOccurred = 0;
 
         // A framing error occurred.
+        framingErrorActive = 1;
+        errorOccurred();
 
-        if (param_framing_error_ms <= 0)
+        if (param_framing_error_ms > 0)
         {
             // Disable the UART's receiver.
             U1CSR &= ~0x40;    // U1CSR.RE = 0.  Disables reception of bytes on the UART.
-            lastFramingErrorTime = (uint8)getMs();
-            framingErrorActive = 1;
             uartRxDisabled = 1;
+            lastRxLowTime = (uint8)getMs();  // Initialize lastRxLowTime even if the line isn't low right now.
         }
-
-        errorOccurred();
     }
 
-    if (framingErrorActive)
+    if (framingErrorActive && isPinHigh(17))
+    {
+        framingErrorActive = 0;
+    }
+
+    if (uartRxDisabled)
     {
         if (!isPinHigh(17))
         {
-            // The line is still low.
-            lastFramingErrorTime = (uint8)getMs();
-            errorOccurred();
+            // The line is low.
+            lastRxLowTime = (uint8)getMs();
         }
-        else
+        else if ((uint8)(getMs() - lastRxLowTime) > param_framing_error_ms)
         {
-            framingErrorActive = 0;
+            // The line has been high for long enough, so re-enable the receiver.
+            U1CSR |= 0x40;
+            uartRxDisabled = 0;
         }
-    }
-
-    if (uartRxDisabled && ((uint8)(getMs() - lastFramingErrorTime) > param_framing_error_ms))
-    {
-        // The line has been high for long enough, so re-enable the receiver.
-        U1CSR |= 0x40;
-        uartRxDisabled = 0;
     }
 }
 
