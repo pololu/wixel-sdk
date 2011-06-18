@@ -101,7 +101,7 @@ void updateLeds()
 
         if ((now & 0x3FF) <= 20)
         {
-            // Do a heartbeat every 1024ms for 16ms.
+            // Do a heartbeat every 1024ms for 21ms.
             LED_YELLOW(1);
         }
         else if (dimYellowLed)
