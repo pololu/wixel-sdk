@@ -251,6 +251,7 @@ void updateSerialMode()
     if ((uint8)param_serial_mode > 0 && (uint8)param_serial_mode <= 3)
     {
         currentSerialMode = (uint8)param_serial_mode;
+        return;
     }
 
     if (usbPowerPresent())
