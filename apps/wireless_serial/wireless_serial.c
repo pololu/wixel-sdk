@@ -13,6 +13,9 @@
  * TODO: shut down radio when we are in a different serial mode
  * TODO: make the heartbeat blinks on the Wixels be synchronized (will require
  *       major changes to the radio_link library)
+ * TODO: turn on red LED or flash it if the Wixel is in a mode that requires USB
+ *       but has not reached the USB Configured State (this avoids the problem of
+ *       having 0 LEDs on when the Wixel is in USB-UART mode and self powered)
  */
 
 /** Dependencies **************************************************************/
