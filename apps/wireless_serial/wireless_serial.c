@@ -134,7 +134,7 @@ void updateLeds()
         errorOccurredRecently = 0;
     }
 
-    LED_RED(errorOccurredRecently);
+    LED_RED(errorOccurredRecently || uartRxDisabled);
 }
 
 /* Returns the logical values of the input control signal pins.
@@ -225,9 +225,16 @@ void errorService()
         }
     }
 
-    if (framingErrorActive && isPinHigh(17))
+    if (framingErrorActive)
     {
-        framingErrorActive = 0;
+        if (!isPinHigh(17))
+        {
+            errorOccurred();
+        }
+        else
+        {
+            framingErrorActive = 0;
+        }
     }
 
     if (uartRxDisabled)
