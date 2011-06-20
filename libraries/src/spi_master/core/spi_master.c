@@ -46,9 +46,14 @@
 #define spiNMasterTransfer          spi1MasterTransfer
 #endif
 
-static volatile uint8 XDATA * DATA txPointer = 0;
+// txPointer points to the last byte that was written to SPI.
+static volatile const uint8 XDATA * DATA txPointer = 0;
+
+// rxPointer points to the location to store the next byte received from SPI.
 static volatile uint8 XDATA * DATA rxPointer = 0;
-static volatile uint16 DATA bytesLeft = 0;
+
+// bytesLeft is the number of bytes we still need to send to/receive from SPI.
+static volatile uint16 DATA bytesLeft = 0;   // TODO: make this be 8 bits (or fix spiNMasterBytesLeft)
 
 void spiNMasterInit(void)
 {
@@ -83,6 +88,9 @@ void spiNMasterInit(void)
     P2SEL |= 0x40;   // USART1 takes priority over USART0 on Port 1.
     PERCFG |= 0x02;  // PERCFG.U1CFG (1) = 1 (Alt. 2) : USART1 uses alt. location 2.
 #endif
+
+    // Assumption: The MODE and SLAVE bits in U0CSR/U1CSR are 0 (the default) so
+    // the USART is already in SPI Master mode.
 
     // Set the mode of the SCK and MOSI pins to "peripheral function".
 #ifdef SPI0
@@ -173,9 +181,8 @@ uint16 spiNMasterBytesLeft(void)
     return bytesLeft;
 }
 
-void spiNMasterTransfer(const uint8 XDATA * txBuffer, const uint8 XDATA * rxBuffer, uint16 size)
+void spiNMasterTransfer(const uint8 XDATA * txBuffer, uint8 XDATA * rxBuffer, uint16 size)
 {
-    LED_RED(1);
     if (size)
     {
         txPointer = txBuffer;

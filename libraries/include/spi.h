@@ -2,8 +2,8 @@
  * spi.h
  */
 
-#ifndef SPI_H_
-#define SPI_H_
+#ifndef _SPI_H
+#define _SPI_H
 
 #define POLARITY_IDLE_LOW   0
 #define POLARITY_IDLE_HIGH  1
