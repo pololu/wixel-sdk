@@ -15,7 +15,7 @@
 #include <usb.h>
 #include <usb_com.h>
 
-static volatile int16 DATA i,channel;
+static volatile int16 DATA channel;
 static volatile int32 DATA rssiSum;
 static volatile uint8 DATA reportLength;
 static volatile uint8 XDATA report[20];
@@ -43,6 +43,7 @@ void analyzerInit()
 void checkRadioChannels()
 {
     int8 j;
+    uint16 i;
 
     LED_YELLOW(1);
     for(channel=0; channel<256; channel++)
@@ -87,6 +88,7 @@ void checkRadioChannels()
 
 void reportResults()
 {
+    uint16 i;
     for (i=0; i<256; i++)
     {
         if (rssiMax[i] > -90) //report activity on channel if maximum is above -90 dBm
