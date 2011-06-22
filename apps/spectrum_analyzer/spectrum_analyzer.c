@@ -15,11 +15,11 @@
 #include <usb.h>
 #include <usb_com.h>
 
-static volatile int32 DATA rssiSum;
-static volatile uint8 DATA reportLength;
-static volatile uint8 XDATA report[20];
-static volatile int16 XDATA rssiAvg[256],rssiMax[256],rssiVal=0;
-static volatile uint8 XDATA rfdata;
+static int32 DATA rssiSum;
+static uint8 DATA reportLength;
+static uint8 XDATA report[20];
+static int16 XDATA rssiAvg[256], rssiMax[256], rssiVal=0;
+static uint8 XDATA rfdata;
 
 void updateLeds()
 {
