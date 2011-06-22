@@ -15,10 +15,7 @@
 #include <usb.h>
 #include <usb_com.h>
 
-static int32 DATA rssiSum;
-static uint8 DATA reportLength;
-static uint8 XDATA report[64];
-static int16 XDATA rssiAvg[256], rssiMax[256], rssiVal=0;
+static int16 XDATA rssiAvg[256], rssiMax[256];
 
 void updateLeds()
 {
@@ -57,6 +54,9 @@ void checkRadioChannels()
 
         for(channel=0; channel<256; channel++)
         {
+            int32 rssiSum;
+            int16 rssiVal;
+
             while(MARCSTATE != 1);  //radio should already be idle, but check anyway
             CHANNR = channel;
             RFST = 2;  // radio in RX mode and autocal
@@ -87,6 +87,8 @@ void checkRadioChannels()
 
 void reportResults()
 {
+    uint8 reportLength;
+    uint8 XDATA report[64];
     uint16 i;
     for (i=0; i<256; i++)
     {
