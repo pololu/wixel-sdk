@@ -17,10 +17,12 @@
 
 static int16 XDATA rssiAvg[256], rssiMax[256];
 
+void frequentTasks(void);
+
 void updateLeds()
 {
     usbShowStatusWithGreenLed();
-    LED_YELLOW(0);
+    // Yellow LED is controlled by checkRadioChannels
     LED_RED(0);
 }
 
@@ -50,8 +52,6 @@ void checkRadioChannels()
 
     for(j=0; j<10; j++) //ten times through all channels
     {
-        usbComService(); //keep usb connection alive
-
         for(channel=0; channel<256; channel++)
         {
             int32 rssiSum;
@@ -75,8 +75,9 @@ void checkRadioChannels()
 
             rssiVal = (int16) (rssiSum/100);
             rssiAvg[channel] += rssiVal;
-            if (rssiMax[channel] < rssiVal) rssiMax[channel] = rssiVal; // save maximum
+            if (rssiMax[channel] < rssiVal){ rssiMax[channel] = rssiVal; } // save maximum
 
+            frequentTasks();
         }  // the above loop takes about 414 ms on average, so about 1.6 ms/channel
     }
 
@@ -94,11 +95,18 @@ void reportResults()
     {
         if (rssiMax[i] > -90) //report activity on channel if maximum is above -90 dBm
         {
-            while (usbComTxAvailable() < sizeof(report)) usbComService() ;    //wait for usb TX buffer space
+            while (usbComTxAvailable() < sizeof(report)){ frequentTasks(); }    //wait for usb TX buffer space
             reportLength = sprintf(report, "%4d, %4d, %4d\r\n", i, rssiAvg[i], rssiMax[i]);
             usbComTxSend(report, reportLength);
         }
     }
+}
+
+void frequentTasks()
+{
+    boardService();
+    usbComService();
+    updateLeds();
 }
 
 void main()
@@ -109,9 +117,7 @@ void main()
 
     while(1)
     {
-        boardService();
-        usbComService();
-        updateLeds();
+        frequentTasks();
         checkRadioChannels();
         reportResults();
     }
