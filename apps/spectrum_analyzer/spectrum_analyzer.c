@@ -17,13 +17,13 @@
 
 static int32 DATA rssiSum;
 static uint8 DATA reportLength;
-static uint8 XDATA report[20];
+static uint8 XDATA report[64];
 static int16 XDATA rssiAvg[256], rssiMax[256], rssiVal=0;
 
 void updateLeds()
 {
     usbShowStatusWithGreenLed();
-    LED_YELLOW(0) ;
+    LED_YELLOW(0);
     LED_RED(0);
 }
 
@@ -92,7 +92,7 @@ void reportResults()
     {
         if (rssiMax[i] > -90) //report activity on channel if maximum is above -90 dBm
         {
-            while (usbComTxAvailable() < 20) usbComService() ;    //wait for usb TX buffer space
+            while (usbComTxAvailable() < sizeof(report)) usbComService() ;    //wait for usb TX buffer space
             reportLength = sprintf(report, "%4d, %4d, %4d\r\n", i, rssiAvg[i], rssiMax[i]);
             usbComTxSend(report, reportLength);
         }
