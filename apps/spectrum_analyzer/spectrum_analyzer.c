@@ -29,89 +29,87 @@ void updateLeds()
     LED_RED(0);
 }
 
-void perTestRxInit()
+void analyzerInit()
 {
     radioRegistersInit();
-
 
     MCSM0 = 0x14;    // Auto-calibrate  when going from idle to RX or TX.
     MCSM1 = 0x00;    // Disable CCA.  After RX, go to IDLE.  After TX, go to IDLE.
     // We leave MCSM2 at its default value = 0x07
-   MDMCFG2 = 0x70;   //disable sync word detection
-   RFST = 4; //idle radio
+    MDMCFG2 = 0x70;   //disable sync word detection
+    RFST = 4; //idle radio
 }
 
-void CheckRadioChannels()
+void checkRadioChannels()
 {
-   int8 j;
+    int8 j;
 
-   LED_YELLOW(1);
-   for(channel=0; channel<256; channel++)
-      {
-      rssiAvg[channel] = 0;
-      rssiMax[channel] = -999;
-      }
+    LED_YELLOW(1);
+    for(channel=0; channel<256; channel++)
+    {
+        rssiAvg[channel] = 0;
+        rssiMax[channel] = -999;
+    }
 
-   for(j=0; j<10; j++) //ten times through all channels
-   {
+    for(j=0; j<10; j++) //ten times through all channels
+    {
+        usbComService(); //keep usb connection alive
 
-   usbComService(); //keep usb connection alive
+        for(channel=0; channel<256; channel++)
+        {
+            while(MARCSTATE != 1);  //radio should already be idle, but check anyway
+            CHANNR = channel;
+            RFST = 2;  // radio in RX mode and autocal
+            while(MARCSTATE != 13);  //wait for RX mode
+            rssiSum = 0;
+            for (i=0; i<100; i++)
+            {
+                if (TCON & 2) //radio byte available?
+                {
+                    rfdata=RFD; //read byte
+                    TCON &= ~2; //clear ready flag
+                }
+                rssiSum += radioRssi();
+            }
+            RFST = 4; //idle radio
 
-   for(channel=0; channel<256; channel++)
-       {
-       while(MARCSTATE != 1);  //radio should already be idle, but check anyway
-       CHANNR = channel;
-       RFST = 2;  // radio in RX mode and autocal
-       while(MARCSTATE != 13);  //wait for RX mode
-       rssiSum = 0;
-       for (i=0; i<100; i++)
-           {
-          if (TCON & 2) //radio byte available?
-              {
-             rfdata=RFD; //read byte
-             TCON &= ~2; //clear ready flag
-              }
-          rssiSum += radioRssi();
-           }
-       RFST = 4; //idle radio
+            rssiVal = (int16) (rssiSum/100);
+            rssiAvg[channel] += rssiVal;
+            if (rssiMax[channel] < rssiVal) rssiMax[channel] = rssiVal; // save maximum
 
-       rssiVal = (int16) (rssiSum/100);
-       rssiAvg[channel] += rssiVal;
-       if (rssiMax[channel] < rssiVal) rssiMax[channel] = rssiVal; // save maximum
+        }  // the above loop takes about 414 ms on average, so about 1.6 ms/channel
+    }
 
-       }  // the above loop takes about 414 ms on average, so about 1.6 ms/channel
-   }
+    for (channel=0; channel<256; channel++) rssiAvg[channel] /= 10;
 
-   for (channel=0; channel<256; channel++) rssiAvg[channel] /= 10;
-
-   LED_YELLOW(0);
+    LED_YELLOW(0);
 }
 
 void reportResults()
 {
-      for (i=0; i<256; i++)
+    for (i=0; i<256; i++)
+    {
+        if (rssiMax[i] > -90) //report activity on channel if maximum is above -90 dBm
         {
-         if (rssiMax[i] > -90) //report activity on channel if maximum is above -90 dBm
-            {
             while (usbComTxAvailable() < 20) usbComService() ;    //wait for usb TX buffer space
-                  reportLength = sprintf(report, "%4d, %4d, %4d\r\n", i, rssiAvg[i], rssiMax[i]);
-                 usbComTxSend(report, reportLength);
-            }
-         }
+            reportLength = sprintf(report, "%4d, %4d, %4d\r\n", i, rssiAvg[i], rssiMax[i]);
+            usbComTxSend(report, reportLength);
+        }
+    }
 }
 
 void main()
 {
     systemInit();
     usbInit();
-    perTestRxInit();
+    analyzerInit();
     usbInit();
     while(1)
     {
-       boardService();
+        boardService();
         usbComService();
         updateLeds();
-        CheckRadioChannels();
+        checkRadioChannels();
         reportResults();
-     }
+    }
 }
