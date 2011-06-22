@@ -104,7 +104,7 @@ void main()
     systemInit();
     usbInit();
     analyzerInit();
-    usbInit();
+
     while(1)
     {
         boardService();
