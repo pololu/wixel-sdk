@@ -102,6 +102,7 @@ void reportResults()
             printf("%4d, %4d, %4d\r\n", i, rssiAvg[i], rssiMax[i]);
         }
     }
+    printf("\r\n");
 }
 
 void frequentTasks()
