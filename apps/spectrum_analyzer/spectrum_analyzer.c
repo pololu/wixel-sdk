@@ -19,7 +19,6 @@ static int32 DATA rssiSum;
 static uint8 DATA reportLength;
 static uint8 XDATA report[20];
 static int16 XDATA rssiAvg[256], rssiMax[256], rssiVal=0;
-static uint8 XDATA rfdata;
 
 void updateLeds()
 {
@@ -67,7 +66,7 @@ void checkRadioChannels()
             {
                 if (TCON & 2) //radio byte available?
                 {
-                    rfdata=RFD; //read byte
+                    uint8 rfdata = RFD; // read byte
                     TCON &= ~2; //clear ready flag
                 }
                 rssiSum += radioRssi();
