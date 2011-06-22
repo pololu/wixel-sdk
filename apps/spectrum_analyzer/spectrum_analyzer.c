@@ -86,18 +86,20 @@ void checkRadioChannels()
     LED_YELLOW(0);
 }
 
+void putchar(char c)
+{
+    while(!usbComTxAvailable()){ frequentTasks(); }
+    usbComTxSendByte(c);
+}
+
 void reportResults()
 {
-    uint8 reportLength;
-    uint8 XDATA report[64];
     uint16 i;
     for (i=0; i<256; i++)
     {
         if (rssiMax[i] > -90) //report activity on channel if maximum is above -90 dBm
         {
-            while (usbComTxAvailable() < sizeof(report)){ frequentTasks(); }    //wait for usb TX buffer space
-            reportLength = sprintf(report, "%4d, %4d, %4d\r\n", i, rssiAvg[i], rssiMax[i]);
-            usbComTxSend(report, reportLength);
+            printf("%4d, %4d, %4d\r\n", i, rssiAvg[i], rssiMax[i]);
         }
     }
 }
