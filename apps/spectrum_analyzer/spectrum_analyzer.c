@@ -15,7 +15,6 @@
 #include <usb.h>
 #include <usb_com.h>
 
-static volatile int16 DATA channel;
 static volatile int32 DATA rssiSum;
 static volatile uint8 DATA reportLength;
 static volatile uint8 XDATA report[20];
@@ -44,6 +43,7 @@ void checkRadioChannels()
 {
     int8 j;
     uint16 i;
+    uint16 channel;
 
     LED_YELLOW(1);
     for(channel=0; channel<256; channel++)
