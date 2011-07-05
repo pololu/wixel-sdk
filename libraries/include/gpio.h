@@ -14,9 +14,12 @@
  * and Port 2 (P2).  Every pin's name is prefixed by the name of the port it is on.
  * For example, P0_3 starts with "P0" so it is a pin on Port 0.
  *
- * The pins on Port 0 and Port 1 are all inputs with pull-up resistors after a
- * power-up or reset.  On the Wixel, these pins are not tied to any on-board hardware
- * so they completely free to be used as GPIO.
+ * On the Wixel, none of the pins on Port 0 and Port 1 are tied to any on-board
+ * hardware so they completely free to be used as GPIO.
+ *
+ * When the Wixel starts up, all the pins on Port 0 and Port 1 will be inputs with
+ * internal pull-up resistors enabled <i>except</i> P1_0 and P1_1, which do not have
+ * internal pull-up or pull-down resistors
  *
  * This library supports Port 2, but all of the Wixel's Port 2 pins are handled by the
  * functions declared in board.h so you should not need to manipulate them with this
