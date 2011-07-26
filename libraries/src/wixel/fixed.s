@@ -12,7 +12,7 @@
 _bootloaderDeviceDescriptor = 0x03CC
 
 ;; The four bytes of the serial number are stored in the bootloader at this address:
-_serialNumber = 0x03E3
+_serialNumber = 0x03E0
 
 ;; The Serial Number String Descriptor is stored in the bootloader at this address:
 _serialNumberStringDescriptor = 0x03E6
