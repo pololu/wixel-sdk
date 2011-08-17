@@ -53,7 +53,7 @@ uint8 radioQueueTxQueued(void);
  * write the length of the payload data (which must not exceed
  * RADIO_QUEUE_PAYLOAD_SIZE) to offset 0, and write the data starting at
  * offset 1.  After you have put this data in the packet, call
- * radioQueueTxSendPacket to actually queue the packet up to be sent on
+ * radioQueueTxSendPacket() to actually queue the packet up to be sent on
  * the radio.
  * Example usage:
  * <pre>
@@ -69,6 +69,10 @@ uint8 radioQueueTxQueued(void);
  * </pre>
  */
 uint8 XDATA * radioQueueTxCurrentPacket(void);
+
+/*! Sends the current TX packet.  See the documentation of
+ * radioQueueTxCurrentPacket() for details.
+ */
 void radioQueueTxSendPacket(void);
 
 /*! Returns a pointer to the current RX packet (the earliest packet received
@@ -76,10 +80,13 @@ void radioQueueTxSendPacket(void);
  * Returns 0 if there is no RX packet available.
  * The RX packet has the same format as the TX packet: the length of the
  * payload is at offset 0 and the data starts at offset 1.  When you are
- * done reading the packet, you should call radioQueueRxDoneWithPacket.
+ * done reading the packet, you should call radioQueueRxDoneWithPacket().
  * This frees the current packet buffer so it can receive another packet.
  */
 uint8 XDATA * radioQueueRxCurrentPacket(void);  // returns 0 if no packet is available.
+
+/*! Frees the current RX packet so that you can advance to processing
+ * the next one.  See the radioQueueRxCurrentPacket() documentation for details. */
 void radioQueueRxDoneWithPacket(void);
 
 #endif
