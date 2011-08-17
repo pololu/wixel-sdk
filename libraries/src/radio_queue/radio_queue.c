@@ -149,10 +149,10 @@ void radioQueueRxDoneWithPacket(void)
 
 static void takeInitiative()
 {
-   if (radioQueueTxInterruptIndex != radioQueueTxMainLoopIndex)
+    if (radioQueueTxInterruptIndex != radioQueueTxMainLoopIndex)
     {
         // Try to send the next data packet.
-       radioMacTx(radioQueueTxPacket[radioQueueTxInterruptIndex]);
+        radioMacTx(radioQueueTxPacket[radioQueueTxInterruptIndex]);
     }
     else
     {
