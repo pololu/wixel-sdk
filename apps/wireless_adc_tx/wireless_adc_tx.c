@@ -2,6 +2,12 @@
 
 This app reads the voltages on its six analog inputs (P0_0, P0_1,
 P0_2, P0_3, P0_4, and P0_5) and transmits them wirelessly.
+
+The packet transmitted also contains the serial number of the Wixel,
+allowing multiple transmitters to talk to the same receiver.
+
+For more information about how to use this app, see the documentation in
+apps/wireless_adc_rx/wireless_adc_rx.c.
 */
 
 // TODO: Add a few ms of randomness to the timing so that we don't get into a
@@ -46,23 +52,29 @@ void analogInputsInit()
 void updateLeds()
 {
     usbShowStatusWithGreenLed();
-
     LED_YELLOW(1);
+    LED_RED(0);
 }
 
+// This function should be called regularly.
+// It takes care of reading the ADC values and sending them
+// to the radio when appropriate.
 void adcToRadioService()
 {
     static uint16 lastTx = 0;
 
     uint8 XDATA * txPacket;
 
+    // Check to see if it is time to send a report and
+    // if there is a radio TX buffer available.
     if ((uint16)(getMs() - lastTx) >= param_report_period_ms && (txPacket = radioQueueTxCurrentPacket()))
     {
+        // Both of those conditions are true, so send a report.
+
         uint8 i;
         uint16 XDATA * ptr = (uint16 XDATA *)&txPacket[5];
 
-        // This should be done before all the ADC readings, which
-        // take about 3 ms.
+        // This should be done before all the ADC readings, which take about 3 ms.
         lastTx = getMs();
 
         // Byte 0 is the length.
