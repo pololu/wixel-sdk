@@ -27,6 +27,8 @@
 #define spiNMasterSetBitOrder       spi0MasterSetBitOrder
 #define spiNMasterBytesLeft         spi0MasterBytesLeft
 #define spiNMasterTransfer          spi0MasterTransfer
+#define spiNMasterSendByte          spi0MasterSendByte
+#define spiNMasterReceiveByte       spi0MasterReceiveByte
 
 #elif defined(SPI1)
 #include <spi1_master.h>
@@ -44,6 +46,8 @@
 #define spiNMasterSetBitOrder       spi1MasterSetBitOrder
 #define spiNMasterBytesLeft         spi1MasterBytesLeft
 #define spiNMasterTransfer          spi1MasterTransfer
+#define spiNMasterSendByte          spi1MasterSendByte
+#define spiNMasterReceiveByte       spi1MasterReceiveByte
 #endif
 
 // txPointer points to the last byte that was written to SPI.
@@ -192,6 +196,25 @@ void spiNMasterTransfer(const uint8 XDATA * txBuffer, uint8 XDATA * rxBuffer, ui
         UNDBUF = *txBuffer; // transmit first byte
         URXNIE = 1;         // Enable RX interrupt.
     }
+}
+
+uint8 spiNMasterSendByte(uint8 XDATA byte)
+{
+    uint8 XDATA rxByte;
+
+    rxPointer = &rxByte;
+    bytesLeft = 1;
+
+    UNDBUF = byte;
+    URXNIE = 1; // Enable RX interrupt.
+
+    while (bytesLeft);
+    return rxByte;
+}
+
+uint8 spiNMasterReceiveByte(void)
+{
+    return spiNMasterSendByte(0xFF);
 }
 
 ISR_URX()

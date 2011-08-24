@@ -15,6 +15,8 @@ void spi1MasterSetClockPhase(BIT phase);
 void spi1MasterSetBitOrder(BIT bitOrder);
 uint16 spi1MasterBytesLeft(void);
 void spi1MasterTransfer(const uint8 XDATA * txBuffer, uint8 XDATA * rxBuffer, uint16 size);
+uint8 spi1MasterSendByte(uint8 XDATA byte);
+uint8 spi1MasterReceiveByte(void);
 
 ISR(URX1, 1);
 
