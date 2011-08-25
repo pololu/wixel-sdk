@@ -140,7 +140,8 @@ void spiNMasterSetFrequency(uint32 freq)
         baudE++;
         baudMPlus256 /= 2;
     }
-    UNGCR = baudE; // UNGCR.BAUD_E (4:0)
+    UNGCR &= 0xE0; // preserve CPOL, CPHA, ORDER (7:5)
+    UNGCR |= baudE; // UNGCR.BAUD_E (4:0)
     UNBAUD = baudMPlus256; // UNBAUD.BAUD_M (7:0) - only the lowest 8 bits of baudMPlus256 are used, so this is effectively baudMPlus256 - 256
 }
 
