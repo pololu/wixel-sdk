@@ -13,8 +13,8 @@
 #if defined(UART0)
 #include <uart0.h>
 #define INTERRUPT_PRIORITY_GROUP    2
-#define ISR_URX()  void ISR_URX0()  __interrupt(URX0_VECTOR) __using(1)
-#define ISR_UTX()  void ISR_UTX0()  __interrupt(UTX0_VECTOR) __using(1)
+#define ISR_URX()  void ISR_URX0()  __interrupt(URX0_VECTOR) __using(0)
+#define ISR_UTX()  void ISR_UTX0()  __interrupt(UTX0_VECTOR) __using(0)
 #define UTXNIF                      UTX0IF
 #define URXNIF                      URX0IF
 #define URXNIE                      URX0IE
@@ -41,8 +41,8 @@
 #elif defined(UART1)
 #include <uart1.h>
 #define INTERRUPT_PRIORITY_GROUP     3
-#define ISR_URX()  void ISR_URX1() __interrupt(URX1_VECTOR) __using(1)
-#define ISR_UTX()  void ISR_UTX1() __interrupt(UTX1_VECTOR) __using(1)
+#define ISR_URX()  void ISR_URX1() __interrupt(URX1_VECTOR) __using(0)
+#define ISR_UTX()  void ISR_UTX1() __interrupt(UTX1_VECTOR) __using(0)
 #define UTXNIF                       UTX1IF
 #define URXNIF                       URX1IF
 #define URXNIE                       URX1IE

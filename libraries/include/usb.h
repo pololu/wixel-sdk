@@ -360,7 +360,7 @@ void usbSleep(void);
  * future versions.  If you want to have a P0 interrupt AND USB Suspend, you
  * should write your ISR like this:
 \code
-ISR(P0INT, 1)
+ISR(P0INT, 0)
 {
     // Handle the P0 flags you care about here, but you might want to
     // check PICTL first because if we are in suspend mode then the P0

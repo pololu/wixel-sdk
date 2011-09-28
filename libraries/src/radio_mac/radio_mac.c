@@ -54,7 +54,7 @@ volatile BIT radioTxUnderflowOccurred = 0;
 #define RADIO_MAC_STATE_TX       3
 volatile uint8 DATA radioMacState = RADIO_MAC_STATE_OFF;
 
-ISR(RF, 1)
+ISR(RF, 0)
 {
     S1CON = 0; // Clear the general RFIF interrupt registers
 

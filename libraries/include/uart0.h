@@ -113,10 +113,10 @@ uint8 uart0RxAvailable(void);
 uint8 uart0RxReceiveByte(void);
 
 /*! Transmit interrupt. */
-ISR(UTX0, 1);
+ISR(UTX0, 0);
 
 /*! Receive interrupt. */
-ISR(URX0, 1);
+ISR(URX0, 0);
 
 /*! The library sets this to 1 whenever a parity error occurs. */
 extern volatile BIT uart0RxParityErrorOccurred;
