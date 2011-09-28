@@ -45,7 +45,7 @@
  *    the *_VECTOR macros defined in this file (e.g. "P1INT").
  *
  * \param bank
- *    The register back to use.  Must be a number from 0 to 3, inclusive.
+ *    The register bank to use.  Must be a number from 0 to 3, inclusive.
  *
  * Example ISR declaration (in a .h file):
 \code

@@ -65,7 +65,7 @@ CODE_AREA_FULL = --code-loc 0x0000 --code-size 0x8000
 # using only kilobytes 1-29 inclusive.
 CODE_AREA_APP = --code-loc 0x0400 --code-size 0x7400
 
-# The default code area is is CODE_AREA_APP.
+# The default code area is CODE_AREA_APP.
 CODE_AREA := $(CODE_AREA_APP)
 LD_FLAGS += $(CODE_AREA)
 
