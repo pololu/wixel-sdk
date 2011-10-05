@@ -9,7 +9,7 @@
 
 PDATA volatile uint32 timeMs;
 
-ISR(T4, 1)
+ISR(T4, 0)
 {
     timeMs++;
     // T4CC0 ^= 1; // If we do this, then on average the interrupts will occur precisely 1.000 ms apart.

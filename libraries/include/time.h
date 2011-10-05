@@ -35,7 +35,7 @@ uint32 getMs();
 
 /*! This interrupt fires once per millisecond (approximately) and
  * increments timeMs. */
-ISR(T4, 1);
+ISR(T4, 0);
 
 /*! \param microseconds  The number of microseconds delay; any value between 0 and 255.
  *

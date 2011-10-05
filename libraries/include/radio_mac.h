@@ -120,6 +120,6 @@ extern volatile BIT radioRxOverflowOccurred;
 extern volatile BIT radioTxUnderflowOccurred;
 
 /*! The radio's Interrupt Service Routine (ISR). */
-ISR(RF, 1);
+ISR(RF, 0);
 
 #endif /* RADIO_H_ */
