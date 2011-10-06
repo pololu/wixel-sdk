@@ -25,6 +25,7 @@
 #define spiNMasterSetClockPolarity  spi0MasterSetClockPolarity
 #define spiNMasterSetClockPhase     spi0MasterSetClockPhase
 #define spiNMasterSetBitOrder       spi0MasterSetBitOrder
+#define spiNMasterBusy              spi0MasterBusy
 #define spiNMasterBytesLeft         spi0MasterBytesLeft
 #define spiNMasterTransfer          spi0MasterTransfer
 #define spiNMasterSendByte          spi0MasterSendByte
@@ -44,6 +45,7 @@
 #define spiNMasterSetClockPolarity  spi1MasterSetClockPolarity
 #define spiNMasterSetClockPhase     spi1MasterSetClockPhase
 #define spiNMasterSetBitOrder       spi1MasterSetBitOrder
+#define spiNMasterBusy              spi1MasterBusy
 #define spiNMasterBytesLeft         spi1MasterBytesLeft
 #define spiNMasterTransfer          spi1MasterTransfer
 #define spiNMasterSendByte          spi1MasterSendByte
@@ -57,7 +59,7 @@ static volatile const uint8 XDATA * DATA txPointer = 0;
 static volatile uint8 XDATA * DATA rxPointer = 0;
 
 // bytesLeft is the number of bytes we still need to send to/receive from SPI.
-static volatile uint16 DATA bytesLeft = 0;   // TODO: make this be 8 bits (or fix spiNMasterBytesLeft)
+static volatile uint16 DATA bytesLeft = 0;
 
 void spiNMasterInit(void)
 {
@@ -181,9 +183,21 @@ void spiNMasterSetBitOrder(BIT bitOrder)
     }
 }
 
+BIT spiNMasterBusy(void)
+{
+    return URXNIE;
+}
+
 uint16 spiNMasterBytesLeft(void)
 {
-    return bytesLeft;
+    uint16 bytes;
+
+    // bytesLeft is 16 bits, so it takes more than one instruction to read. Disable interrupts so it's not updated while we do this
+    URXNIE = 0;
+    bytes = bytesLeft;
+    if (bytes) URXNIE = 1;
+
+    return bytes;
 }
 
 void spiNMasterTransfer(const uint8 XDATA * txBuffer, uint8 XDATA * rxBuffer, uint16 size)

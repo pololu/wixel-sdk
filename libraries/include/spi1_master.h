@@ -13,6 +13,7 @@ void spi1MasterSetFrequency(uint32 freq);
 void spi1MasterSetClockPolarity(BIT polarity);
 void spi1MasterSetClockPhase(BIT phase);
 void spi1MasterSetBitOrder(BIT bitOrder);
+BIT spi1MasterBusy(void);
 uint16 spi1MasterBytesLeft(void);
 void spi1MasterTransfer(const uint8 XDATA * txBuffer, uint8 XDATA * rxBuffer, uint16 size);
 uint8 spi1MasterSendByte(uint8 XDATA byte);
