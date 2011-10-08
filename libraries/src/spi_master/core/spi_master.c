@@ -5,7 +5,6 @@
 
 #include <cc2511_map.h>
 #include <cc2511_types.h>
-#include <board.h>
 
 #if defined(__CDT_PARSER__)
 #define SPI0
@@ -14,7 +13,7 @@
 #if defined(SPI0)
 #include <spi0_master.h>
 #define INTERRUPT_PRIORITY_GROUP    2
-#define ISR_URX()  void ISR_URX0()  __interrupt(URX0_VECTOR) __using(1)
+#define ISR_URX()                   ISR(URX0, 0)
 #define URXNIF                      URX0IF
 #define URXNIE                      URX0IE
 #define UNGCR                       U0GCR
@@ -34,7 +33,7 @@
 #elif defined(SPI1)
 #include <spi1_master.h>
 #define INTERRUPT_PRIORITY_GROUP    3
-#define ISR_URX()  void ISR_URX1()  __interrupt(URX1_VECTOR) __using(1)
+#define ISR_URX()                   ISR(URX1, 0)
 #define URXNIF                      URX1IF
 #define URXNIE                      URX1IE
 #define UNGCR                       U1GCR

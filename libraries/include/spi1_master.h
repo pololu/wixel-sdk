@@ -5,6 +5,7 @@
 #ifndef _SPI1_MASTER_H
 #define _SPI1_MASTER_H
 
+#include <cc2511_map.h>
 #include <cc2511_types.h>
 #include <spi.h>
 
@@ -19,6 +20,6 @@ void spi1MasterTransfer(const uint8 XDATA * txBuffer, uint8 XDATA * rxBuffer, ui
 uint8 spi1MasterSendByte(uint8 XDATA byte);
 uint8 spi1MasterReceiveByte(void);
 
-ISR(URX1, 1);
+ISR(URX1, 0);
 
 #endif /* SPI1_MASTER_H_ */
