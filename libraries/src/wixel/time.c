@@ -4,6 +4,7 @@
  * For information on how to use these functions, see time.h.
  */
 
+#include <cc2511_map.h>
 #include <cc2511_types.h>
 #include <time.h>
 

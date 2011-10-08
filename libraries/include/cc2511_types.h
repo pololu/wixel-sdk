@@ -66,27 +66,15 @@ typedef __bit BIT;
 
 
 #elif defined(__CDT_PARSER__)
-#else
-#error "Unknown compiler."
-#endif
 
-// Avoid syntax errors in eclipse.
-#ifdef __CDT_PARSER__
-#define __xdata
-#define __pdata
-#define __data
-#define xdata
-#define pdata
-#define data
-#define __interrupt(x)
-#define __at(x)
-#define __using(x)
-#define __reentrant
 #define CODE
-#define XDATA
 #define DATA
 #define PDATA
-#define ISR(source, bank) void ISR_##source()
+#define XDATA
+#define __reentrant
+
+#else
+#error "Unknown compiler."
 #endif
 
 #endif

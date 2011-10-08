@@ -13,13 +13,14 @@
 
 // Avoid false-alarm syntax errors in Eclipse.
 #ifdef __CDT_PARSER__
+#define __sfr
 #define __at(x)
+#define __xdata
 #define __interrupt(x)
 #define __using(x)
-#define __xdata
 #endif
 
-#ifdef SDCC
+#if defined SDCC || defined __CDT_PARSER__
 // Syntax for the SDCC (Small Device C Compiler).
 #define SFR(address, name) static __sfr __at (address) name;
 #define SBIT(address, name) static __sbit __at (address) name;
