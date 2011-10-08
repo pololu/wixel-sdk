@@ -1,4 +1,5 @@
 #include <cc2511_map.h>
+#include <servo.h>
 
 void main()
 {
@@ -14,10 +15,17 @@ void main()
     P1DIR |= (1<<1);
 
     T1CC0 = 60000;         // Period = 60000/24 = 2500 microseconds.
-    T1CCTL1 = 0b01010100;  // Timer 1 Channel 1: Compare mode with interrupt enabled.  Toggle output on match.
+    T1CCTL1 = 0b01011100;  // Timer 1 Channel 1: Compare mode with interrupt enabled.  Toggle output on match.
     T1CTL = 0b00000010;    // Timer 1: Module mode, repeatedly counts from 0 to T1CC0.
 
     T1CC1 = 2400;
+
+    IP0 |= (1<<1);
+    IP1 |= (1<<1);
+    T1IE = 1; // Enable the Timer 1 interrupt.
+    EA = 1;   // Enable interrupts in general.
+
+    P1DIR |= (1<<4);
 
     while(1)
     {
