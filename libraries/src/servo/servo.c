@@ -40,10 +40,13 @@ struct SERVO_DATA
     uint16 speed;
 };
 
-static struct SERVO_DATA XDATA servoData[MAX_SERVOS];
+static volatile struct SERVO_DATA XDATA servoData[MAX_SERVOS];
 
 ISR(T1,0)
 {
+    volatile struct SERVO_DATA XDATA * d;
+    uint8 i;
+
     switch(servoCounter++)
     {
     case 0:
@@ -74,6 +77,44 @@ ISR(T1,0)
 
     case 6:
         servoCounter = 0;
+
+        for(i = 0; i < MAX_SERVOS; i++)
+        {
+            uint16 pos;
+
+            d = servoData + i;
+            pos = d->position;
+
+            if (d->speed && pos && d->target)
+            {
+                if (d->target > pos)
+                {
+                    pos += d->speed;
+                    if (pos > d->target)
+                    {
+                        pos = d->target;
+                    }
+                }
+                else
+                {
+                    if (pos < d->target + d->speed)
+                    {
+                        pos = d->target;
+                    }
+                    else
+                    {
+                        pos -= d->speed;
+                    }
+                }
+            }
+            else
+            {
+                pos = d->target;
+            }
+            d->position = pos;
+            d->positionReg = ~pos + 1;
+        }
+
         break;
     }
 }
@@ -142,23 +183,42 @@ void servosStart(uint8 XDATA * pins, uint8 num_pins)
 
 void servoSetTarget(uint8 servo_num, uint16 target)
 {
-    struct SERVO_DATA XDATA * d = servoData + servoAssignment[servo_num];
+    volatile struct SERVO_DATA XDATA * d = servoData + servoAssignment[servo_num];
 
-    if (target < 3000)
-    {
-        target *= 24;
-    }
+    // If the user specified the target in microseconds, convert it to timer
+    // ticks (24ths of a microsecond).
+    if (target < 3000){ target *= 24; }
 
     T1IE = 0; // Make sure we don't get interrupted in the middle of an update.
     d->target = target;
-    d->position = target; //tmphax
-    d->positionReg = ~target + 1; //tmphax
+    //d->position = target; //tmphax
+    //d->positionReg = ~target + 1; //tmphax
     T1IE = 1;
 }
 
-uint16 servoGetTarget(uint8 servo_num);
+uint16 servoGetTarget(uint8 servo_num)
+{
+    return servoData[servoAssignment[servo_num]].target;
+}
 
-uint16 servoGetPosition(uint8 servo_num);
+uint16 servoGetPosition(uint8 servo_num)
+{
+    // TODO: remove the T1IE precautions here if it turns out we don't update position in the interrupt
+    uint16 position;
+    T1IE = 0; // Make sure we don't get interrupted in the middle of reading the position.
+    position = servoData[servoAssignment[servo_num]].position;
+    T1IE = 1;
+    return position;
+}
 
-void servoSetSpeed(uint8 servo_num, uint16 speed);
-uint16 servoGetSpeed(uint8 servo_num);
+void servoSetSpeed(uint8 servo_num, uint16 speed)
+{
+    T1IE = 0; // Make sure we don't get interrupted in the middle of an update.
+    servoData[servoAssignment[servo_num]].speed = speed;
+    T1IE = 1;
+}
+
+uint16 servoGetSpeed(uint8 servo_num)
+{
+    return servoData[servoAssignment[servo_num]].speed;
+}

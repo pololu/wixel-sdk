@@ -13,6 +13,9 @@ void main()
 
     servosStart((uint8 XDATA *)pins, sizeof(pins));
 
+    servoSetSpeed(0, 50);
+
+
     servoSetTarget(1, 24000);
     servoSetTarget(2, 1520);
     servoSetTarget(3, 1540);
@@ -25,7 +28,7 @@ void main()
         usbComService();
         usbShowStatusWithGreenLed();
 
-        if (getMs() >> 9 & 1)
+        if (getMs() >> 11 & 1)
         {
             servoSetTarget(0, 1000);
         }
