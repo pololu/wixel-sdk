@@ -7,7 +7,7 @@
 void servosStart(uint8 XDATA * pins, uint8 num_pins);
 void servosStop(void);
 
-void servoSetTarget(uint8 servo_num, uint16 position);
+void servoSetTarget(uint8 servo_num, uint16 target);
 uint16 servoGetTarget(uint8 servo_num);
 
 uint16 servoGetPosition(uint8 servo_num);
