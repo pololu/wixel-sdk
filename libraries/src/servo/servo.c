@@ -30,16 +30,17 @@ volatile uint8 DATA servoCounter = 0;
 
 // Associates external channel number (the number picked by the user) to the
 // internal channel number.
-static uint8 servoAssignment[MAX_SERVOS];
+static uint8 PDATA servoAssignment[MAX_SERVOS];
 
 struct SERVO_DATA
 {
     uint16 target;
     uint16 position;
+    uint16 positionReg;
     uint16 speed;
 };
 
-static struct SERVO_DATA PDATA servoData[MAX_SERVOS];
+static struct SERVO_DATA XDATA servoData[MAX_SERVOS];
 
 ISR(T1,0)
 {
@@ -49,9 +50,9 @@ ISR(T1,0)
         P0SEL &= ~0b11100;
         PERCFG |= (1<<6);  // PERCFG.T1CFG = 1:  Move Timer 1 to Alt. 2 location (P1_2, P1_1, P1_0)
         P1SEL |= 0b111;
-        T1CC0 = servoData[3].position;
-        T1CC1 = servoData[4].position;
-        T1CC2 = servoData[5].position;
+        T1CC0 = servoData[3].positionReg;
+        T1CC1 = servoData[4].positionReg;
+        T1CC2 = servoData[5].positionReg;
         break;
 
     case 1:
@@ -62,9 +63,9 @@ ISR(T1,0)
         P1SEL &= ~0b111;
         PERCFG &= ~(1<<6);  // PERCFG.T1CFG = 0:  Move Timer 1 to Alt. 1 location (P0_2, P0_3, P0_4)
         P0SEL |= 0b11100;
-        T1CC0 = servoData[0].position;
-        T1CC1 = servoData[1].position;
-        T1CC2 = servoData[2].position;
+        T1CC0 = servoData[0].positionReg;
+        T1CC1 = servoData[1].positionReg;
+        T1CC2 = servoData[2].positionReg;
         break;
 
     case 4:
@@ -140,8 +141,13 @@ void servosStart(uint8 XDATA * pins, uint8 num_pins)
 
 void servoSetTarget(uint8 servo_num, uint16 target)
 {
-    servoData[servoAssignment[servo_num]].target = target*SERVO_TICKS_PER_MICROSECOND;
-    servoData[servoAssignment[servo_num]].position = target*SERVO_TICKS_PER_MICROSECOND; //tmphax
+    struct SERVO_DATA XDATA * d = servoData + servoAssignment[servo_num];
+
+    T1IE = 0; // Make sure we don't get interrupted in the middle of an update.
+    d->target = target*SERVO_TICKS_PER_MICROSECOND;
+    d->position = target*SERVO_TICKS_PER_MICROSECOND; //tmphax
+    d->positionReg = ~(target*SERVO_TICKS_PER_MICROSECOND)+1; //tmphax
+    T1IE = 1;
 }
 
 uint16 servoGetTarget(uint8 servo_num);
