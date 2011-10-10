@@ -98,17 +98,16 @@ void servosStart(uint8 XDATA * pins, uint8 num_pins)
     uint8 i;
     for (i = 0; i < MAX_SERVOS; i++)
     {
+        servoData[i].target = 0;
+        servoData[i].position = 0;
+        servoData[i].positionReg = 0;
+        servoData[i].speed = 0;
+
         if (i < num_pins)
         {
             servoAssignment[i] = pinToInternalChannelNumber(pins[i]);
         }
     }
-
-    P2DIR = (P2DIR & ~0b11000000) | 0b11000000;
-    P2SEL |= (1<<3); // might not be necessary, makes Timer 1 have priority over USART1 on Port 1
-
-    // Set up hardware PWM.
-    PERCFG &= ~(1<<6);  // PERCFG.T1CFG = 0:  Move Timer 1 to Alt. 1 location (P0_2, P0_3, P0_4)
 
     P1_0 = P1_1 = P1_2 = 0;
     P1SEL |= 0b111;
@@ -118,7 +117,9 @@ void servosStart(uint8 XDATA * pins, uint8 num_pins)
     P0SEL |= 0b11100;
     P0DIR |= 0b11100;
 
-    T1CC0 = 60000;         // Period = 60000/24 = 2500 microseconds.
+    // Set PRIP0[1:0] to 11 (Timer 1 channel 2 - USART0).  Otherwise,
+    // Timer 1 can not control P0_4.
+    P2DIR = (P2DIR & ~0b11000000) | 0b11000000;
 
     // Configure Timer 1 Channels 0-2 to be in compare mode.  Set output on compare-up, clear on 0.
     // With this configuration, we can set T1CC0, T1CC1, or T1CC2 to -N to get a pulse of with N,
@@ -126,13 +127,13 @@ void servosStart(uint8 XDATA * pins, uint8 num_pins)
     // We can set the register to -1 or 0 to disable the pulse.
     T1CCTL0 = T1CCTL1 = T1CCTL2 = 0b00011100;
 
+    // Turn off all the pulses.
+    T1CC0 = T1CC1 = T1CC2 = 0;
+
     T1CTL = 0b00000001;    // Timer 1: Start free-running mode, counting from 0x0000 to 0xFFFF.
 
-    T1CC0 = -1;
-    T1CC1 = -9;
-    T1CC2 = -15;
-
-    IP0 |= (1<<1);
+    // Set the Timer 1 interrupt priority to 2, the second highest.
+    IP0 &= ~(1<<1);
     IP1 |= (1<<1);
     T1IE = 1; // Enable the Timer 1 interrupt.
     EA = 1;   // Enable interrupts in general.
@@ -143,10 +144,15 @@ void servoSetTarget(uint8 servo_num, uint16 target)
 {
     struct SERVO_DATA XDATA * d = servoData + servoAssignment[servo_num];
 
+    if (target < 3000)
+    {
+        target *= 24;
+    }
+
     T1IE = 0; // Make sure we don't get interrupted in the middle of an update.
-    d->target = target*SERVO_TICKS_PER_MICROSECOND;
-    d->position = target*SERVO_TICKS_PER_MICROSECOND; //tmphax
-    d->positionReg = ~(target*SERVO_TICKS_PER_MICROSECOND)+1; //tmphax
+    d->target = target;
+    d->position = target; //tmphax
+    d->positionReg = ~target + 1; //tmphax
     T1IE = 1;
 }
 
