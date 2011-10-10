@@ -4,6 +4,19 @@
 #include <usb.h>
 #include <usb_com.h>
 
+/** Note: This library assumes that the Wixel is running at 24 MHz. **/
+
+/** Note: The servo pulse period used by this library is 2^16/24*7 = 19114.66 microseconds.
+ *  There is no easy way to get a period of 20000 microseconds:
+ *  We can't run the timer in modulo mode because then we would lose control of the
+ *    duty cycle of channel 0 (T1CC0 would be used to set the timer period).
+ *  We can't set the T1CNT in an interrupt, because any write to T1CNTL resets the count to 0.
+ *  We could delay for 900 microseconds in this interrupt and then write to T1CNTL,
+ *    but that uses up a lot of CPU time.
+ *  During one of the timer periods we could try switching the timer to modulo mode,
+ *    to make the period shorter.
+ */
+
 volatile uint8 DATA servoCounter = 0;
 
 ISR(T1,0)
@@ -14,15 +27,16 @@ ISR(T1,0)
         P0SEL &= ~0b11100;
         PERCFG |= (1<<6);  // PERCFG.T1CFG = 1:  Move Timer 1 to Alt. 2 location (P1_2, P1_1, P1_0)
         P1SEL |= 0b111;
-        T1CC0 = 1;
+        T1CC0 = -24000;
         T1CC1 = -25000;
         T1CC2 = -26000;
         break;
+
     case 1:
         T1CC0 = T1CC1 = T1CC2 = 0xFFFF;
         break;
 
-    case 4:
+    case 3:
         P1SEL &= ~0b111;
         PERCFG &= ~(1<<6);  // PERCFG.T1CFG = 0:  Move Timer 1 to Alt. 1 location (P0_2, P0_3, P0_4)
         P0SEL |= 0b11100;
@@ -31,15 +45,14 @@ ISR(T1,0)
         T1CC2 = 0x10000-34000;
         break;
 
-    case 5:
+    case 4:
         T1CC0 = T1CC1 = T1CC2 = 0xFFFF;
         break;
 
-    case 7:
+    case 6:
         servoCounter = 0;
         break;
     }
-
 }
 
 void main()
