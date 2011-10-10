@@ -11,7 +11,9 @@ ISR(T1,0)
     switch(servoCounter++)
     {
     case 0:
+        P0SEL &= ~0b11100;
         PERCFG |= (1<<6);  // PERCFG.T1CFG = 1:  Move Timer 1 to Alt. 2 location (P1_2, P1_1, P1_0)
+        P1SEL |= 0b111;
         T1CC0 = 1;
         T1CC1 = -25000;
         T1CC2 = -26000;
@@ -20,14 +22,16 @@ ISR(T1,0)
         T1CC0 = T1CC1 = T1CC2 = 0xFFFF;
         break;
 
-    case 2:
+    case 4:
+        P1SEL &= ~0b111;
         PERCFG &= ~(1<<6);  // PERCFG.T1CFG = 0:  Move Timer 1 to Alt. 1 location (P0_2, P0_3, P0_4)
+        P0SEL |= 0b11100;
         T1CC0 = -30000;
         T1CC1 = -32000;
         T1CC2 = 0x10000-34000;
         break;
 
-    case 3:
+    case 5:
         T1CC0 = T1CC1 = T1CC2 = 0xFFFF;
         break;
 
@@ -48,9 +52,12 @@ void main()
 
     // Set up hardware PWM.
     PERCFG &= ~(1<<6);  // PERCFG.T1CFG = 0:  Move Timer 1 to Alt. 1 location (P0_2, P0_3, P0_4)
+
+    P1_0 = P1_1 = P1_2 = 0;
     P1SEL |= 0b111;
     P1DIR |= 0b111;
 
+    P0_4 = P0_3 = P0_2 = 0;
     P0SEL |= 0b11100;
     P0DIR |= 0b11100;
 
