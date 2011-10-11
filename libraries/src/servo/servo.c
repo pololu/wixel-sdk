@@ -1,5 +1,7 @@
 #include <servo.h>
 
+// TODO: do something disable the PWM when going into bootloader mode
+
 /** Note: This library assumes that the Wixel is running at 24 MHz. **/
 
 /** Note: The servo pulse period used by this library is 2^16/24*7 = 19114.66 microseconds.
@@ -47,22 +49,11 @@ ISR(T1,0)
     volatile struct SERVO_DATA XDATA * d;
     uint8 i;
 
+    P1_3 = 1;  // tmphax
+
     switch(servoCounter++)
     {
     case 0:
-        P0SEL &= ~0b11100;
-        PERCFG |= (1<<6);  // PERCFG.T1CFG = 1:  Move Timer 1 to Alt. 2 location (P1_2, P1_1, P1_0)
-        P1SEL |= 0b111;
-        T1CC0 = servoData[3].positionReg;
-        T1CC1 = servoData[4].positionReg;
-        T1CC2 = servoData[5].positionReg;
-        break;
-
-    case 1:
-        T1CC0 = T1CC1 = T1CC2 = 0xFFFF;
-        break;
-
-    case 3:
         P1SEL &= ~0b111;
         PERCFG &= ~(1<<6);  // PERCFG.T1CFG = 0:  Move Timer 1 to Alt. 1 location (P0_2, P0_3, P0_4)
         P0SEL |= 0b11100;
@@ -71,11 +62,27 @@ ISR(T1,0)
         T1CC2 = servoData[2].positionReg;
         break;
 
+    case 1:
+        T1CC0 = T1CC1 = T1CC2 = 0xFFFF;
+        break;
+
+    case 3:
+        P0SEL &= ~0b11100;
+        PERCFG |= (1<<6);  // PERCFG.T1CFG = 1:  Move Timer 1 to Alt. 2 location (P1_2, P1_1, P1_0)
+        P1SEL |= 0b111;
+        T1CC0 = servoData[3].positionReg;
+        T1CC1 = servoData[4].positionReg;
+        T1CC2 = servoData[5].positionReg;
+        break;
+
     case 4:
         T1CC0 = T1CC1 = T1CC2 = 0xFFFF;
         break;
 
     case 6:
+        // David measured how long these updates take, and it is only about 60us even if there is
+        // speed enabled for all channels, so it seems OK to do it in the interrupt.
+
         servoCounter = 0;
 
         for(i = 0; i < MAX_SERVOS; i++)
@@ -117,6 +124,8 @@ ISR(T1,0)
 
         break;
     }
+
+    P1_3 = 0; // tmphax
 }
 
 static uint8 pinToInternalChannelNumber(uint8 pin)
@@ -178,6 +187,8 @@ void servosStart(uint8 XDATA * pins, uint8 num_pins)
     IP1 |= (1<<1);
     T1IE = 1; // Enable the Timer 1 interrupt.
     EA = 1;   // Enable interrupts in general.
+
+    P1_3 = 0; P1DIR |= (1<<3); // tmphax
 
 }
 
