@@ -80,7 +80,7 @@ ISR(T1,0)
         break;
 
     case 6:
-        // David measured how long these updates take, and it is only about 60us even if there is
+        // David measured how long these updates take, and it is only about 70us even if there is
         // speed enabled for all channels, so it seems OK to do it in the interrupt.
 
         servoCounter = 0;
@@ -96,15 +96,18 @@ ISR(T1,0)
             {
                 if (d->target > pos)
                 {
-                    pos += d->speed;
-                    if (pos > d->target)
+                    if (d->target - pos < d->speed)
                     {
                         pos = d->target;
+                    }
+                    else
+                    {
+                        pos += d->speed;
                     }
                 }
                 else
                 {
-                    if (pos < d->target + d->speed)
+                    if (pos - d->target < d->speed)
                     {
                         pos = d->target;
                     }

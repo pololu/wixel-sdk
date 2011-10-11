@@ -17,8 +17,8 @@ void main()
     servoSetSpeed(1, 400);
     servoSetSpeed(2, 400);
     servoSetSpeed(3, 400);
-    servoSetSpeed(4, 400);
-    servoSetSpeed(5, 400);
+    servoSetSpeed(4, 0);
+    servoSetSpeed(5, 65000);
 
 
     servoSetTarget(1, 24000);
