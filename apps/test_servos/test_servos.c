@@ -56,7 +56,7 @@ void receiveCommands()
         }
         else
         {
-            myServosInit();
+            servosStart(0, 0);
         }
         break;
     }

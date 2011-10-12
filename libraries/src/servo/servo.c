@@ -167,46 +167,51 @@ void servosStart(uint8 XDATA * pins, uint8 num_pins)
 
     //// Configure the pins and initialize the internal data structures. ////
 
-    servoPinsOnPort0 = servoPinsOnPort1 = 0;
-    for (i = 0; i < MAX_SERVOS; i++)
+    // The user passes a null argument for pins, then don't reinitialize the pins.
+    // This allows us to temporary start and stop the servos without losing track
+    // of the old speeds, targets, and positions.
+    if (pins != 0)
     {
-        servoData[i].target = 0;
-        servoData[i].position = 0;
-        servoData[i].positionReg = 0;
-        servoData[i].speed = 0;
-
-        if (i < num_pins)
+        servoPinsOnPort0 = servoPinsOnPort1 = 0;
+        for (i = 0; i < MAX_SERVOS; i++)
         {
-            uint8 internalChannelNumber = pinToInternalChannelNumber(pins[i]);
+            servoData[i].target = 0;
+            servoData[i].position = 0;
+            servoData[i].positionReg = 0;
+            servoData[i].speed = 0;
 
-            servoAssignment[i] = internalChannelNumber;
-
-            switch(internalChannelNumber)
+            if (i < num_pins)
             {
-            case 0: P0_2 = 0; servoPinsOnPort0 |= (1<<2); break;
-            case 1: P0_3 = 0; servoPinsOnPort0 |= (1<<3); break;
-            case 2: P0_4 = 0; servoPinsOnPort0 |= (1<<4); break;
-            case 3: P1_2 = 0; servoPinsOnPort1 |= (1<<2); break;
-            case 4: P1_1 = 0; servoPinsOnPort1 |= (1<<1); break;
-            case 5: P1_0 = 0; servoPinsOnPort1 |= (1<<0); break;
+                uint8 internalChannelNumber = pinToInternalChannelNumber(pins[i]);
+
+                servoAssignment[i] = internalChannelNumber;
+
+                switch(internalChannelNumber)
+                {
+                case 0: P0_2 = 0; servoPinsOnPort0 |= (1<<2); break;
+                case 1: P0_3 = 0; servoPinsOnPort0 |= (1<<3); break;
+                case 2: P0_4 = 0; servoPinsOnPort0 |= (1<<4); break;
+                case 3: P1_2 = 0; servoPinsOnPort1 |= (1<<2); break;
+                case 4: P1_1 = 0; servoPinsOnPort1 |= (1<<1); break;
+                case 5: P1_0 = 0; servoPinsOnPort1 |= (1<<0); break;
+                }
             }
         }
+
+        // Set all the pins being used to be general-purpose outputs driving low for now.
+        P0SEL &= ~servoPinsOnPort0;
+        P0DIR |= servoPinsOnPort0;
+        P1SEL &= ~servoPinsOnPort1;
+        P1DIR |= servoPinsOnPort1;
+
+        if (servoPinsOnPort0)
+        {
+            // Set PRIP0[1:0] to 11 (Timer 1 channel 2 - USART0).
+            // I'm not sure why this is necessary, but if it is not set then
+            // Timer 1 can not control P0_4, even if no other peripherals on Port 0 are enabled.
+            P2DIR |= 0b11000000;
+        }
     }
-
-    // Set all the pins being used to be general-purpose outputs driving low for now.
-    P0SEL &= ~servoPinsOnPort0;
-    P0DIR |= servoPinsOnPort0;
-    P1SEL &= ~servoPinsOnPort1;
-    P1DIR |= servoPinsOnPort1;
-
-    if (servoPinsOnPort0)
-    {
-        // Set PRIP0[1:0] to 11 (Timer 1 channel 2 - USART0).
-        // I'm not sure why this is necessary, but if it is not set then
-        // Timer 1 can not control P0_4, even if no other peripherals on Port 0 are enabled.
-        P2DIR |= 0b11000000;
-    }
-
 
     //// Configure Timer 1 and interrupts ////
 
