@@ -37,6 +37,7 @@ void main()
             servoSetTarget(2, 1500);
             servoSetTarget(3, 0);
             servoSetTarget(4, 1100);
+            LED_YELLOW(0);
         }
         else
         {
@@ -45,6 +46,7 @@ void main()
             servoSetTarget(2, 1100);
             servoSetTarget(3, 1600);
             servoSetTarget(4, 1900);
+            LED_YELLOW(1);
         }
     }
 }
