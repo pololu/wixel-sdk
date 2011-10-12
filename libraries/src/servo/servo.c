@@ -1,7 +1,5 @@
 #include <servo.h>
 
-// TODO: do something disable the PWM when going into bootloader mode
-
 /** Note: This library assumes that the Wixel is running at 24 MHz. **/
 
 /** Note: The servo pulse period used by this library is 2^16/24*7 = 19114.66 microseconds.
