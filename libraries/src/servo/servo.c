@@ -13,7 +13,6 @@
  *    to make the period shorter.
  */
 
-
 /** Internal Channel Number   Pin       Timer 1 Channel     Alt Location
  *  0                         P0_2      0                   1
  *  1                         P0_3      1                   1
@@ -46,8 +45,8 @@ static volatile struct SERVO_DATA XDATA servoData[MAX_SERVOS];
 // A 1 bit indicates that the pin is a servo pulse output pin.
 // A 0 but indicates that the pin will be used for something else and
 // this library should not touch it.
-static uint8 servoPinsOnPort0;
-static uint8 servoPinsOnPort1;
+static volatile uint8 servoPinsOnPort0;
+static volatile uint8 servoPinsOnPort1;
 
 ISR(T1,0)
 {
