@@ -44,6 +44,13 @@ struct SERVO_DATA
 
 static volatile struct SERVO_DATA XDATA servoData[MAX_SERVOS];
 
+// Bitmasks for keeping track of which pins are being used as servos.
+// A 1 bit indicates that the pin is a servo pulse output pin.
+// A 0 but indicates that the pin will be used for something else and
+// this library should not touch it.
+static uint8 servoPinsOnPort0;
+static uint8 servoPinsOnPort1;
+
 ISR(T1,0)
 {
     uint8 i;
@@ -53,18 +60,18 @@ ISR(T1,0)
     switch(servoCounter++)
     {
     case 0:
-        P1SEL &= ~0b111;
+        P1SEL &= ~servoPinsOnPort1;
         PERCFG &= ~(1<<6);  // PERCFG.T1CFG = 0:  Move Timer 1 to Alt. 1 location (P0_2, P0_3, P0_4)
-        P0SEL |= 0b11100;
+        P0SEL |= servoPinsOnPort0;
         T1CC0 = servoData[0].positionReg;
         T1CC1 = servoData[1].positionReg;
         T1CC2 = servoData[2].positionReg;
         break;
 
     case 3:
-        P0SEL &= ~0b11100;
+        P0SEL &= ~servoPinsOnPort0;
         PERCFG |= (1<<6);  // PERCFG.T1CFG = 1:  Move Timer 1 to Alt. 2 location (P1_2, P1_1, P1_0)
-        P1SEL |= 0b111;
+        P1SEL |= servoPinsOnPort1;
         T1CC0 = servoData[3].positionReg;
         T1CC1 = servoData[4].positionReg;
         T1CC2 = servoData[5].positionReg;
@@ -146,6 +153,10 @@ static uint8 pinToInternalChannelNumber(uint8 pin)
 void servosStart(uint8 XDATA * pins, uint8 num_pins)
 {
     uint8 i;
+
+    //// Configure the pins and initialize the internal data structures. ////
+
+    servoPinsOnPort0 = servoPinsOnPort1 = 0;
     for (i = 0; i < MAX_SERVOS; i++)
     {
         servoData[i].target = 0;
@@ -155,30 +166,48 @@ void servosStart(uint8 XDATA * pins, uint8 num_pins)
 
         if (i < num_pins)
         {
-            servoAssignment[i] = pinToInternalChannelNumber(pins[i]);
+            uint8 internalChannelNumber = pinToInternalChannelNumber(pins[i]);
+
+            servoAssignment[i] = internalChannelNumber;
+
+            switch(internalChannelNumber)
+            {
+            case 0: P0_2 = 0; servoPinsOnPort0 |= (1<<2); break;
+            case 1: P0_3 = 0; servoPinsOnPort0 |= (1<<3); break;
+            case 2: P0_4 = 0; servoPinsOnPort0 |= (1<<4); break;
+            case 3: P1_2 = 0; servoPinsOnPort1 |= (1<<2); break;
+            case 4: P1_1 = 0; servoPinsOnPort1 |= (1<<1); break;
+            case 5: P1_0 = 0; servoPinsOnPort1 |= (1<<0); break;
+            }
         }
     }
 
-    P1_0 = P1_1 = P1_2 = 0;
-    P1SEL |= 0b111;
-    P1DIR |= 0b111;
+    // Set all the pins being used to be general-purpose outputs driving low for now.
+    P0SEL &= ~servoPinsOnPort0;
+    P0DIR |= servoPinsOnPort0;
+    P1SEL &= ~servoPinsOnPort1;
+    P1DIR |= servoPinsOnPort1;
 
-    P0_4 = P0_3 = P0_2 = 0;
-    P0SEL |= 0b11100;
-    P0DIR |= 0b11100;
+    if (servoPinsOnPort0)
+    {
+        // Set PRIP0[1:0] to 11 (Timer 1 channel 2 - USART0).
+        // I'm not sure why this is necessary, but if it is not set then
+        // Timer 1 can not control P0_4, even if no other peripherals on Port 0 are enabled.
+        P2DIR |= 0b11000000;
+    }
 
-    // Set PRIP0[1:0] to 11 (Timer 1 channel 2 - USART0).  Otherwise,
-    // Timer 1 can not control P0_4.
-    P2DIR = (P2DIR & ~0b11000000) | 0b11000000;
+
+    //// Configure Timer 1 and interrupts ////
 
     // Configure Timer 1 Channels 0-2 to be in compare mode.  Set output on compare-up, clear on 0.
+    // This means all three pulses will start at different times but end at the same time.
     // With this configuration, we can set T1CC0, T1CC1, or T1CC2 to -N to get a pulse of with N,
     // as long as N > 1.
     // We can set the register to -1 or 0 to disable the pulse.
     T1CCTL0 = T1CCTL1 = T1CCTL2 = 0b00011100;
 
-    // Turn off all the pulses.
-    T1CC0 = T1CC1 = T1CC2 = 0;
+    // Turn off all the pulses at first.
+    T1CC0 = T1CC1 = T1CC2 = 0xFFFF;
 
     T1CTL = 0b00000001;    // Timer 1: Start free-running mode, counting from 0x0000 to 0xFFFF.
 
@@ -189,7 +218,6 @@ void servosStart(uint8 XDATA * pins, uint8 num_pins)
     EA = 1;   // Enable interrupts in general.
 
     P1_3 = 0; P1DIR |= (1<<3); // tmphax
-
 }
 
 void servoSetTarget(uint8 servo_num, uint16 targetMicroseconds)

@@ -17,17 +17,12 @@ void main()
     servoSetSpeed(1, 400);
     servoSetSpeed(2, 400);
     servoSetSpeed(3, 400);
-    servoSetSpeed(4, 210);
-
-    servoSetTarget(1, 1000);
-    servoSetTarget(2, 1520);
-    servoSetTarget(3, 1540);
-    servoSetTarget(4, 1560);
+    servoSetSpeed(4, 0);
 
     servoSetSpeed(5, 0);
-    servoSetTarget(5, 1000);
+    servoSetTarget(5, 1100);
     servoSetSpeed(5, 1);
-    servoSetTarget(5, 2000);
+    servoSetTarget(5, 1900);
 
     while(1)
     {
@@ -37,17 +32,17 @@ void main()
 
         if (getMs() >> 11 & 1)
         {
-            servoSetTarget(0, 1000);
-            servoSetTargetHighRes(1, 26400);
-            servoSetTargetHighRes(2, 26401);
+            servoSetTarget(0, 1100);
+            servoSetTarget(1, 1500);
+            servoSetTarget(2, 1500);
             servoSetTarget(3, 0);
             servoSetTarget(4, 1100);
         }
         else
         {
-            servoSetTarget(0, 2000);
-            servoSetTargetHighRes(1, 26400);
-            servoSetTargetHighRes(2, 26401);
+            servoSetTarget(0, 1900);
+            servoSetTarget(1, 1900);
+            servoSetTarget(2, 1100);
             servoSetTarget(3, 1600);
             servoSetTarget(4, 1900);
         }
