@@ -4,8 +4,12 @@
 #include <cc2511_map.h>
 #include <cc2511_types.h>
 
+#define SERVO_MAX_TARGET_MICROSECONDS  2500
+#define SERVO_TICKS_PER_MICROSECOND    24
+
 void servosStart(uint8 XDATA * pins, uint8 num_pins);
 void servosStop(void);
+BIT servosStarted();
 
 void servoSetTarget(uint8 servo_num, uint16 targetMicroseconds);
 void servoSetTargetHighRes(uint8 servo_num, uint16 target);

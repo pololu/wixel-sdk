@@ -22,8 +22,11 @@
  *  5                         P1_0      2                   2
  */
 
-#define SERVO_TICKS_PER_MICROSECOND  24
 #define MAX_SERVOS 6
+
+// 0 if the library has been enabled (with servosStart)
+// 1 if the library was never enabled or it has been stopped with servosStop.
+static BIT servosStartedFlag = 0;
 
 volatile uint8 DATA servoCounter = 0;
 
@@ -157,6 +160,11 @@ void servosStart(uint8 XDATA * pins, uint8 num_pins)
 {
     uint8 i;
 
+    if (servosStartedFlag)
+    {
+        servosStop();
+    }
+
     //// Configure the pins and initialize the internal data structures. ////
 
     servoPinsOnPort0 = servoPinsOnPort1 = 0;
@@ -202,6 +210,11 @@ void servosStart(uint8 XDATA * pins, uint8 num_pins)
 
     //// Configure Timer 1 and interrupts ////
 
+    // Turn off the timer and reset the counters.
+    T1CTL = 0;
+    T1CNTL = 0;  // resets high and low bytes
+    servoCounter = 0;
+
     // Configure Timer 1 Channels 0-2 to be in compare mode.  Set output on compare-up, clear on 0.
     // This means all three pulses will start at different times but end at the same time.
     // With this configuration, we can set T1CC0, T1CC1, or T1CC2 to -N to get a pulse of with N,
@@ -212,13 +225,52 @@ void servosStart(uint8 XDATA * pins, uint8 num_pins)
     // Turn off all the pulses at first.
     T1CC0 = T1CC1 = T1CC2 = 0xFFFF;
 
-    T1CTL = 0b00000001;    // Timer 1: Start free-running mode, counting from 0x0000 to 0xFFFF.
+    // Timer 1: Start free-running mode, counting from 0x0000 to 0xFFFF.
+    T1CTL = 0b00000001;
 
     // Set the Timer 1 interrupt priority to 2, the second highest.
     IP0 &= ~(1<<1);
     IP1 |= (1<<1);
     T1IE = 1; // Enable the Timer 1 interrupt.
     EA = 1;   // Enable interrupts in general.
+
+    servosStartedFlag = 1;
+
+    P1DIR |= (1<<3); P1_3 = 0;  //tmphax
+}
+
+void servosStop(void)
+{
+    if (!servosStartedFlag)
+    {
+        // The servos have already been stopped.
+        return;
+    }
+
+    P1_3 = 1; P1DIR |= (1<<3); // tmphax
+    T1IE = 0;
+
+    // Wait for the timer to overflow.
+    while(!T1IF){};
+
+    // Assuming that there were fewer than (2730 - MAX_SERVO_TARGET_MICROSECONDS) worth of
+    // interrupts the time when T1IF was read as true and now, the timer has just
+    // overflowed and the next servo pulses have not started yet.
+    // Make the pins revert to GPIO outputs driving low:
+    P0SEL &= ~servoPinsOnPort0;
+    P1SEL &= ~servoPinsOnPort1;
+
+    // Turn off Timer 1.
+    T1CTL = 0;
+
+    P1_3 = 0; // tmphax
+
+    servosStartedFlag = 0;
+}
+
+BIT servosStarted(void)
+{
+    return servosStartedFlag;
 }
 
 void servoSetTarget(uint8 servo_num, uint16 targetMicroseconds)
@@ -249,7 +301,7 @@ void servoSetTargetHighRes(uint8 servo_num, uint16 target)
 
     d->target = target;
 
-    T1IE = 1;
+    T1IE = servosStartedFlag;
 }
 
 uint16 servoGetTarget(uint8 servo_num)
@@ -272,7 +324,7 @@ uint16 servoGetPositionHighRes(uint8 servo_num)
     uint16 position;
     T1IE = 0; // Make sure we don't get interrupted in the middle of reading the position.
     position = servoData[servoAssignment[servo_num]].position;
-    T1IE = 1;
+    T1IE = servosStartedFlag;
     return position;
 }
 
@@ -280,7 +332,7 @@ void servoSetSpeed(uint8 servo_num, uint16 speed)
 {
     T1IE = 0; // Make sure we don't get interrupted in the middle of an update.
     servoData[servoAssignment[servo_num]].speed = speed;
-    T1IE = 1;
+    T1IE = servosStartedFlag;
 }
 
 uint16 servoGetSpeed(uint8 servo_num)
