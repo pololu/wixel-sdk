@@ -57,7 +57,6 @@ ISR(T1,0)
     switch(servoCounter++)
     {
     case 0:
-        P1SEL &= ~servoPinsOnPort1;
         PERCFG &= ~(1<<6);  // PERCFG.T1CFG = 0:  Move Timer 1 to Alt. 1 location (P0_2, P0_3, P0_4)
         P0SEL |= servoPinsOnPort0;
         T1CC0 = servoData[0].positionReg;
@@ -66,7 +65,6 @@ ISR(T1,0)
         break;
 
     case 3:
-        P0SEL &= ~servoPinsOnPort0;
         PERCFG |= (1<<6);  // PERCFG.T1CFG = 1:  Move Timer 1 to Alt. 2 location (P1_2, P1_1, P1_0)
         P1SEL |= servoPinsOnPort1;
         T1CC0 = servoData[3].positionReg;
@@ -78,6 +76,14 @@ ISR(T1,0)
     case 4:
         // Disable the pulses for this timer period.
         T1CC0 = T1CC1 = T1CC2 = 0xFFFF;
+        break;
+
+    case 2:
+        P0SEL &= ~servoPinsOnPort0;
+        break;
+
+    case 5:
+        P1SEL &= ~servoPinsOnPort1;
         break;
 
     case 6:
