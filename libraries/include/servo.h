@@ -24,13 +24,47 @@
  * 19.11 ms (0x70000 clock cycles).
  * The allowed pulse widths range from one 24th of a microsecond to 2500
  * microseconds, and the resolution available is one 24th of a microsecond.
+ *
+ * For example code that uses this library, please see the <code>test_servos</code>
+ * app in the Wixel SDK's <code>apps</code> directory.
+ *
+ * \section wiring Wiring servos
+ *
+ * To control servos from your Wixel, you will need to wire them properly.
+ *
+ * The ground and power wires of the servo will need to be connected to a power
+ * supply that provides a voltage the servo can tolerate and which provides
+ * enough current for the servo.
+ *
+ * The ground wire of the servo needs to be connected to one of the Wixel's
+ * GND pins.
+ * If you are powering the Wixel from the same power supply as the servos,
+ * then you have already made this connection.
+ *
+ * The signal wire of the servo needs to connect to an I/O pin of the
+ * Wixel that will be outputting servo pulses.
+ * These pins are specified when by the parameters to servosStart().
+ *
+ * \section more More information about servos
+ *
+ * For more information about servos and how to control them, we
+ * recommend reading this series of blog posts by Pololu president Jan Malasek:
+ *
+ * -# <a href="http://www.pololu.com/blog/11/introduction-to-an-introduction-to-servos">Introduction to an introduction to servos</a>
+ * -# <a href="http://www.pololu.com/blog/12/introduction-to-servos">Introduction to servos</a>
+ * -# <a href="http://www.pololu.com/blog/13/gettin-all-up-in-your-servos">Gettin' all up in your servos</a>
+ * -# <a href="http://www.pololu.com/blog/15/servo-servo-motor-servomotor-definitely-not-server">Servo, servo motor, servomotor (definitely not server)</a>
+ * -# <a href="http://www.pololu.com/blog/16/electrical-characteristics-of-servos-and-introduction-to-the-servo-control-interface">
+ *    Electrical characteristics of servos and introduction to the servo control interface</a>
+ * -# <a href="http://www.pololu.com/blog/17/servo-control-interface-in-detail">Servo control interface in detail</a>
+ * -# <a href="http://www.pololu.com/blog/18/simple-hardware-approach-to-controlling-a-servo">Simple hardware approach to controlling a servo</a>
+ * -# <a href="http://www.pololu.com/blog/19/simple-microcontroller-approach-to-controlling-a-servo">Simple microcontroller approach to controlling a servo</a>
+ * -# <a href="http://www.pololu.com/blog/20/advanced-hobby-servo-control-pulse-generation-using-hardware-pwm">Advanced hobby servo control pulse generation using hardware PWM</a>
+ * -# <a href="http://www.pololu.com/blog/21/advanced-hobby-servo-control-using-only-a-timer-and-interrupts">Advanced hobby servo control using only a timer and interrupts</a>
+ * -# <a href="http://www.pololu.com/blog/22/rc-servo-speed-control">RC servo speed control</a>
+ * -# <a href="http://www.pololu.com/blog/24/continuous-rotation-servos-and-multi-turn-servos">Continuous-rotation servos and multi-turn servos</a>
  */
 
-/*
- * \section servos Servos
- *
- *  http://www.pololu.com/blog/11/introduction-to-an-introduction-to-servos
- */
 
 #ifndef _SERVO_H
 #define _SERVO_H
@@ -54,7 +88,7 @@
  * \param pins  A pointer to an array of pin numbers that specifies which pins
  *   will be used to generate servo pulses.
  *   The pin numbers used in this array are the same as the pin numbers used
- *   in GPIO library (see gpio.h).  There should be no repetitions in this
+ *   in the GPIO library (see gpio.h).  There should be no repetitions in this
  *   array, and each entry must be one of:
  *   - 2 (for P0_2)
  *   - 3 (for P0_3)
@@ -143,6 +177,18 @@ BIT servosMoving(void);
  *   A value of 0 means to stop sending pulses, and takes effect
  *   immediately regardless of the speed limit for the servo.
  *
+ * This is a non-blocking function that only takes a few microseconds to execute.
+ * Servos require much more time that that to actually reach the commanded
+ * position (on the order of hundreds of milliseconds).
+ *
+ * Here is some example code:
+ *
+ * \code
+servoSetTarget(0, 1000);  // Start sending servo 0 to the 1000us position.
+servoSetTarget(1, 1500);  // Start sending servo 1 to the 1500us position.
+servoSetTarget(2, 2000);  // Start sending servo 2 to the 2000us position.
+ * \endcode
+ *
  * If the speed limit of the servo is 0 (no speed limit), or the current target
  * is 0, or the <b>targetMicroseconds</b> parameter is 0, then this function will
  * have an immediate effect on the variable that represents the position of the
@@ -151,22 +197,28 @@ BIT servosMoving(void);
  *
  * \code
 servoSetSpeed(0, 0);
-servoSetTarget(0, 1000);  // Immediately sets position to 1000.
-servoSetSpeed(0, 400);
-servoSetTarget(2000);     // Makes position smoothly change from 1000 to 2000.
+servoSetTarget(0, 1000);  // Immediately sets position variable to 1000.
+servoSetSpeed(0, 200);
+servoSetTarget(2000);     // Starts the position variable slowly changing from 1000 to 2000.
  * \endcode
  *
  * or
  *
  * \code
-servoSetSpeed(0, 400);
-servoSetTarget(0, 0);     // Immediately sets position to 0 (pulses off).
-servoSetTarget(0, 1000);  // Immediately sets position to 1000.
-servoSetTarget(0, 2000);  // Makes position smoothly change from 1000 to 2000.
+servoSetSpeed(0, 200);
+servoSetTarget(0, 0);     // Immediately sets position variable to 0 (pulses off).
+servoSetTarget(0, 1000);  // Immediately sets position variable to 1000.
+servoSetTarget(0, 2000);  // Starts the position variable slowly changing from 1000 to 2000.
  * \endcode
  *
- * These two sequences of commands each have the same effect, which is to immediately move
- * servo number 0 to position 1000 and then slowly move from there to position 2000.
+ * These two sequences of commands each have the same effect, which is to immediately
+ * set the position variable for servo number 0 to 1000 microseconds and then slowly
+ * change it from 1000 to 2000 microseconds.
+ * Please note that the servo's actual physical position does not change immediately;
+ * it will lag behind the position variable.
+ * To make sure the servo actually reaches position 1000 before it starts moving towards 2000,
+ * you might want to add a delay after <code>servoSetTarget(0, 1000);</code>, but keep in mind
+ * that most other Wixel libraries require regular attention from the main loop.
  *
  * If you need more than 1-microsecond resolution, see servoSetTargetHighRes().
  */
@@ -196,8 +248,8 @@ uint16 servoGetTarget(uint8 servoNum);
  * move from 1 ms to 2 ms.  More examples are shown in the table below:
  *
  * <table>
- * <caption>Speed Limit Examples</caption>
- * <tr><th>Speed Limit</th><th>Time to change output from 1 to 2 ms (s)</th></tr>
+ * <caption>Speed limit examples</caption>
+ * <tr><th>Speed limit</th><th>Time to change output from 1 to 2 ms (s)</th></tr>
  * <tr><td>1</td><td>458.75</td></tr>
  * <tr><td>7</td><td>65.54</td></tr>
  * <tr><td>45</td><td>10.19</td></tr>
@@ -229,8 +281,8 @@ uint16 servoGetSpeed(uint8 servoNum);
  * This function returns the width of the pulses that are currently being
  * sent to the servo, which is entirely determined by previous calls to
  * servoSetTarget() and servoSetSpeed().
- * The RC servo interface provides no way to query a servo for its current
- * position.
+ * The standard RC servo interface provides no way to query a servo for
+ * its current position.
  */
 uint16 servoGetPosition(uint8 servoNum);
 
