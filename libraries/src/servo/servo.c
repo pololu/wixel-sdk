@@ -24,8 +24,7 @@
 
 #define MAX_SERVOS 6
 
-// 0 if the library has been enabled (with servosStart)
-// 1 if the library was never enabled or it has been stopped with servosStop.
+// Keeps track of whether the library has been enabled or not.
 static BIT servosStartedFlag = 0;
 
 volatile uint8 DATA servoCounter = 0;
@@ -34,12 +33,14 @@ volatile uint8 DATA servoCounter = 0;
 // internal channel number.
 static uint8 XDATA servoAssignment[MAX_SERVOS];
 
+/*! This struct is part of the internal implementation of the servo library.
+ *  See servo.h. */
 struct SERVO_DATA
 {
-    uint16 target;
-    uint16 position;
-    uint16 positionReg;
-    uint16 speed;
+    uint16 target;       /*!< Target position, measured in ticks. */
+    uint16 position;     /*!< Current position, measured in ticks. */
+    uint16 positionReg;  /*!< The value to be written to the duty cycle register. */
+    uint16 speed;        /*!< The speed limit of the servo, in ticks per servo period (or 0 for no limit). */
 };
 
 static volatile struct SERVO_DATA XDATA servoData[MAX_SERVOS];
@@ -51,7 +52,7 @@ static volatile struct SERVO_DATA XDATA servoData[MAX_SERVOS];
 static volatile uint8 servoPinsOnPort0;
 static volatile uint8 servoPinsOnPort1;
 
-ISR(T1,0)
+ISR(T1, 0)
 {
     uint8 i;
 
@@ -156,7 +157,7 @@ static uint8 pinToInternalChannelNumber(uint8 pin)
     }
 }
 
-void servosStart(uint8 XDATA * pins, uint8 num_pins)
+void servosStart(uint8 XDATA * pins, uint8 numPins)
 {
     uint8 i;
 
@@ -168,7 +169,7 @@ void servosStart(uint8 XDATA * pins, uint8 num_pins)
     //// Configure the pins and initialize the internal data structures. ////
 
     // The user passes a null argument for pins, then don't reinitialize the pins.
-    // This allows us to temporary start and stop the servos without losing track
+    // This allows us to temporarily start and stop the servos without losing track
     // of the old speeds, targets, and positions.
     if (pins != 0)
     {
@@ -180,7 +181,7 @@ void servosStart(uint8 XDATA * pins, uint8 num_pins)
             servoData[i].positionReg = 0;
             servoData[i].speed = 0;
 
-            if (i < num_pins)
+            if (i < numPins)
             {
                 uint8 internalChannelNumber = pinToInternalChannelNumber(pins[i]);
 
@@ -278,26 +279,21 @@ BIT servosStarted(void)
     return servosStartedFlag;
 }
 
-void servoSetTarget(uint8 servo_num, uint16 targetMicroseconds)
+void servoSetTarget(uint8 servoNum, uint16 targetMicroseconds)
 {
     // Convert the units of target from microseconds to timer ticks.
-    servoSetTargetHighRes(servo_num, targetMicroseconds * SERVO_TICKS_PER_MICROSECOND);
+    servoSetTargetHighRes(servoNum, targetMicroseconds * SERVO_TICKS_PER_MICROSECOND);
 }
 
-void servoSetTargetHighRes(uint8 servo_num, uint16 target)
+void servoSetTargetHighRes(uint8 servoNum, uint16 target)
 {
-    volatile struct SERVO_DATA XDATA * d = servoData + servoAssignment[servo_num];
+    volatile struct SERVO_DATA XDATA * d = servoData + servoAssignment[servoNum];
 
     // TODO: return here if "target" is out of the valid range
 
     T1IE = 0; // Make sure we don't get interrupted in the middle of an update.
 
-    // If speed is 0 or target is 0, we want this change to have an immediate effect.
-    // This allows the user to easily do sequences of commands like
-    // speed=0 target=1000 speed=10 target=2000 OR
-    // speed=10 target=0 target=1000 target=2000
-    // and it has the desired effect of moving to 1000 immediately and then slowly
-    // moving towards 2000.
+    // Make this function have an immediate effect, if necessary.
     if (d->speed == 0 || d->target == 0 || target == 0)
     {
         d->position = target;
@@ -309,38 +305,38 @@ void servoSetTargetHighRes(uint8 servo_num, uint16 target)
     T1IE = servosStartedFlag;
 }
 
-uint16 servoGetTarget(uint8 servo_num)
+uint16 servoGetTarget(uint8 servoNum)
 {
-    return servoData[servoAssignment[servo_num]].target / SERVO_TICKS_PER_MICROSECOND;
+    return servoData[servoAssignment[servoNum]].target / SERVO_TICKS_PER_MICROSECOND;
 }
 
-uint16 servoGetPosition(uint8 servo_num)
+uint16 servoGetPosition(uint8 servoNum)
 {
-    return servoGetPositionHighRes(servo_num) / SERVO_TICKS_PER_MICROSECOND;
+    return servoGetPositionHighRes(servoNum) / SERVO_TICKS_PER_MICROSECOND;
 }
 
-uint16 servoGetTargetHighRes(uint8 servo_num)
+uint16 servoGetTargetHighRes(uint8 servoNum)
 {
-    return servoData[servoAssignment[servo_num]].target;
+    return servoData[servoAssignment[servoNum]].target;
 }
 
-uint16 servoGetPositionHighRes(uint8 servo_num)
+uint16 servoGetPositionHighRes(uint8 servoNum)
 {
     uint16 position;
     T1IE = 0; // Make sure we don't get interrupted in the middle of reading the position.
-    position = servoData[servoAssignment[servo_num]].position;
+    position = servoData[servoAssignment[servoNum]].position;
     T1IE = servosStartedFlag;
     return position;
 }
 
-void servoSetSpeed(uint8 servo_num, uint16 speed)
+void servoSetSpeed(uint8 servoNum, uint16 speed)
 {
     T1IE = 0; // Make sure we don't get interrupted in the middle of an update.
-    servoData[servoAssignment[servo_num]].speed = speed;
+    servoData[servoAssignment[servoNum]].speed = speed;
     T1IE = servosStartedFlag;
 }
 
-uint16 servoGetSpeed(uint8 servo_num)
+uint16 servoGetSpeed(uint8 servoNum)
 {
-    return servoData[servoAssignment[servo_num]].speed;
+    return servoData[servoAssignment[servoNum]].speed;
 }
