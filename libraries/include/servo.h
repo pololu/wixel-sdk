@@ -93,7 +93,7 @@ servoSetTarget(1, 1500);       // Affects pin P1_2
  */
 void servosStart(uint8 XDATA * pins, uint8 numPins);
 
-/*! Stops sending servo pulses and turns off Timer 1.
+/*! Stops the library; stops sending servo pulses and turns off Timer 1.
  * After this function runs, the pins that were used for servo pulses will
  * all be configured as general-purpose digital outputs driving low.
  *
@@ -153,7 +153,7 @@ BIT servosMoving(void);
 servoSetSpeed(0, 0);
 servoSetTarget(0, 1000);  // Immediately sets position to 1000.
 servoSetSpeed(0, 400);
-servoSetTarget(2000);     // Makes position to smoothly change from 1000 to 2000.
+servoSetTarget(2000);     // Makes position smoothly change from 1000 to 2000.
  * \endcode
  *
  * or
@@ -167,8 +167,6 @@ servoSetTarget(0, 2000);  // Makes position smoothly change from 1000 to 2000.
  *
  * These two sequences of commands each have the same effect, which is to immediately move
  * servo number 0 to position 1000 and then slowly move from there to position 2000.
- *
- * It is okay to call this function while the library is stopped.
  *
  * If you need more than 1-microsecond resolution, see servoSetTargetHighRes().
  */
@@ -209,8 +207,6 @@ uint16 servoGetTarget(uint8 servoNum);
  * <tr><td>917</td><td>0.50</td></tr>
  * <tr><td>S</td><td>458752 / (1000*S)</td></tr>
  * </table>
- *
- * It is okay to call this function while the library is stopped.
  */
 void servoSetSpeed(uint8 servoNum, uint16 speed);
 
@@ -223,7 +219,8 @@ uint16 servoGetSpeed(uint8 servoNum);
 /*! \param servoNum  A servo number between 0 and 5.
  *  This number should be less than the associated <b>numPins</b> parameter
  *  used in the last call to servosStart().
- * \return The current width of pulses being sent to the specified servo.
+ * \return The current width in microseconds of pulses being sent to the
+ *   specified servo.
  *   This will be equal to the last target set by servoSetTarget() unless
  *   there is a speed limit enabled for the servo.
  *
