@@ -241,8 +241,6 @@ void servosStart(uint8 XDATA * pins, uint8 numPins)
     EA = 1;   // Enable interrupts in general.
 
     servosStartedFlag = 1;
-
-    P1DIR |= (1<<3); P1_3 = 0;  //tmphax
 }
 
 void servosStop(void)
@@ -253,7 +251,6 @@ void servosStop(void)
         return;
     }
 
-    P1_3 = 1; P1DIR |= (1<<3); // tmphax
     T1IE = 0;
 
     // Wait for the timer to overflow.
@@ -268,8 +265,6 @@ void servosStop(void)
 
     // Turn off Timer 1.
     T1CTL = 0;
-
-    P1_3 = 0; // tmphax
 
     servosStartedFlag = 0;
 }
