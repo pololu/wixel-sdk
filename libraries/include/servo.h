@@ -114,6 +114,21 @@ void servosStop(void);
  */
 BIT servosStarted(void);
 
+/*! \returns 1 if there are servos that are still moving towards their
+ * target position (limited by the speed limit), otherwise returns 0.
+ *
+ * This function is equivalent to, but much faster than:
+ * \code
+servoGetTarget(0) == servoGetPosition(0) &&
+servoGetTarget(1) == servoGetPosition(1) &&
+servoGetTarget(2) == servoGetPosition(2) &&
+servoGetTarget(3) == servoGetPosition(3) &&
+servoGetTarget(4) == servoGetPosition(4) &&
+servoGetTarget(5) == servoGetPosition(5)
+ * \endcode
+ */
+BIT servosMoving(void);
+
 /*! Sets the specified servo's target position in units of microseconds.
  *
  * \param servoNum  A servo number between 0 and 5.

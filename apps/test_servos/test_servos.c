@@ -75,5 +75,6 @@ void main()
         usbShowStatusWithGreenLed();
         updateServos();
         receiveCommands();
+        LED_RED(servosMoving());
     }
 }
