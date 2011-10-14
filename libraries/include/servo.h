@@ -49,7 +49,7 @@
  *
  * The signal wire of the servo needs to connect to an I/O pin of the
  * Wixel that will be outputting servo pulses.
- * These pins are specified when by the parameters to servosStart().
+ * These pins are specified by the parameters to servosStart().
  *
  * \section more More information about servos
  *
