@@ -11,7 +11,7 @@ apps/wireless_adc_rx/wireless_adc_rx.c.
 */
 
 // TODO: Add a few ms of randomness to the timing so that we don't get into a
-// situation where two Wixels are interfering with eachother for every packet?
+// situation where two Wixels are interfering with each other for every packet?
 
 /** Dependencies **************************************************************/
 #include <wixel.h>
