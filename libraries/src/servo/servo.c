@@ -309,6 +309,10 @@ void servoSetTargetHighRes(uint8 servoNum, uint16 target)
         d->position = target;
         d->positionReg = ~target + 1;
     }
+    else if (target != d->position)
+    {
+        servosMovingFlag = 1;
+    }
 
     d->target = target;
 
