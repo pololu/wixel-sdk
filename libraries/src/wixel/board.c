@@ -114,7 +114,7 @@ void boardStartBootloader()
 
     DMAARM = 0x9F;      // Disarm all DMA channels.
 
-    delayMs(10);        // Probably not necessary anymore.
+    delayMicroseconds(10);  // Probably not necessary anymore.  Used to be 10 milliseconds.
 
     // Make all the IO lines be inputs.  That's going to happen later in
     // the bootloader anyway.  We might as well do it now so that any devices
