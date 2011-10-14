@@ -1,3 +1,13 @@
+/** test_servos app:
+ *
+ * This app tests the servo library by using it to transmit servo pulses on
+ * all six available pins: P0_2, P0_3, P0_4, P1_2, P1_1, and P1_0.
+ *
+ * This is mainly intended for people who are changing the servo library.  If
+ * you just want to use the library to control a servo from a Wixel, see the
+ * example_servo_sequence app.
+ */
+
 #include <cc2511_map.h>
 #include <servo.h>
 #include <wixel.h>
