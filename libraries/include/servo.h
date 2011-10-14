@@ -25,7 +25,7 @@
  * The allowed pulse widths range from one 24th of a microsecond to 2500
  * microseconds, and the resolution available is one 24th of a microsecond.
  *
- * For example code that uses this library, please see the <code>test_servos</code>
+ * For example code that uses this library, please see the <code>example_servo_sequence</code>
  * app in the Wixel SDK's <code>apps</code> directory.
  *
  * \section wiring Wiring servos
