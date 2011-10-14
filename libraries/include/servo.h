@@ -32,11 +32,17 @@
  *
  * To control servos from your Wixel, you will need to wire them properly.
  *
+ * Most standard radio control servos have three wires, each a different color.
+ * Usually, they are either black, red, and white, or they are brown, red, and orange/yellow:
+ *  - brown or black = ground (GND, battery negative terminal)
+ *  - red = servo power (Vservo, battery positive terminal)
+ *  - orange, yellow, white, or blue = servo control signal line
+ *
  * The ground and power wires of the servo will need to be connected to a power
  * supply that provides a voltage the servo can tolerate and which provides
  * enough current for the servo.
  *
- * The ground wire of the servo needs to be connected to one of the Wixel's
+ * The ground wire of the servo also needs to be connected to one of the Wixel's
  * GND pins.
  * If you are powering the Wixel from the same power supply as the servos,
  * then you have already made this connection.
