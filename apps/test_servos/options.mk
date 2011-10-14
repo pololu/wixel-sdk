@@ -1,0 +1,1 @@
+APP_LIBS := wixel.lib dma.lib servo.lib usb_cdc_acm.lib usb.lib gpio.lib

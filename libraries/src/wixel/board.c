@@ -116,10 +116,12 @@ void boardStartBootloader()
 
     delayMs(10);        // Probably not necessary anymore.
 
-    P0DIR = 0;          // Make all the IO lines be inputs.  That's going to happen later in
-    P1DIR = 0;          // the bootloader anyway.  We might as well do it now so that any devices
-    P2DIR = 0;          // such as motors stop running right away.  This also signals to the USB host
-                        // that we are disconnecting.
+    // Make all the IO lines be inputs.  That's going to happen later in
+    // the bootloader anyway.  We might as well do it now so that any devices
+    // such as motors stop running right away.  This also signals to the USB host
+    // that we are disconnecting.
+    P0DIR = P1DIR = P2DIR = 0;
+    P0SEL = P1SEL = P2SEL = 0;
 
     delayMs(100);       // Delay to give the USB host a chance to detect that we disconnected.
     __asm ljmp 6 __endasm;

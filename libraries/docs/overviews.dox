@@ -191,6 +191,9 @@ If you have a problem or question, feel free to ask us on the
 - <b>gpio.lib (gpio.h):</b> Uses the CC2511's pins as general purpose inputs or outputs (GPIO).
 - <b>i2c.lib (i2c.h):</b> Provides a basic software (bit-banging) implementation of a master
   node for I<sup>2</sup>C communication.  Depends on <b>gpio.lib</b> and <b>wixel.lib</b>.
+- <b>servo.lib (servo.h):</b> Provides the ability to control up to 6
+   RC servos by generating digital pulses directly from your Wixel without the
+   need for a separate servo controller.
 - <b>uart.lib (uart0.h, uart1.h):</b> Uses USART0 and/or USART1 in UART mode to send and
   receive serial bytes.
 
@@ -201,7 +204,7 @@ If you have a problem or question, feel free to ask us on the
   the current power source, keeping track of time, and providing delay
   functions.
 - <b>dma.lib (dma.h)</b>: Coordinates the use of DMA channels 1-3.  Does not touch DMA channel 0.
-- <b>random.lib (random.h)</b>: Takes care of generating random numbers. 
+- <b>random.lib (random.h)</b>: Takes care of generating random numbers.
 
 \section libc Standard C Libraries
 
