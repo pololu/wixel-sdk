@@ -124,6 +124,7 @@ void parseCmd(uint8 byte)
                 break;
             }
             // if not started, fall through to error
+            // no break here  (this comment is required to suppress Eclipse Code Analysis warning)
 
         default:
             errors |= ERR_CMD_INVALID;

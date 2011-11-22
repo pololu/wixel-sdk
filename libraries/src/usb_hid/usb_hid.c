@@ -416,11 +416,9 @@ void usbCallbackSetupHandler(void)
         case HID_JOYSTICK_INTERFACE_NUMBER:
             usbControlRead(sizeof(usbHidJoystickInput), (uint8 XDATA *)&usbHidJoystickInput);
             return;
-
-        default:
-            // unrecognized interface - stall
-            return;
         }
+        // unrecognized interface - stall
+        return;
 
     // required for devices with Output reports
     case HID_REQUEST_SET_REPORT:
@@ -462,11 +460,9 @@ void usbCallbackSetupHandler(void)
             response = hidMouseProtocol;
             usbControlRead(1, (uint8 XDATA *)&response);
             return;
-
-        default:
-            // unrecognized interface - stall
-            return;
         }
+        // unrecognized interface - stall
+        return;
 
     // required for boot devices
     case HID_REQUEST_SET_PROTOCOL:

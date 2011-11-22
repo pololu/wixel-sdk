@@ -19,10 +19,6 @@
 #define __xdata
 #endif
 
-#ifdef SDCC
-// Syntax for the SDCC (Small Device C Compiler).
-#define SFR(address, name) static __sfr __at (address) name;
-#define SBIT(address, name) static __sbit __at (address) name;
 #define SFRBIT(address, name, bit7, bit6, bit5, bit4, bit3, bit2, bit1, bit0) \
   SFR(address, name)    \
   SBIT(address+0, bit0) \
@@ -33,6 +29,11 @@
   SBIT(address+5, bit5) \
   SBIT(address+6, bit6) \
   SBIT(address+7, bit7)
+
+#ifdef SDCC
+// Syntax for the SDCC (Small Device C Compiler).
+#define SFR(address, name) static __sfr __at (address) name;
+#define SBIT(address, name) static __sbit __at (address) name;
 #define SFR16(addressH, addressL, name) static __sfr16 __at (((addressH) << 8) + (addressL)) name;
 #define SFRX(address, name)       static volatile unsigned char __xdata __at(address) name;
 
@@ -67,6 +68,15 @@ ISR(UTX1, 0)
 \endcode
  */
 #define ISR(source, bank) void ISR_##source() __interrupt(source##_VECTOR) __using(bank)
+
+#elif defined(__CDT_PARSER__)
+
+// These definitions are here to avoid "Symbol x could not be resolved" errors
+// from the Eclipse Code Analysis tool.
+#define SFR(address, name) static unsigned char name;
+#define SBIT(address, name) static unsigned char name;
+#define SFR16(addressH, addressL, name) static unsigned short name;
+#define SFRX(address, name) static unsigned char name;
 
 #else
 #error "Unknown compiler."

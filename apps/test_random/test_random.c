@@ -108,7 +108,7 @@ void receiveCommands()
             response[responseLength++] = '\r';
             response[responseLength++] = '\n';
             break;
-        default: response[0] = '?';
+        default: response[0] = '?'; break;
         }
         usbComTxSend(response, responseLength);
     }
