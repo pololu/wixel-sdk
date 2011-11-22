@@ -90,3 +90,5 @@ typedef unsigned char BIT;
 #else
 #error "Unknown compiler."
 #endif
+
+#endif
