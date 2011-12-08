@@ -112,16 +112,16 @@ USB_DESCRIPTOR_DEVICE CODE usbDeviceDescriptor =
     USB_DESCRIPTOR_TYPE_DEVICE,
     0x0200,                 // USB Spec Release Number in BCD format
     CDC_CLASS,              // Class Code: Communications Device Class
-    CDC_SUBCLASS_ACM,       // Subclass code: ACM
-    CDC_PROTOCOL_V250,
-    USB_EP0_PACKET_SIZE,    //  Max packet size for Endpoint 0
-    USB_VENDOR_ID_POLOLU,   //  Vendor ID
-    0x2200,                 //  Product ID (Generic Wixel with one CDC ACM port)
-    0x0000,                 //  Device release number in BCD format
-    1,                      //  Index of Manufacturer String Descriptor
-    2,                      //  Index of Product String Descriptor
-    3,                      //  Index of Serial Number String Descriptor
-    1                       //  Number of possible configurations.
+    0,                      // Subclass code: must be 0 according to CDC 1.20 spec
+    0,                      // Protocol code: must be 0 according to CDC 1.20 spec
+    USB_EP0_PACKET_SIZE,    // Max packet size for Endpoint 0
+    USB_VENDOR_ID_POLOLU,   // Vendor ID
+    0x2200,                 // Product ID (Generic Wixel with one CDC ACM port)
+    0x0000,                 // Device release number in BCD format
+    1,                      // Index of Manufacturer String Descriptor
+    2,                      // Index of Product String Descriptor
+    3,                      // Index of Serial Number String Descriptor
+    1                       // Number of possible configurations.
 };
 
 CODE struct CONFIG1 {
