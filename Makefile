@@ -128,13 +128,27 @@ WXLs += $(HEXs:%.hex=%.wxl.tmp)
 
 #### TARGETS ###################################################################
 TARGETS += $(RELs) $(HEXs) $(LIBs)
-CLEAN := $(CLEAN) $(TARGETS) $(Ds) $(SYMs) $(CDBs) $(MEMs) $(RSTs) $(MAPs) $(LSTs) $(LNKs) $(BINs) $(ASMs) $(UNKNOWNs) $(ADBs) $(CDBs) $(WXLs)
 
 all: $(TARGETS)
 
 .PHONY: clean
 clean:
-	-@rm -fv $(sort $(CLEAN))
+	-@rm -fv $(TARGETS)
+	-@rm -fv $(CLEAN)
+	-@rm -fv $(Ds)
+	-@rm -fv $(SYMs)
+	-@rm -fv $(CDBs)
+	-@rm -fv $(MEMs)
+	-@rm -fv $(RSTs)
+	-@rm -fv $(MAPs)
+	-@rm -fv $(LSTs)
+	-@rm -fv $(LNKs)
+	-@rm -fv $(BINs)
+	-@rm -fv $(ASMs)
+	-@rm -fv $(UNKNOWNs)
+	-@rm -fv $(ADBs)
+	-@rm -fv $(CDBs)
+	-@rm -fv $(WXLs)
 
 #### COMPLETE COMMANDS #########################################################
 
