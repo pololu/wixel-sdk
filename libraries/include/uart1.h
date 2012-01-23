@@ -1,7 +1,7 @@
 /** \file uart1.h
  * For information about these functions, see uart0.h.
  * These functions/variables do exactly the same thing as the functions
- * in uart0.h, except they apply to USART0 instead of USART1.
+ * in uart0.h, except they apply to USART1 instead of USART0.
  */
 
 #ifndef _UART1_H
