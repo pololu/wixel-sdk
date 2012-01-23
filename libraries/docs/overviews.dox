@@ -127,12 +127,13 @@ make: Interrupt/Exception caught (code = 0xc00000fd, addr = 0x425073)
 </pre>
 
 If you get this error, please run "make -v" at a Command Prompt and make
-sure that you are running <a href="https://github.com/pololu/make">GNU Make 3.82-pololu1</a>.
+sure that you are running <a href="https://github.com/pololu/make">GNU Make 3.82-pololu1</a> or later.
 This version of make is included in the latest <b>Wixel Development Bundle</b>,
 available from the <a href="http://www.pololu.com/docs/0J46">Pololu Wixel User's Guide</a>.
 If the output from "make -v" shows some other version of make even after
 installing the Wixel Development Bundle, then you should remove that other version
-of make from your PATH or reorder your PATH so that version 3.82-pololu1 is used.
+of make from your PATH or reorder your PATH so that version 3.82-pololu1 (or later)
+is used.
 You can edit your PATH environment variable from the Control Panel.
 See the <a href="https://github.com/pololu/make/wiki">pololu/make wiki on github</a>
 for more information on this problem.
@@ -193,6 +194,7 @@ If you have a problem or question, feel free to ask us on the
   node for I<sup>2</sup>C communication.  Depends on <b>gpio.lib</b> and <b>wixel.lib</b>.
 - <b>uart.lib (uart0.h, uart1.h):</b> Uses USART0 and/or USART1 in UART mode to send and
   receive serial bytes.
+- <b>spi_master.lib (spi0_master.h, spi1_master.h):</b> Uses USART0 and/or USART1 in SPI mode to send and receive bytes from an SPI slave.
 
 \section basic_libs Basic Libraries
 

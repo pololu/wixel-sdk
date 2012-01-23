@@ -148,7 +148,7 @@ void spiNMasterSetFrequency(uint32 freq)
 
 void spiNMasterSetClockPolarity(BIT polarity)
 {
-    if (polarity == POLARITY_IDLE_LOW)
+    if (polarity == SPI_POLARITY_IDLE_LOW)
     {
         UNGCR &= ~(1<<7);   // SCK idle low (negative polarity)
     }
@@ -160,7 +160,7 @@ void spiNMasterSetClockPolarity(BIT polarity)
 
 void spiNMasterSetClockPhase(BIT phase)
 {
-    if (phase == PHASE_EDGE_LEADING)
+    if (phase == SPI_PHASE_EDGE_LEADING)
     {
         UNGCR &= ~(1<<6);   // data centered on leading (first) edge - rising for idle low, falling for idle high
     }
@@ -172,7 +172,7 @@ void spiNMasterSetClockPhase(BIT phase)
 
 void spiNMasterSetBitOrder(BIT bitOrder)
 {
-    if (bitOrder == BIT_ORDER_LSB_FIRST)
+    if (bitOrder == SPI_BIT_ORDER_LSB_FIRST)
     {
         UNGCR &= ~(1<<5);   // LSB first
     }

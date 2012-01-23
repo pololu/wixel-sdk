@@ -1,5 +1,7 @@
-/*
- * spi1_master.h
+/*! \file spi1_master.h
+ * For information about these functions, see spi0_master.h.
+ * These functions do exactly the same thing as the functions
+ * in uart0.h, except they apply to USART1 instead of USART0.
  */
 
 #ifndef _SPI1_MASTER_H
