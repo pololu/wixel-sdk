@@ -13,8 +13,8 @@
 #if defined(UART0)
 #include <uart0.h>
 #define INTERRUPT_PRIORITY_GROUP    2
-#define ISR_URX()  void ISR_URX0()  __interrupt(URX0_VECTOR) __using(0)
-#define ISR_UTX()  void ISR_UTX0()  __interrupt(UTX0_VECTOR) __using(0)
+#define ISR_URX()                   ISR(URX0, 0)
+#define ISR_UTX()                   ISR(UTX0, 0)
 #define UTXNIF                      UTX0IF
 #define URXNIF                      URX0IF
 #define URXNIE                      URX0IE
@@ -40,31 +40,31 @@
 
 #elif defined(UART1)
 #include <uart1.h>
-#define INTERRUPT_PRIORITY_GROUP     3
-#define ISR_URX()  void ISR_URX1() __interrupt(URX1_VECTOR) __using(0)
-#define ISR_UTX()  void ISR_UTX1() __interrupt(UTX1_VECTOR) __using(0)
-#define UTXNIF                       UTX1IF
-#define URXNIF                       URX1IF
-#define URXNIE                       URX1IE
-#define UNCSR                        U1CSR
-#define UNGCR                        U1GCR
-#define UNUCR                        U1UCR
-#define UNBAUD                       U1BAUD
-#define UNDBUF                       U1DBUF
-#define BV_UTXNIE                    (1<<3)
-#define uartNRxParityErrorOccurred   uart1RxParityErrorOccurred
-#define uartNRxFramingErrorOccurred  uart1RxFramingErrorOccurred
-#define uartNRxBufferFullOccurred    uart1RxBufferFullOccurred
-#define uartNRxAvailable             uart1RxAvailable
-#define uartNTxAvailable             uart1TxAvailable
-#define uartNInit                    uart1Init
-#define uartNSetBaudRate             uart1SetBaudRate
-#define uartNSetParity               uart1SetParity
-#define uartNSetStopBits             uart1SetStopBits
-#define uartNTxSend                  uart1TxSend
-#define uartNRxReceiveByte           uart1RxReceiveByte
-#define uartNTxSend                  uart1TxSend
-#define uartNTxSendByte              uart1TxSendByte
+#define INTERRUPT_PRIORITY_GROUP    3
+#define ISR_URX()                   ISR(URX1, 0)
+#define ISR_UTX()                   ISR(UTX1, 0)
+#define UTXNIF                      UTX1IF
+#define URXNIF                      URX1IF
+#define URXNIE                      URX1IE
+#define UNCSR                       U1CSR
+#define UNGCR                       U1GCR
+#define UNUCR                       U1UCR
+#define UNBAUD                      U1BAUD
+#define UNDBUF                      U1DBUF
+#define BV_UTXNIE                   (1<<3)
+#define uartNRxParityErrorOccurred  uart1RxParityErrorOccurred
+#define uartNRxFramingErrorOccurred uart1RxFramingErrorOccurred
+#define uartNRxBufferFullOccurred   uart1RxBufferFullOccurred
+#define uartNRxAvailable            uart1RxAvailable
+#define uartNTxAvailable            uart1TxAvailable
+#define uartNInit                   uart1Init
+#define uartNSetBaudRate            uart1SetBaudRate
+#define uartNSetParity              uart1SetParity
+#define uartNSetStopBits            uart1SetStopBits
+#define uartNTxSend                 uart1TxSend
+#define uartNRxReceiveByte          uart1RxReceiveByte
+#define uartNTxSend                 uart1TxSend
+#define uartNTxSendByte             uart1TxSendByte
 #endif
 
 static volatile uint8 XDATA uartTxBuffer[256];         // sizeof(uartTxBuffer) must be a power of two
@@ -145,9 +145,16 @@ void uartNSetBaudRate(uint32 baud)
     uint32 baudMPlus256;
     uint8 baudE = 0;
 
-    // actual max baud rate is 1500000 (F/16) - we are limited by the way we calculate the exponent and mantissa
-    if (baud < 23 || baud > 495782)
+    // max baud rate is 1500000 (F/16); min is 23 (baudM = 1)
+    if (baud < 23 || baud > 1500000)
         return;
+
+    // 495782 is the largest value that will not overflow the following calculation
+    while (baud > 495782)
+    {
+        baudE++;
+        baud /= 2;
+    }
 
     // calculate baud rate - see datasheet 12.14.3
     // this is derived from (baudM + 256) = baud * 2^28 / 24000000

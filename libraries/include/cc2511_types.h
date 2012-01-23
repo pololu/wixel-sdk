@@ -68,23 +68,15 @@ typedef __bit BIT;
 
 // Avoid syntax and semantic errors in eclipse.
 #ifdef __CDT_PARSER__
-#define __xdata
-#define __pdata
-#define __data
-#define __code
-#define xdata
-#define pdata
-#define data
-#define __interrupt(x)
-#define __at(x)
-#define __using(x)
-#define __reentrant
 #define CODE
 #define XDATA
 #define DATA
 #define PDATA
 typedef unsigned char BIT;
 #define ISR(source, bank) void ISR_##source()
+#define __reentrant
+#else
+#error "Unknown compiler."
 #endif
 
 #else

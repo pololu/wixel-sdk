@@ -13,10 +13,11 @@
 
 // Avoid false-alarm syntax errors in Eclipse.
 #ifdef __CDT_PARSER__
+#define __sfr
 #define __at(x)
+#define __xdata
 #define __interrupt(x)
 #define __using(x)
-#define __xdata
 #endif
 
 #define SFRBIT(address, name, bit7, bit6, bit5, bit4, bit3, bit2, bit1, bit0) \
@@ -30,7 +31,7 @@
   SBIT(address+6, bit6) \
   SBIT(address+7, bit7)
 
-#ifdef SDCC
+#if defined SDCC || defined __CDT_PARSER__
 // Syntax for the SDCC (Small Device C Compiler).
 #define SFR(address, name) static __sfr __at (address) name;
 #define SBIT(address, name) static __sbit __at (address) name;
@@ -68,15 +69,6 @@ ISR(UTX1, 0)
 \endcode
  */
 #define ISR(source, bank) void ISR_##source() __interrupt(source##_VECTOR) __using(bank)
-
-#elif defined(__CDT_PARSER__)
-
-// These definitions are here to avoid "Symbol x could not be resolved" errors
-// from the Eclipse Code Analysis tool.
-#define SFR(address, name) static unsigned char name;
-#define SBIT(address, name) static unsigned char name;
-#define SFR16(addressH, addressL, name) static unsigned short name;
-#define SFRX(address, name) static unsigned char name;
 
 #else
 #error "Unknown compiler."

@@ -38,10 +38,7 @@ void uart0Init();
 
 /*! Sets the baud rate.
  *
- * \param baudrate The baud rate, in bits per second (bps).  Must be between 23 and 495782.
- *
- * Note: Higher baud rates are achievable if you write directly to the U0CGR and U0BAUD
- * registers instead of using this function. */
+ * \param baudrate The baud rate, in bits per second (bps).  Must be between 23 and 1,500,000. */
 void uart0SetBaudRate(uint32 baudrate);
 
 /*! Sets the parity type of the serial port.
