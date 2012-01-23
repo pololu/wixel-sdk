@@ -74,7 +74,7 @@ void spi0MasterSetClockPolarity(BIT polarity);
 /*! Sets the clock phase (the bit named CPHA in U0GCR).
  * This bit controls the phase of the clock,
  * which determines what type of transition is occurring when
- * when the data is sampled/transmitted.
+ * the data is sampled/transmitted.
  * Valid values are:
  *
  * - #SPI_PHASE_EDGE_LEADING (0): Data is sampled/transmitted
@@ -103,7 +103,12 @@ void spi0MasterSetBitOrder(BIT bitOrder);
 BIT spi0MasterBusy(void);
 
 /*! \return The number of bytes left to transfer in the current transfer.
- *     If 0, it means there is no current transfer. */
+ *     If 0, it means there is no current transfer.
+ *
+ *  This function temporarily disables the interrupt used by this library
+ *  to transfer data, so calling this function frequently could reduce the
+ *  speed that data is transferred.
+ *  If possible, try to use spi0MasterBusy() instead of this function. */
 uint16 spi0MasterBytesLeft(void);
 
 /*! Starts a new transfer of data.
@@ -117,6 +122,9 @@ uint16 spi0MasterBytesLeft(void);
  *   transmitted data to be overwritten with received data.
  * \param size The number of bytes to transmit/receive.
  *
+ * This function should not be called if the library is busy doing a transfer
+ * (i.e. spi0MasterBusy() returns 1).
+ *
  * In SPI, every transfer of data consists of one byte going from the master to
  * the slave and one byte going from the slave to the master.
  * Not every byte is meaningful: often dummy data is inserted.
@@ -129,6 +137,9 @@ void spi0MasterTransfer(const uint8 XDATA * txBuffer, uint8 XDATA * rxBuffer, ui
 /*! Transmits one byte to the SPI slave, simultaneously receiving a byte from
  * the slave.  This is a synchronous, blocking function so be careful about using
  * it in apps that have regular tasks to perform.
+ *
+ * This function should not be called if the library is busy doing a transfer
+ * (i.e. spi0MasterBusy() returns 1).
  *
  * \param byte The byte to send to the slave.
  * \return The byte received from the slave.
