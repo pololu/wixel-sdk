@@ -12,11 +12,13 @@ apps/*/*
 *.d
 *.hex
 *.ihx
+*.lk
 *.lib
 *.lnk
 *.lst
 *.map
 *.mem
+*.omf
 *.rel
 *.rst
 *.sym

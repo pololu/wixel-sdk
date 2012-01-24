@@ -117,9 +117,10 @@ RSTs := $(RELs:%.rel=%.rst)  # .rst : listing with absolute addresses
 # These files are generated when linking:
 MEMs := $(HEXs:%.hex=%.mem)  # .mem : summary of memory usage
 MAPs := $(HEXs:%.hex=%.map)  # .map : list of all addresses and memory sections
-LNKs := $(HEXs:%.hex=%.lnk)  # .lnk : the arguments used by the linke
+LKs  := $(HEXs:%.hex=%.lk)   # .lk  : args used by the linker
+LNKs := $(HEXs:%.hex=%.lnk)  # .lnk : args used by the linker (prior to SDCC 3.1.0)
 CDBs := $(HEXs:%.hex=%.cdb)  # .cdb : debugging information
-UNKNOWNs := $(HEXs:%.hex=%)  # An unknown binary file.
+OMFs := $(HEXs:%.hex=%) $(HEXs:%.hex=%.omf) # .omf : had no extension prior to SDCC 3.1.0
 
 # These files can be generated from a .hex and .cdb file.
 WXLs := $(HEXs:%.hex=%.wxl)  # .wxl : Wixel application
@@ -141,10 +142,11 @@ clean:
 	-@rm -fv $(RSTs)
 	-@rm -fv $(MAPs)
 	-@rm -fv $(LSTs)
+	-@rm -fv $(LKs)
 	-@rm -fv $(LNKs)
 	-@rm -fv $(BINs)
 	-@rm -fv $(ASMs)
-	-@rm -fv $(UNKNOWNs)
+	-@rm -fv $(OMFs)
 	-@rm -fv $(ADBs)
 	-@rm -fv $(CDBs)
 	-@rm -fv $(WXLs)
