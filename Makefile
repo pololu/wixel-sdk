@@ -6,7 +6,6 @@
 # type `make libs` to make all the libraries
 
 .DEFAULT_GOAL := apps
-all: apps
 
 #### Programs used by this Makefile ############################################
 CC := sdcc#         C compiler: creates object files (.rel) from C files (.c)
@@ -129,7 +128,7 @@ WXLs += $(HEXs:%.hex=%.wxl.tmp)
 #### TARGETS ###################################################################
 TARGETS += $(RELs) $(HEXs) $(LIBs)
 
-all: $(TARGETS)
+all: $(TARGETS) apps
 
 .PHONY: clean
 clean:
