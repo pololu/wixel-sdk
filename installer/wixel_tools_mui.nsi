@@ -1,11 +1,12 @@
-####################
-#
 # wixel_tools_mui.nsi - installer script for the wixel development bundle
-#
-####################
 
-# This installer expects to be passed the variable "STARTDIR" at the command line
-# E.g. "makensis /DSTARTDIR=c:\working\wixel-installer c:\working\wixel-installer\wixel_tools_mui.nsi"
+!define WIXELTOOLVERSION "120126"
+!define SDCCVER "3.1.0"
+!define NPVER "5.9.8"
+!define UTILS_VER "120126"
+
+!define STARTDIR ".\build"
+OutFile ".\build\wixel_dev_bundle_${WIXELTOOLVERSION}.exe"
 
 # TODO: improve the user experience in the case where they choose to not install the Wixel SDK
 
@@ -18,9 +19,6 @@ SetCompressor /solid lzma
 RequestExecutionLevel admin
 
 ; !define STARTDIR=c:\foo\bar
-!define WIXELTOOLVERSION "110415"
-!define SDCCVER "3.0.0"
-!define NPVER "5.9"
 !define MUI_HEADERIMAGE
 !define MUI_HEADERIMAGE_BITMAP "${STARTDIR}\wixel-sdk\installer\wixel_fullname_sm.bmp"
 !define MUI_HEADERIMAGE_BITMAP_NOSTRETCH 
@@ -43,7 +41,6 @@ RequestExecutionLevel admin
 !insertmacro MUI_UNPAGE_INSTFILES
 !insertmacro MUI_UNPAGE_FINISH
 
-OutFile "..\..\wixel_dev_bundle_${WIXELTOOLVERSION}.exe"
 InstallDir "C:\wixel-sdk"
 Name "The Pololu Wixel Development Bundle"
 !insertmacro MUI_LANGUAGE "English"
@@ -90,10 +87,10 @@ SectionEnd
 
 Section "Pololu GNU Build Utilities" Section3
 	SetOutPath "$TEMP"
-	File "${STARTDIR}\Pololu_GNU_build_tools.exe"
+	File "${STARTDIR}\pololu_gnu_build_utils_${UTILS_VER}.exe"
 	DetailPrint "Now running the Pololu GNU Build Utilities installer"
 	MessageBox MB_OK "The Wixel Dev Bundle will now launch the installer for the Pololu GNU Build Utilities"
-	ExecWait "$TEMP\Pololu_GNU_build_tools.exe"	
+	ExecWait "$TEMP\pololu_gnu_build_tools_${UTILS_VER}.exe"
 SectionEnd
 
 Section "Notepad++ Text Editor" Section4
