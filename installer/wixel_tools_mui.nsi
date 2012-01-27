@@ -53,8 +53,6 @@ LangString DESC_SECTION3 ${LANG_ENGLISH} "The Pololu GNU Build Utilities are ope
 LangString DESC_SECTION4 ${LANG_ENGLISH} "Notepad++ is a free source code editor which is convenient to use when editing Wixel code."
 
 
-
-
 Section "Source Code (wixel-sdk)" Section1
 	; SectionIn RO
 	DetailPrint "Now installing the wixel-sdk files"
@@ -70,7 +68,6 @@ Section "Source Code (wixel-sdk)" Section1
 	; WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\pololu_wixel_sdk" "UninstallString" "$\"$INSTDIR\uninstall wixel-sdk.exe$\""
 	; WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\pololu_wixel_sdk" "Publisher" "Pololu"
 	; WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\pololu_wixel_sdk" "DisplayVersion" "${BUNDLE_VER}"
-
 SectionEnd
 
 Section "SDCC ${SDCC_VER}" Section2
