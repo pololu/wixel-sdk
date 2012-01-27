@@ -11,7 +11,7 @@ OutFile ".\build\pololu-wixel-sdk-${SDK_VER}.exe"
 SetCompressor /solid lzma
 RequestExecutionLevel admin
 InstallDir "C:\wixel-sdk\"
-Name "Wixel SDK"
+Name "Wixel SDK ${SDK_VER}"
 ShowInstDetails show
 ShowUninstDetails show
 AllowSkipFiles on

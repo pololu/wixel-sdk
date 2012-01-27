@@ -11,7 +11,7 @@ OutFile ".\build\pololu-gnu-build-utils-${UTILS_VER}.exe"
 SetCompressor /solid lzma
 RequestExecutionLevel admin
 InstallDir "$PROGRAMFILES\Pololu\GNU Build Utilities\"
-Name "Pololu GNU Build Utilities"
+Name "Pololu GNU Build Utilities ${UTILS_VER}"
 ShowInstDetails show
 ShowUninstDetails show
 AllowSkipFiles on

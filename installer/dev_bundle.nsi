@@ -28,22 +28,22 @@ RequestExecutionLevel admin
 !insertmacro MUI_PAGE_INSTFILES
 
 InstallDir "C:\wixel-sdk"
-Name "The Pololu Wixel Development Bundle"
+Name "Pololu Wixel Development Bundle"
 !insertmacro MUI_LANGUAGE "English"
 
 LangString DESC_SDK ${LANG_ENGLISH} "Libraries and example code for the Wixel."
 LangString DESC_SDCC ${LANG_ENGLISH} "Free C compiler that is used to compile the code in the Wixel SDK."
-LangString DESC_UTILS ${LANG_ENGLISH} "Open-source utilities that are required by the Wixel SDK: cat, cp, echo, grep, make, mv, rm, and sed."
+LangString DESC_UTILS ${LANG_ENGLISH} "Open-source utilities required by the Wixel SDK: cat, cp, echo, grep, make, mv, rm, and sed."
 LangString DESC_NPP ${LANG_ENGLISH} "Free source code editor which is nice to use when editing Wixel code."
 
-Section "Wixel SDK" SDK
+Section "Wixel SDK ${SDK_VER}" SDK
 	DetailPrint "Installing wixel-sdk..."
 	SetOutPath "$TEMP"
 	File "${STARTDIR}\pololu-wixel-sdk-${SDK_VER}.exe"
 	ExecWait "$TEMP\pololu-wixel-sdk-${SDK_VER}.exe"
 SectionEnd
 
-Section "Pololu GNU Build Utilities" UTILS
+Section "Pololu GNU Build Utilities ${UTILS_VER}" UTILS
 	DetailPrint "Installing Pololu GNU Build Utilities..."
 	SetOutPath "$TEMP"
 	File "${STARTDIR}\pololu-gnu-build-utils-${UTILS_VER}.exe"
@@ -63,7 +63,7 @@ Section "SDCC ${SDCC_VER}" SDCC
 	${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$9\bin"
 SectionEnd
 
-Section "Notepad++ Text Editor" NPP
+Section "Notepad++ v${NPP_VER}" NPP
 	SetOutPath "$TEMP"
 	DetailPrint "Installing Notepad++..."
 	File "${STARTDIR}\npp.${NPP_VER}.Installer.exe"
