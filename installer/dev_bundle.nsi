@@ -18,8 +18,8 @@ RequestExecutionLevel admin
 
 ; !define STARTDIR=c:\foo\bar
 !define MUI_HEADERIMAGE
-!define MUI_HEADERIMAGE_BITMAP "${STARTDIR}\wixel-sdk\installer\wixel_fullname_sm.bmp"
 !define MUI_HEADERIMAGE_BITMAP_NOSTRETCH 
+!define MUI_HEADERIMAGE_BITMAP ".\wixel_fullname_sm.bmp"
 !define MUI_FINISHPAGE_NOAUTOCLOSE
 
 !define MUI_COMPONENTSPAGE_SMALLDESC
