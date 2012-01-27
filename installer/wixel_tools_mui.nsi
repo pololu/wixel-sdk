@@ -1,12 +1,12 @@
 # wixel_tools_mui.nsi - installer script for the wixel development bundle
 
-!define WIXELTOOLVERSION "120126"
-!define SDCCVER "3.1.0"
-!define NPVER "5.9.8"
+!define BUNDLE_VER "120126"
+!define SDCC_VER "3.1.0"
+!define NPP_VER "5.9.8"
 !define UTILS_VER "120126"
 
 !define STARTDIR ".\build"
-OutFile ".\build\wixel_dev_bundle_${WIXELTOOLVERSION}.exe"
+OutFile ".\build\wixel_dev_bundle_${BUNDLE_VER}.exe"
 
 # TODO: improve the user experience in the case where they choose to not install the Wixel SDK
 
@@ -69,16 +69,16 @@ Section "Source Code (wixel-sdk)" Section1
 	; WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\pololu_wixel_sdk" \"DisplayName" "Pololu wixel-sdk"
 	; WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\pololu_wixel_sdk" "UninstallString" "$\"$INSTDIR\uninstall wixel-sdk.exe$\""
 	; WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\pololu_wixel_sdk" "Publisher" "Pololu"
-	; WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\pololu_wixel_sdk" "DisplayVersion" "${WIXELTOOLVERSION}"
+	; WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\pololu_wixel_sdk" "DisplayVersion" "${BUNDLE_VER}"
 
 SectionEnd
 
-Section "SDCC ${SDCCVER}" Section2
+Section "SDCC ${SDCC_VER}" Section2
 	DetailPrint "Now installing sdcc..."
 	SetOutPath "$TEMP"
-	File "${STARTDIR}\sdcc-${SDCCVER}-setup.exe"
-	MessageBox MB_OK "The Wixel Dev Bundle will now launch the installer for SDCC ${SDCCVER} - the small device C compiler"
-	ExecWait "$TEMP\sdcc-${SDCCVER}-setup.exe"
+	File "${STARTDIR}\sdcc-${SDCC_VER}-setup.exe"
+	MessageBox MB_OK "The Wixel Dev Bundle will now launch the installer for SDCC ${SDCC_VER} - the small device C compiler"
+	ExecWait "$TEMP\sdcc-${SDCC_VER}-setup.exe"
 	DetailPrint "Now making sure that SDCC's path is set properly..."
 	ReadRegStr $9 HKLM "Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\SDCC" 'InstallLocation'
 	ReadRegStr $9 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SDCC" 'InstallLocation'
@@ -96,9 +96,9 @@ SectionEnd
 Section "Notepad++ Text Editor" Section4
 	SetOutPath "$TEMP"
 	DetailPrint "Installing Notepad++"
-	File "${STARTDIR}\npp.${NPVER}.Installer.exe"
+	File "${STARTDIR}\npp.${NPP_VER}.Installer.exe"
 	MessageBox MB_OK "The Wixel Dev Bundle will now launch the installer for Notepad++"
-	ExecWait "$TEMP\npp.${NPVER}.Installer.exe"
+	ExecWait "$TEMP\npp.${NPP_VER}.Installer.exe"
 SectionEnd
 
 ; Section "Uninstall"
@@ -118,8 +118,8 @@ SectionEnd
 
 Function SDKexists
 	${if} ${FileExists} $INSTDIR
-		MessageBox MB_OK "The Wixel Dev Bundle installer has detected a previously-installed version of the Wixel SDK files in $INSTDIR.  To avoid conflicts, the new files will be installed to the backup location: $INSTDIR-${WIXELTOOLVERSION}."
-		StrCpy $INSTDIR "$INSTDIR-${WIXELTOOLVERSION}"
+		MessageBox MB_OK "The Wixel Dev Bundle installer has detected a previously-installed version of the Wixel SDK files in $INSTDIR.  To avoid conflicts, the new files will be installed to the backup location: $INSTDIR-${BUNDLE_VER}."
+		StrCpy $INSTDIR "$INSTDIR-${BUNDLE_VER}"
 	${andif} ${FileExists} $INSTDIR
 		${GetTime} "" "LS" $0 $1 $2 $3 $4 $5 $6
 		MessageBox MB_OK "The Wixel Dev Bundle installer has detected a previously-installed version of the Wixel-SDK files in the backup location $INSTDIR.  To avoid conflicts, we will now install to $INSTDIR-$2$1$0$4$5$6"
