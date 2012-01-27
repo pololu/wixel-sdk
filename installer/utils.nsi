@@ -1,10 +1,10 @@
 # build_tools.nsi - sub-installer script for the pololu GNU build utils
 # 	designed to be run from within a larger installer
 
-!define TOOLSVER "120126"
+!define UTILS_VER "120126"
 
-!define STARTDIR ".\build\pololu_gnu_build_utils_${TOOLSVER}"
-OutFile ".\build\pololu_gnu_build_utils_${TOOLSVER}.exe"
+!define STARTDIR ".\build\pololu-gnu-build-utils-${UTILS_VER}"
+OutFile ".\build\pololu-gnu-build-utils-${UTILS_VER}.exe"
 
 !include EnvVarUpdate.nsh
 
@@ -27,7 +27,7 @@ Section "Main"
 	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\pololu_build_utilities" "DisplayName" "Pololu GNU Build Utilities"
 	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\pololu_build_utilities" "UninstallString" "$\"$INSTDIR\Uninstall Pololu GNU Build Utilities.exe$\""
 	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\pololu_build_utilities" "Publisher" "Pololu"
-	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\pololu_build_utilities" "DisplayVersion" "${TOOLSVER}"
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\pololu_build_utilities" "DisplayVersion" "${UTILS_VER}"
 	WriteUninstaller "$INSTDIR\Uninstall Pololu GNU Build Utilities.exe"
 	${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR"
 SectionEnd
