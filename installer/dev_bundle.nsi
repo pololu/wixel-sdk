@@ -22,22 +22,19 @@ RequestExecutionLevel admin
 !define MUI_HEADERIMAGE_BITMAP_NOSTRETCH 
 !define MUI_FINISHPAGE_NOAUTOCLOSE
 
-!insertmacro MUI_PAGE_WELCOME
+!define MUI_COMPONENTSPAGE_SMALLDESC
+
 !insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_INSTFILES
-!insertmacro MUI_PAGE_FINISH
 
 InstallDir "C:\wixel-sdk"
 Name "The Pololu Wixel Development Bundle"
 !insertmacro MUI_LANGUAGE "English"
 
-
-
-LangString DESC_SDK ${LANG_ENGLISH} "The Wixel SDK contains source code (for libraries and applications) that will help you develop your own applications for the Wixel."
-LangString DESC_SDCC ${LANG_ENGLISH} "The Small Device C Compiler (SDCC) is a free compiler that is used to compile the code in the Wixel SDK."
-LangString DESC_UTILS ${LANG_ENGLISH} "The Pololu GNU Build Utilities are open-source utilities that are required by the Wixel SDK: cat, cp, echo, grep, make, mv, rm, and sed."
-LangString DESC_NPP ${LANG_ENGLISH} "Notepad++ is a free source code editor which is convenient to use when editing Wixel code."
-
+LangString DESC_SDK ${LANG_ENGLISH} "Libraries and example code for the Wixel."
+LangString DESC_SDCC ${LANG_ENGLISH} "Free C compiler that is used to compile the code in the Wixel SDK."
+LangString DESC_UTILS ${LANG_ENGLISH} "Open-source utilities that are required by the Wixel SDK: cat, cp, echo, grep, make, mv, rm, and sed."
+LangString DESC_NPP ${LANG_ENGLISH} "Free source code editor which is nice to use when editing Wixel code."
 
 Section "Wixel SDK" SDK
 	DetailPrint "Installing wixel-sdk..."
@@ -58,7 +55,7 @@ Section "SDCC ${SDCC_VER}" SDCC
 	DetailPrint "Installing SDCC..."
 	SetOutPath "$TEMP"
 	File "${STARTDIR}\sdcc-${SDCC_VER}-setup.exe"
-	MessageBox MB_OK "The Wixel Development Bundle will now launch the installer for SDCC ${SDCC_VER}."
+	#MessageBox MB_OK "The Wixel Development Bundle will now launch the installer for SDCC ${SDCC_VER}."
 	ExecWait "$TEMP\sdcc-${SDCC_VER}-setup.exe"
 	DetailPrint "Making sure that SDCC's path is set properly..."
 	ReadRegStr $9 HKLM "Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\SDCC" 'InstallLocation'
@@ -70,7 +67,7 @@ Section "Notepad++ Text Editor" NPP
 	SetOutPath "$TEMP"
 	DetailPrint "Installing Notepad++..."
 	File "${STARTDIR}\npp.${NPP_VER}.Installer.exe"
-	MessageBox MB_OK "The Wixel Development Bundle will now launch the installer for Notepad++."
+	#MessageBox MB_OK "The Wixel Development Bundle will now launch the installer for Notepad++."
 	ExecWait "$TEMP\npp.${NPP_VER}.Installer.exe"
 SectionEnd
 
