@@ -14,21 +14,24 @@ First:
 1. Install NSIS v2.46+, available from http://nsis.sourceforge.net.
    You should add the NSIS installation directory to your path so you
    can easily run makensis.
-2. Install the EnvVarUpdate plugin for NSIS, available from
+2. Install the "Large strings" build of NSIS on top of that so we
+   truncate user's paths to 8192 bytes instead of 1024.
+3. Install the EnvVarUpdate plugin for NSIS, available from
    http://nsis.sourceforge.net/Environmental_Variables:_append,_prepend,_and_remove_entries
-3. Install Doxygen, available from  http://www.stack.nl/~dimitri/doxygen/
-4. Update WIXELTOOLVERSION in wixel_tools_mui.nsi to today's date.
-5. Update TOOLSVER in build_tools.nsi if the Pololu GNU Build
+   EnvVarUpdate.nsh needs to be put in C:\Program Files (x86)\NSIS\include.
+4. Install Doxygen, available from  http://www.stack.nl/~dimitri/doxygen/
+5. Update WIXELTOOLVERSION in wixel_tools_mui.nsi to today's date.
+6. Update TOOLSVER in build_tools.nsi if the Pololu GNU Build
    Utilities have changed since last time.
 
 Second, create a new folder named "bundle" and assemble the following
 in that folder:
 1. A folder named "build_tools" that contains the Pololu GNU Build
    Utilities.
-2. The SDCC installer (e.g. "sdcc-3.0.0-setup.exe").  The version number
+2. The SDCC installer (renamed to "sdcc-VERSION-setup.exe").  The version number
    is specified in the SDCCVER variable in wixel_tools_mui.nsh;  update
    that variable if needed.
-3. The Notepad++ installer (e.g. "npp.5.9.Installer.exe").  The version
+3. The Notepad++ installer (e.g. "npp.5.9.8.Installer.exe").  The version
    number is specified in the NPVER variable in wixel_tools_mui.nsh;
    update that variable if needed.
 4. The Wixel SDK repository itself, in a folder named  "wixel-sdk".
