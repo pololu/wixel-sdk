@@ -7,7 +7,7 @@
 !define NPP_VER "5.9.8"
 
 !define STARTDIR ".\build"
-OutFile ".\build\wixel_dev_bundle_${BUNDLE_VER}.exe"
+OutFile ".\build\wixel-dev-bundle-${BUNDLE_VER}.exe"
 
 !include FileFunc.nsh
 !include EnvVarUpdate.nsh
@@ -27,7 +27,6 @@ RequestExecutionLevel admin
 !insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_INSTFILES
 
-InstallDir "C:\wixel-sdk"
 Name "Pololu Wixel Development Bundle"
 !insertmacro MUI_LANGUAGE "English"
 

@@ -22,6 +22,9 @@ Section "Main"
 	Call SDKExists
 	SetOutPath $INSTDIR
 	File /r "${STARTDIR}"
+	DetailPrint "PLEASE NOTE: This is NOT the latest version of the Wixel SDK."
+	DetailPrint "For the latest version with all the latest apps and libraries,"
+	DetailPrint "go to: https://github.com/pololu/wixel-sdk"
 SectionEnd
 
 Function SDKExists
