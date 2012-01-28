@@ -20,20 +20,17 @@ First:
    http://nsis.sourceforge.net/Environmental_Variables:_append,_prepend,_and_remove_entries
    EnvVarUpdate.nsh needs to be put in C:\Program Files (x86)\NSIS\include.
 4. Install Doxygen, available from  http://www.stack.nl/~dimitri/doxygen/
-5. Update WIXELTOOLVERSION in wixel_tools_mui.nsi to today's date.
-6. Update TOOLSVER in build_tools.nsi if the Pololu GNU Build
-   Utilities have changed since last time.
+5. Update BUNDLE_VER and SDK_VER in dev_bundle.nsi to today's date.
 
-Second, create a new folder named "bundle" and assemble the following
-in that folder:
-1. A folder named "build_tools" that contains the Pololu GNU Build
-   Utilities.
-2. The SDCC installer (renamed to "sdcc-VERSION-setup.exe").  The version number
-   is specified in the SDCCVER variable in wixel_tools_mui.nsh;  update
-   that variable if needed.
-3. The Notepad++ installer (e.g. "npp.5.9.8.Installer.exe").  The version
-   number is specified in the NPVER variable in wixel_tools_mui.nsh;
-   update that variable if needed.
+Second, create a new folder named "build" in this directory and assemble the
+following in the "build" folder:
+1. A folder named "pololu-gnu-build-utils-VERSION" that contains the
+   Pololu GNU Build Utilities.  Update the UTILS_VER variable in dev_bundle.nsi
+   and utils.nsi to match this version number if needed.
+2. The SDCC installer, renamed to "sdcc-VERSION-setup.exe".  Update the SDCC_VER
+   variable in dev_bundle.nsi to match this version number if needed.
+3. The Notepad++ installer (e.g. "npp.VERSION.Installer.exe").  Update the
+   NPP_VER variable in dev_bundle.nsi to match this version number if needed.
 4. The Wixel SDK repository itself, in a folder named  "wixel-sdk".
    Make sure that wixel-sdk:
    - Contains any changes you made in the previous steps.
@@ -46,15 +43,10 @@ in that folder:
      [core] section of .git/config)
    - Has Doxygen-generated docs in wixel-sdk/docs/html.  Run
      "make docs" to generate these docs.
+   - Does NOT have any compilation output files.
+   You can use prepare_sdk.bat to create the wixel-sdk folder.
 
 Finally, to create the installer:
-1. Open a Command Prompt and navigate to the bundle directory.
-2. Compile build_tools.nsi by running:
-       makensis /DSTARTDIR=C:\...\bundle\build_tools wixel-sdk\installer\build_tools.nsi"
-   where "C:\...\bundle\build_tools" is the full path to the build_tools directory.
-   You should end up with a file named pololu_gnu_build_tools.exe in the bundle folder.
-2. Compile wixel_tools_mui.nsi by running:
-       makensis /DSTARTDIR=C:\...\bundle wixel-sdk\installer\wixel_tools_mui.nsi
-   where "C:\...\bundle" is the full path to the bundle directory.
-
-For more info on command line NSIS, see http://nsis.sourceforge.net/Docs/Chapter3.html
+1. Right click on sdk.nsi and select "Compile NSIS Script".
+2. Do the same for utils.nsi.
+3. Do the same for dev_bundle.nsi.
