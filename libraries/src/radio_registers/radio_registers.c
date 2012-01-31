@@ -7,8 +7,7 @@ void radioRegistersInit()
     PA_TABLE0 = 0xFE;
 
     // Set the center frequency of channel 0 to 2403.47 MHz.
-    // Freq = 24/2^16*(0xFREQ) = 2403.47 MHz
-    // FREQ[23:0] = 2^16*(fCarrier/fRef) = 2^16*(2400.156/24) = 0x6401AA
+    // Freq = 24/2^16*(FREQ[23:0]) = 24/2^16*(0x642500) = 2403.47 MHz
     FREQ2 = 0x64;
     FREQ1 = 0x25;
     FREQ0 = 0x00;
@@ -16,10 +15,10 @@ void radioRegistersInit()
     // Note: We had to modify MDMCFG1 from the settings given by
     // SmartRF Studio to be compatible with the datasheet.
     // (NUM_PREAMBLE should be 8 at 500 kbps and having it be high is a good idea in general).
-    // MDMCFG1.FEC_EN = 0,1 : 0=Disable,1=Enable Forward Error Correction
+    // MDMCFG1.FEC_EN = 0 : Disable Forward Error Correction
     // MDMCFG1.NUM_PREAMBLE = 100 : Minimum number of preamble bytes is 8.
     // MDMCFG1.CHANSPC_E = 11 : Channel spacing exponent.
-    // MDMCFG0.CHANSPC_M = 0xFF : Channel spacing mantissa.
+    // MDMCFG0.CHANSPC_M = 0x87 : Channel spacing mantissa.
     // Channel spacing = (256 + CHANSPC_M)*2^(CHANSPC_E) * f_ref / 2^18
     // So the center of channel 255 is
     //   2403.47 + 255 * ((256 + 0x87)*2^(3) * 24/2^18) = 2476.50 MHz
