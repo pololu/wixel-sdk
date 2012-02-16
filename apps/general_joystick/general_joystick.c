@@ -36,6 +36,16 @@ void joystickService()
     usbHidJoystickInput.buttons |= isPinHigh(16) << 6;
     usbHidJoystickInput.buttons |= isPinHigh(17) << 7;
 
+    // inverted values on buttons 8-15
+    usbHidJoystickInput.buttons |= !isPinHigh(10) << 8;
+    usbHidJoystickInput.buttons |= !isPinHigh(11) << 9;
+    usbHidJoystickInput.buttons |= !isPinHigh(12) << 10;
+    usbHidJoystickInput.buttons |= !isPinHigh(13) << 11;
+    usbHidJoystickInput.buttons |= !isPinHigh(14) << 12;
+    usbHidJoystickInput.buttons |= !isPinHigh(15) << 13;
+    usbHidJoystickInput.buttons |= !isPinHigh(16) << 14;
+    usbHidJoystickInput.buttons |= !isPinHigh(17) << 15;
+
     if(last_buttons != usbHidJoystickInput.buttons)
         usbHidJoystickInputUpdated = 1;
 
