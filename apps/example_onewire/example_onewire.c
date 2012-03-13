@@ -1,4 +1,20 @@
 /** example_onewire: read Dallas Semiconductor OneWire devices.
+Written by Russell Nelson <nelson@crynwr.com>. No copyright claimed.
+
+== Description ==
+
+Searches the OneWire bus for either a DS18B20 or DS1820. They differ by the id number (first byte) and by the format of the data they return. When it finds a DS18*20, it remembers the address and starts a sequence of temperature reads, once per second. It prints the temperature in degrees C via the USB as a serial port. Fire up a terminal and open up the serial port, or if you're on Linux, just: cat </dev/ttyACM0 and Bob's your uncle.
+
+Does not use the wireless. No reason why not.
+
+== Parameters ==
+
+The pin number is defined in onewire_ports.h.
+
+== Default pinout ==
+
+The DS device(s) are connected to P0_0. Because the code uses programmed loops for timing, I didn't want to fiddle with the timing in the Arduino code, and was afraid that the gpio library would change the timing too much. Feel free to modify it to use gpio for extra flexibility.
+
  */
 
 #include <cc2511_map.h>
