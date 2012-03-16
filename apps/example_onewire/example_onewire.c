@@ -115,7 +115,7 @@ void handleOneWire(void)
 {
     int i;
     int newtemp = 0;
-    int air_temp_c;
+    int air_temp_c = 0;
     unsigned int decimals;
 
     if (getMs() > ds1820_time + 1000) {
