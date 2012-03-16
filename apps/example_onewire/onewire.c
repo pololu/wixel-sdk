@@ -88,7 +88,7 @@ sample code bearing this copyright.
 #include <time.h>
 #include <gpio.h>
 #include "onewire.h"
-#include "onewire_ports.h"
+//#include "onewire_ports.h"
 
 // pull these two in from onewire_ports
 // means "pin", not mask; 0 <= mask <= 7
