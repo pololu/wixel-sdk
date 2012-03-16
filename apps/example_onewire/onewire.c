@@ -102,7 +102,7 @@ sample code bearing this copyright.
 void onewire_start(void)
 {
 #if ONEWIRE_SEARCH
-	onewire_reset_search();
+    onewire_reset_search();
 #endif
 }
 
@@ -115,8 +115,8 @@ void onewire_start(void)
 #define XDIRECT_READ(base, pin) (P##base##_##pin) 
 #define XDIRECT_MODE_INPUT(base, pin) (P##base##DIR &= ~(1<<pin))
 #define XDIRECT_MODE_OUTPUT(base, pin) (P##base##DIR |= (1<<pin))
-#define XDIRECT_WRITE_LOW(base, pin)	(P##base##_##pin = 0);
-#define XDIRECT_WRITE_HIGH(base, pin)	(P##base##_##pin = 1)
+#define XDIRECT_WRITE_LOW(base, pin)    (P##base##_##pin = 0);
+#define XDIRECT_WRITE_HIGH(base, pin)   (P##base##_##pin = 1)
 
 // Required by the C preprocessor to get the macros rescanned.
 #define DIRECT_READ(base, pin) XDIRECT_READ(base, pin)
@@ -135,33 +135,33 @@ void onewire_start(void)
 //
 uint8_t onewire_reset(void)
 {
-	uint8_t r;
-	uint8_t retries = 125;
+    uint8_t r;
+    uint8_t retries = 125;
 
-	cli();
-	DIRECT_MODE_INPUT(reg, mask);
-	sei();
-	// wait until the wire is high... just in case
-	do {
-		if (--retries == 0) return 0;
-		delayMicroseconds(2);
-	} while ( !DIRECT_READ(reg, mask));
+    cli();
+    DIRECT_MODE_INPUT(reg, mask);
+    sei();
+    // wait until the wire is high... just in case
+    do {
+        if (--retries == 0) return 0;
+        delayMicroseconds(2);
+    } while ( !DIRECT_READ(reg, mask));
 
-	cli();
-	DIRECT_MODE_OUTPUT(reg, mask);	// drive output low
+    cli();
+    DIRECT_MODE_OUTPUT(reg, mask);  // drive output low
         // had to reverse the order of these. Compiler was not
         // generating any code for the write (!)
-	DIRECT_WRITE_LOW(reg, mask);
-	sei();
-	delayMicroseconds(500);
-	cli();
-	DIRECT_MODE_INPUT(reg, mask);	// allow it to float
-	delayMicroseconds(80);
-	r = !DIRECT_READ(reg, mask);
-	LED_YELLOW_TOGGLE();
-	sei();
-	delayMicroseconds(420);
-	return r;
+    DIRECT_WRITE_LOW(reg, mask);
+    sei();
+    delayMicroseconds(500);
+    cli();
+    DIRECT_MODE_INPUT(reg, mask);   // allow it to float
+    delayMicroseconds(80);
+    r = !DIRECT_READ(reg, mask);
+    LED_YELLOW_TOGGLE();
+    sei();
+    delayMicroseconds(420);
+    return r;
 }
 
 //
@@ -170,23 +170,23 @@ uint8_t onewire_reset(void)
 //
 void onewire_write_bit(uint8_t v)
 {
-	if (v & 1) {
-		cli();
-		DIRECT_WRITE_LOW(reg, mask);
-		DIRECT_MODE_OUTPUT(reg, mask);	// drive output low
-		delayMicroseconds(10);
-		DIRECT_WRITE_HIGH(reg, mask);	// drive output high
-		sei();
-		delayMicroseconds(55);
-	} else {
-		cli();
-		DIRECT_WRITE_LOW(reg, mask);
-		DIRECT_MODE_OUTPUT(reg, mask);	// drive output low
-		delayMicroseconds(65);
-		DIRECT_WRITE_HIGH(reg, mask);	// drive output high
-		sei();
-		delayMicroseconds(5);
-	}
+    if (v & 1) {
+        cli();
+        DIRECT_WRITE_LOW(reg, mask);
+        DIRECT_MODE_OUTPUT(reg, mask);  // drive output low
+        delayMicroseconds(10);
+        DIRECT_WRITE_HIGH(reg, mask);   // drive output high
+        sei();
+        delayMicroseconds(55);
+    } else {
+        cli();
+        DIRECT_WRITE_LOW(reg, mask);
+        DIRECT_MODE_OUTPUT(reg, mask);  // drive output low
+        delayMicroseconds(65);
+        DIRECT_WRITE_HIGH(reg, mask);   // drive output high
+        sei();
+        delayMicroseconds(5);
+    }
 }
 
 //
@@ -195,18 +195,18 @@ void onewire_write_bit(uint8_t v)
 //
 uint8_t onewire_read_bit(void)
 {
-	uint8_t r;
+    uint8_t r;
 
-	cli();
-	DIRECT_MODE_OUTPUT(reg, mask);
-	DIRECT_WRITE_LOW(reg, mask);
-	delayMicroseconds(3);
-	DIRECT_MODE_INPUT(reg, mask);	// let pin float, pull up will raise
-	delayMicroseconds(9);
-	r = DIRECT_READ(reg, mask);
-	sei();
-	delayMicroseconds(53);
-	return r;
+    cli();
+    DIRECT_MODE_OUTPUT(reg, mask);
+    DIRECT_WRITE_LOW(reg, mask);
+    delayMicroseconds(3);
+    DIRECT_MODE_INPUT(reg, mask);   // let pin float, pull up will raise
+    delayMicroseconds(9);
+    r = DIRECT_READ(reg, mask);
+    sei();
+    delayMicroseconds(53);
+    return r;
 }
 
 //
@@ -220,13 +220,13 @@ void onewire_write(uint8_t v, uint8_t power) {
     uint8_t bitMask;
 
     for (bitMask = 0x01; bitMask; bitMask <<= 1) {
-	onewire_write_bit( (bitMask & v)?1:0);
+    onewire_write_bit( (bitMask & v)?1:0);
     }
     if ( !power) {
-	cli();
-	DIRECT_MODE_INPUT(reg, mask);
-	DIRECT_WRITE_LOW(reg, mask);
-	sei();
+    cli();
+    DIRECT_MODE_INPUT(reg, mask);
+    DIRECT_WRITE_LOW(reg, mask);
+    sei();
     }
 }
 
@@ -238,7 +238,7 @@ uint8_t onewire_read() {
     uint8_t r = 0;
 
     for (bitMask = 0x01; bitMask; bitMask <<= 1) {
-	if ( onewire_read_bit()) r |= bitMask;
+    if ( onewire_read_bit()) r |= bitMask;
     }
     return r;
 }
@@ -265,9 +265,9 @@ void onewire_skip()
 
 void onewire_depower()
 {
-	cli();
-	DIRECT_MODE_INPUT(reg, mask);
-	sei();
+    cli();
+    DIRECT_MODE_INPUT(reg, mask);
+    sei();
 }
 
 #if ONEWIRE_SEARCH
@@ -468,12 +468,12 @@ static const uint8_t CODE dscrc_table[] = {
 //
 uint8_t onewire_crc8( uint8_t *addr, uint8_t len)
 {
-	uint8_t crc = 0;
+    uint8_t crc = 0;
 
-	while (len--) {
-		crc = dscrc_table[crc ^ *addr++];
-	}
-	return crc;
+    while (len--) {
+        crc = dscrc_table[crc ^ *addr++];
+    }
+    return crc;
 }
 #else
 //
@@ -481,19 +481,19 @@ uint8_t onewire_crc8( uint8_t *addr, uint8_t len)
 //
 uint8_t onewire_crc8( uint8_t *addr, uint8_t len)
 {
-	uint8_t crc = 0;
-	uint8_t i;
-	
-	while (len--) {
-		uint8_t inbyte = *addr++;
-		for (i = 8; i; i--) {
-			uint8_t mix = (crc ^ inbyte) & 0x01;
-			crc >>= 1;
-			if (mix) crc ^= 0x8C;
-			inbyte >>= 1;
-		}
-	}
-	return crc;
+    uint8_t crc = 0;
+    uint8_t i;
+    
+    while (len--) {
+        uint8_t inbyte = *addr++;
+        for (i = 8; i; i--) {
+            uint8_t mix = (crc ^ inbyte) & 0x01;
+            crc >>= 1;
+            if (mix) crc ^= 0x8C;
+            inbyte >>= 1;
+        }
+    }
+    return crc;
 }
 #endif
 
@@ -510,17 +510,17 @@ unsigned short onewire_crc16(unsigned short *data, unsigned short len)
     unsigned short crc = 0;
 
     for ( i = 0; i < len; i++) {
-	unsigned short cdata = data[len];
+    unsigned short cdata = data[len];
 
-	cdata = (cdata ^ (crc & 0xff)) & 0xff;
-	crc >>= 8;
+    cdata = (cdata ^ (crc & 0xff)) & 0xff;
+    crc >>= 8;
 
-	if (oddparity[cdata & 0xf] ^ oddparity[cdata >> 4]) crc ^= 0xc001;
+    if (oddparity[cdata & 0xf] ^ oddparity[cdata >> 4]) crc ^= 0xc001;
 
-	cdata <<= 6;
-	crc ^= cdata;
-	cdata <<= 1;
-	crc ^= cdata;
+    cdata <<= 6;
+    crc ^= cdata;
+    cdata <<= 1;
+    crc ^= cdata;
     }
     return crc;
 }
