@@ -2,7 +2,7 @@
  * This module helps you keep track of time in milliseconds.
  * Calling timeInit() sets up a timer (Timer 4) to overflow every millisecond
  * (approximately).
- * You can read the time at any time by calling getMs() variable.
+ * You can read the time at any time by calling getMs().
  * For the interrupt to work, you must write
  * <pre>include <time.h></pre>
  * or
