@@ -108,6 +108,24 @@ void receiveCommands()
             response[responseLength++] = '\r';
             response[responseLength++] = '\n';
             break;
+
+        case 't':
+            // Perform a low-resolution reading of the temperature sensor.
+            // The lowest few bits should be random.
+            rand = adcRead(14 | ADC_BITS_7);
+            response[responseLength++] = ',';
+            response[responseLength++] = (rand & 0x80) ? '1' : '0';
+            response[responseLength++] = (rand & 0x40) ? '1' : '0';
+            response[responseLength++] = (rand & 0x20) ? '1' : '0';
+            response[responseLength++] = (rand & 0x10) ? '1' : '0';
+            response[responseLength++] = (rand & 0x08) ? '1' : '0';
+            response[responseLength++] = (rand & 0x04) ? '1' : '0';
+            response[responseLength++] = (rand & 0x02) ? '1' : '0';
+            response[responseLength++] = (rand & 0x01) ? '1' : '0';
+            response[responseLength++] = '\r';
+            response[responseLength++] = '\n';
+            break;
+
         default: response[0] = '?'; break;
         }
         usbComTxSend(response, responseLength);
