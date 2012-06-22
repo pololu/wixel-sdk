@@ -193,6 +193,10 @@ void main(void)
             radioQueueTxSendPacket();
 
             lastTx = getMs();
+            
+            // Decide when to send the next packet.  We take a noisy reading of the temperature sensor
+            // to get two random bits, so that we can avoid accidentally getting synchronized with another
+            // transmtiting Wixel.
             txInterval = 7 + (adcRead(14 | ADC_BITS_7) & 3);
         }
     }
