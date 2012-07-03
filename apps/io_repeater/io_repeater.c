@@ -17,6 +17,7 @@ http://www.pololu.com/docs/0J46
 #include <time.h>
 #include <gpio.h>
 #include <radio_queue.h>
+#include <adc.h>
 
 #define PIN_COUNT 15
 static uint8 CODE pins[PIN_COUNT] = {0, 1, 2, 3, 4, 5, 10, 11, 12, 13, 14, 15, 16, 17, 21};
@@ -196,7 +197,7 @@ void main(void)
             
             // Decide when to send the next packet.  We take a noisy reading of the temperature sensor
             // to get two random bits, so that we can avoid accidentally getting synchronized with another
-            // transmtiting Wixel.
+            // transmitting Wixel.
             txInterval = 7 + (adcRead(14 | ADC_BITS_7) & 3);
         }
     }
