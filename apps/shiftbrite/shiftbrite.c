@@ -36,6 +36,16 @@ BIT radioBlinkActive = 0;
 uint8 radioLastActivity;
 uint8 radioBlinkStart;
 
+// This is initialized to be equal to param_input_bits, but restricted to be within 1..16.
+uint8 input_bits;
+
+// The number of hex characters it takes to express a color.
+// 1-4 input bits = 1 char; 5-8 input bits = 2 chars; etc.
+uint8 hex_chars_per_color;
+
+// amount to shift to create the output
+int8 shift;
+
 // converts 0-9, a-f, or A-F into the corresponding hex value
 uint8 hexCharToByte(char c)
 {
@@ -124,9 +134,6 @@ void shiftbriteProcessByte(char c)
 {
     static char rgb[12]; // big enough to hold 4 hex digits times three colors
     static uint8 i = 0;
-    static const uint8 input_bits = restrictRange(param_input_bits,1,16); // allow up to 16 bits = 4 hex digits
-    static const uint8 hex_chars_per_color = ((input_bits-1) >> 2) + 1; // 1-4 bits = 1; 5-8 bits = 2; etc.
-    static const int8 shift = 10 - input_bits; // amount to shift to create the output
 
     if(c == '\r' || c == '\n')
     {
@@ -193,6 +200,10 @@ void shiftbriteService()
 
 void shiftbriteInit()
 {
+    input_bits = restrictRange(param_input_bits,1,16); // allow up to 16 bits = 4 hex digits
+    hex_chars_per_color = ((input_bits-1) >> 2) + 1;
+    shift = 10 - input_bits;
+
     SHIFTBRITE_DISABLE = 1; // disable shiftbrites until a valid color is sent
     SHIFTBRITE_CLOCK = 0; // clock low
     SHIFTBRITE_LATCH = 0; // prevent unintended latching
