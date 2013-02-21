@@ -212,7 +212,7 @@ uint8 uartNTxAvailable(void)
 
 void uartNTxSend(const uint8 XDATA * buffer, uint8 size)
 {
-    // Assumption: uartNTxSend() was recently called and it returned a number at least as big as 'size'.
+    // Assumption: uartNTxAvailable() was recently called and it returned a number at least as big as 'size'.
     // TODO: after DMA memcpy is implemented, use it to make this function faster
 
     while (size)
