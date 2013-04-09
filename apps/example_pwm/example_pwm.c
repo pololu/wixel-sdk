@@ -21,7 +21,7 @@
  * Timer 3 and Timer 4.
  *
  * If you need PWM outputs on different pins, you can change the code to use
- * the other alternate location for Timer 3 or you can change it to use Timer 4.
+ * the other location for Timer 3 or you can change it to use Timer 4.
  */
 
 #include <wixel.h>
