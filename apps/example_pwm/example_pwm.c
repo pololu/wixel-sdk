@@ -12,7 +12,7 @@
  * is designed for RC servos and cannot produce a full range of duty cycles.
  *
  * The PWM frequency used by this app is 23.4 kHz, which works well for most
- * DC motor control applications because it is super-sonic.
+ * DC motor control applications because it is too high to hear.
  * If you need a different frequency, you can change the prescaler configuration
  * bits in the T3CTL register to achieve frequencies as high as 93.8 kHz and as
  * low as 0.73 kHz.
