@@ -11,17 +11,26 @@
  * The servo library is not appropriate for most PWM applications because it
  * is designed for RC servos and cannot produce a full range of duty cycles.
  *
- * The PWM frequency used by this app is 23.4 kHz, which works well for most
- * DC motor control applications because it is too high to hear.
- * If you need a different frequency, you can change the prescaler configuration
- * bits in the T3CTL register to achieve frequencies as high as 93.8 kHz and as
- * low as 0.73 kHz.
+ * The PWM frequency used by this app is 11.7 kHz, which works well for most
+ * DC motor control applications.  If you need a different frequency, you can
+ * change the prescaler configuration bits in the T3CTL register to achieve
+ * frequencies as high as 93.8 kHz and as low as 0.73 kHz.
+ *
+ * If you are using PWM to control a DC motor and your driver can tolerate a
+ * 23.4 kHz PWM frequency, then we recommend uncommenting the line in timer3Init
+ * that sets the frequency to 23.4 kHz.  This frequency is ultrasonic so you
+ * should not hear a high-pitched whine from your motor.  You will need to
+ * consult the datasheet of your motor driver and make sure it can tolerate the
+ * higher frequency.
  *
  * If you need three or four PWM outputs, you can adapt this code to use both
  * Timer 3 and Timer 4.
  *
  * If you need PWM outputs on different pins, you can change the code to use
  * the other location for Timer 3 or you can change it to use Timer 4.
+ *
+ * If you need finer control over the duty cycle, you should use the Timer 1
+ * which is a 16-bit timer.
  */
 
 #include <wixel.h>
@@ -30,11 +39,9 @@
 
 void timer3Init()
 {
-    // Start the timer in free-running mode with a prescaler of 1:4.
-    // The global tick frequency is 24 MHz and the timer will overflow after
-    // counting to 255, so this results in a Timer 3 PWM frequency of
-    // (24000 kHz)/4/256 = 23.4 kHz.
-    T3CTL = 0b01010000;
+    // Start the timer in free-running mode and set the prescaler.
+    T3CTL = 0b01110000;   // Prescaler 1:8, frequency = (24000 kHz)/8/256 = 11.7 kHz
+    //T3CTL = 0b01010000; // Use this line instead if you want 23.4 kHz (1:4)
 
     // Set the duty cycles to zero.
     T3CC0 = T3CC1 = 0;
@@ -51,7 +58,7 @@ void timer3Init()
     // instead of being general purpose I/O.
     P1SEL |= (1<<3) | (1<<4);
 
-    // After running this function, you can set the duty cycles by simply writing
+    // After calling this function, you can set the duty cycles by simply writing
     // to T3CC0 and T3CC1.  A value of 255 results in a 100% duty cycle, and a
     // value of N < 255 results in a duty cycle of N/256.
 }
