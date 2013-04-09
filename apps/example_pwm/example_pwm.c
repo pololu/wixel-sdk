@@ -29,7 +29,7 @@
  * If you need PWM outputs on different pins, you can change the code to use
  * the other location for Timer 3 or you can change it to use Timer 4.
  *
- * If you need finer control over the duty cycle, you should use the Timer 1
+ * If you need finer control over the duty cycle, you should use Timer 1
  * which is a 16-bit timer.
  */
 
