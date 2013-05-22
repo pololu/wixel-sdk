@@ -23,11 +23,9 @@
  * consult the datasheet of your motor driver and make sure it can tolerate the
  * higher frequency.
  *
- * If you need three or four PWM outputs, you can adapt this code to use both
- * Timer 3 and Timer 4.
- *
- * If you need PWM outputs on different pins, you can change the code to use
- * the other location for Timer 3 or you can change it to use Timer 4.
+ * This code could be adapted to use Timer 4, but Timer 4 is used by the
+ * wixel.lib library to implement getMs(), so it would interfere with many of
+ * the Wixel's standard libraries.
  *
  * If you need finer control over the duty cycle, you should use Timer 1
  * which is a 16-bit timer.
