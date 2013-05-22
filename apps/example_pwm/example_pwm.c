@@ -51,8 +51,8 @@ void timer3Init()
     // is equal to T3CCn.
     T3CCTL0 = T3CCTL1 = 0b00100100;
 
-    // Configure Timer 1 to use Alternative 1 location, which is the default.
-    PERCFG &= ~(1<<6);  // PERCFG.T1CFG = 0;
+    // Configure Timer 3 to use Alternative 1 location, which is the default.
+    PERCFG &= ~(1<<5);  // PERCFG.T3CFG = 0;
 
     // Configure P1_3 and P1_4 to be controlled by a peripheral function (Timer 3)
     // instead of being general purpose I/O.
