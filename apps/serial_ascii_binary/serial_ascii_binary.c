@@ -71,8 +71,8 @@ uint8 nibbleToHexDigit(uint8 nibble)
   return nibble < 0x0A ? nibble + '0' : nibble + 'A' - 0x0A;
 }
 
-// Take two ASCII characters representing hex nibbles as input from UART0 and outputting
-// the binary byte representation of those characters.
+// Takes two ASCII characters representing hex nibbles as input from UART0 and
+// outputs the corresponding binary byte to UART1.
 void asciiToBinaryService()
 {
     static uint8 count = 0;
@@ -102,8 +102,7 @@ void asciiToBinaryService()
     }
 }
 
-// We process bytes in a big endian manner.
-// The first byte received is assumed to be the most significant byte. 
+// Reads arbitrary binary data from UART1 and sends it as ASCII to UART0.
 void binaryToAsciiService()
 {
     while(uart1RxAvailable() && uart0TxAvailable() >= 3)
