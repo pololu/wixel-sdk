@@ -1,27 +1,27 @@
 /* serial_ascii_binary app:
- * This app enables your wixel to convert between hex ASCII characters
- * and binary byte data using the interfaces UART0 and UART1.
+ * This app enables your Wixel to convert between hex ASCII characters
+ * and raw binary byte data using the interfaces UART0 and UART1.
  *
  * The flow of bidirectional information can be described as:
  * binary byte data -> UART1 -> converted into ASCII hex digits -> UART0 -> ASCII hex digits
- * ASCII hex digit -> UART0 -> converted into binary byte data -> UART1 -> binary byte data
+ * ASCII hex digits -> UART0 -> converted into binary byte data -> UART1 -> binary byte data
  *
- * When sending ASCII HEX data to UART0, to signal the start of a data stream, send
- * the delimiting character 'H' first, and then proceed to send your ASCII hex
- * characters.
+ * When sending ASCII hex data to UART0, to signal the start of a data stream, send
+ * the delimiting character 'H' first, and then proceed to send an even number
+ * of hex digits.
  *
- * Example input on UART0:  'H','1','F','A','3'
- * Example output on UART1: 0x1F,0xA3
+ * Example ASCII input on UART0:   'H','1','F','A','3'
+ * Example binary output on UART1: 0x1F,0xA3
  *
- * Example input on UART1:  0xA2,0x35
- * Example output on UART0: 'H','A','2','H','3','5'
+ * Example ASCII input on UART1:   0xA2,0x35
+ * Example binary output on UART0: 'H','A','2','H','3','5'
  *
- * For UART0, the following pins are used:
+ * For UART0, the ASCII interface, the following pins are used:
  *
  * P0_3: TX
  * P0_2: RX
  *
- * For UART1, the following pins are used:
+ * For UART1, the binary interface, the following pins are used:
  * P1_6: TX
  * P1_7: RX
  *
@@ -37,7 +37,7 @@
 #define IS_HEX_DIGIT(byte)(((byte) >= 'a' && (byte) <= 'f') || ((byte) >= '0' && (byte) <= '9'))
 
 
-/** Parameters *********************************************************************************/
+/** Parameters ****************************************************************/
 
 // Set UART0 baud rate.
 int32 CODE param_ascii_baud_rate = 9600;
@@ -45,7 +45,7 @@ int32 CODE param_ascii_baud_rate = 9600;
 // Set UART1 baud rate. 
 int32 CODE param_binary_baud_rate = 9600;
 
-/** Funcions **********************************************************************************/
+/** Functions *****************************************************************/
 
 uint8 hexDigitToNibble(uint8 digit)
 {
@@ -81,11 +81,9 @@ void asciiToBinaryService()
     // Receive ASCII hex on UART0. Send bytes on UART1.
     while(uart0RxAvailable() && uart1TxAvailable())
     {
-        // If we get a hex letter we convert it to lower case.
-        uint8 byte = uart0RxReceiveByte() | 0x20;
+        uint8 byte = uart0RxReceiveByte();
         if (IS_HEX_DIGIT(byte))
         {
-            // Bounds check.
             if(count == 0)
             {
                 firstHexDigit = byte;
@@ -108,9 +106,6 @@ void asciiToBinaryService()
 // The first byte received is assumed to be the most significant byte. 
 void binaryToAsciiService()
 {
-    static uint8 count = 0;
-    static uint8 firstHexDigit = 0;
-    
     while(uart1RxAvailable() && uart0TxAvailable() >= 3)
     {
         uint8 byte = uart1RxReceiveByte();
