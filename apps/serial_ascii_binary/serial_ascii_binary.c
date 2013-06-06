@@ -13,8 +13,8 @@
  * Example ASCII input on UART0:   'H','1','F','A','3'
  * Example binary output on UART1: 0x1F,0xA3
  *
- * Example ASCII input on UART1:   0xA2,0x35
- * Example binary output on UART0: 'H','A','2','H','3','5'
+ * Example binary input on UART1:  0xA2,0x35
+ * Example ASCII output on UART0: 'H','A','2','H','3','5'
  *
  * For UART0, the ASCII interface, the following pins are used:
  *
