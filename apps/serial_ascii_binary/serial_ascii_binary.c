@@ -1,12 +1,3 @@
-#include <wixel.h>
-#include <stdio.h>
-#include <usb.h>
-#include <usb_com.h>
-#include <uart1.h>
-#include <uart0.h>
-
-#define IS_HEX_DIGIT(byte)(((byte) >= 'a' && (byte) <= 'f') || ((byte) >= '0' && (byte) <= '9'))
-
 /* serial_ascii_binary app:
  * This app enables your wixel to convert between hex ASCII characters
  * and binary byte data using the interfaces UART0 and UART1.
@@ -35,6 +26,16 @@
  * P1_7: RX
  *
  */
+
+#include <wixel.h>
+#include <stdio.h>
+#include <usb.h>
+#include <usb_com.h>
+#include <uart1.h>
+#include <uart0.h>
+
+#define IS_HEX_DIGIT(byte)(((byte) >= 'a' && (byte) <= 'f') || ((byte) >= '0' && (byte) <= '9'))
+
 
 /** Parameters *********************************************************************************/
 
