@@ -57,7 +57,7 @@
  *
  * \section interrupts Interrupts
  *
- * All the functions in this library are declarded as reentrant, which means it is
+ * All the functions in this library are declared as reentrant, which means it is
  * safe to call them in your main loop and also in your interrupt service routines
  * (ISRs).
  * However, if you are using these functions in an ISR, you should make sure that

@@ -52,7 +52,7 @@ typedef __bit BIT;
 #define DATA __data
 
 /** Specifies that the variable is stored in the paged data area (the first 256 bytes
- * of XDATA).  This the default memory space for variables.  Accessing PDATA variables
+ * of XDATA).  This is the default memory space for variables.  Accessing PDATA variables
  * takes less code space than accessing XDATA variables.
  */
 #define PDATA __pdata

@@ -17,8 +17,7 @@ http://www.pololu.com/docs/0J46
 #include <time.h>
 #include <gpio.h>
 #include <radio_queue.h>
-
-#define MAX_TX_INTERVAL 10 // maximum time between transmissions (ms)
+#include <adc.h>
 
 #define PIN_COUNT 15
 static uint8 CODE pins[PIN_COUNT] = {0, 1, 2, 3, 4, 5, 10, 11, 12, 13, 14, 15, 16, 17, 21};
@@ -165,6 +164,7 @@ void main(void)
     uint8 XDATA * rxBuf;
 
     uint8 lastTx = 0;
+    uint8 txInterval = 0;
 
     systemInit();
     usbInit();
@@ -187,13 +187,18 @@ void main(void)
         }
 
         // read our input pins and transmit pin states to other Wixel(s) every MAX_TX_INTERVAL milliseconds
-        if (txEnabled && (uint8)(getMs() - lastTx) > MAX_TX_INTERVAL && (txBuf = radioQueueTxCurrentPacket()))
+        if (txEnabled && (uint8)(getMs() - lastTx) > txInterval && (txBuf = radioQueueTxCurrentPacket()))
         {
             readPins(txBuf + 1);
             *txBuf = inPinCount; // set packet length byte
             radioQueueTxSendPacket();
 
             lastTx = getMs();
+            
+            // Decide when to send the next packet.  We take a noisy reading of the temperature sensor
+            // to get two random bits, so that we can avoid accidentally getting synchronized with another
+            // transmitting Wixel.
+            txInterval = 7 + (adcRead(14 | ADC_BITS_7) & 3);
         }
     }
 }

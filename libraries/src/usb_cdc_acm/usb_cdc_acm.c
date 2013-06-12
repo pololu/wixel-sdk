@@ -125,20 +125,20 @@ USB_DESCRIPTOR_DEVICE CODE usbDeviceDescriptor =
 };
 
 CODE struct CONFIG1 {
-    struct USB_DESCRIPTOR_CONFIGURATION configuration;
+    USB_DESCRIPTOR_CONFIGURATION configuration;
 
-    struct USB_DESCRIPTOR_INTERFACE communication_interface;
+    USB_DESCRIPTOR_INTERFACE communication_interface;
     unsigned char class_specific[19];  // CDC-Specific Descriptors
-    struct USB_DESCRIPTOR_ENDPOINT notification_element;
+    USB_DESCRIPTOR_ENDPOINT notification_element;
 
-    struct USB_DESCRIPTOR_INTERFACE data_interface;
-    struct USB_DESCRIPTOR_ENDPOINT data_out;
-    struct USB_DESCRIPTOR_ENDPOINT data_in;
+    USB_DESCRIPTOR_INTERFACE data_interface;
+    USB_DESCRIPTOR_ENDPOINT data_out;
+    USB_DESCRIPTOR_ENDPOINT data_in;
 } usbConfigurationDescriptor
 =
 {
     {                                                    // Configuration Descriptor
-        sizeof(struct USB_DESCRIPTOR_CONFIGURATION),
+        sizeof(USB_DESCRIPTOR_CONFIGURATION),
         USB_DESCRIPTOR_TYPE_CONFIGURATION,
         sizeof(struct CONFIG1),                          // wTotalLength
         2,                                               // bNumInterfaces
@@ -148,7 +148,7 @@ CODE struct CONFIG1 {
         50,                                              // bMaxPower
     },
     {                                                    // Communications Interface: Used for device management.
-        sizeof(struct USB_DESCRIPTOR_INTERFACE),
+        sizeof(USB_DESCRIPTOR_INTERFACE),
         USB_DESCRIPTOR_TYPE_INTERFACE,
         CDC_CONTROL_INTERFACE_NUMBER,                    // bInterfaceNumber
         0,                                               // bAlternateSetting
@@ -185,7 +185,7 @@ CODE struct CONFIG1 {
         CDC_DATA_INTERFACE_NUMBER                        // index of the data interface
     },
     {
-        sizeof(struct USB_DESCRIPTOR_ENDPOINT),
+        sizeof(USB_DESCRIPTOR_ENDPOINT),
         USB_DESCRIPTOR_TYPE_ENDPOINT,
         USB_ENDPOINT_ADDRESS_IN | CDC_NOTIFICATION_ENDPOINT,  // bEndpointAddress
         USB_TRANSFER_TYPE_INTERRUPT,                     // bmAttributes
@@ -193,7 +193,7 @@ CODE struct CONFIG1 {
         1,                                               // bInterval
     },
     {
-        sizeof(struct USB_DESCRIPTOR_INTERFACE),         // Data Interface: used for RX and TX data.
+        sizeof(USB_DESCRIPTOR_INTERFACE),         // Data Interface: used for RX and TX data.
         USB_DESCRIPTOR_TYPE_INTERFACE,
         CDC_DATA_INTERFACE_NUMBER,                       // bInterfaceNumber
         0,                                               // bAlternateSetting
@@ -204,7 +204,7 @@ CODE struct CONFIG1 {
         0                                                // iInterface
     },
     {                                                    // OUT Endpoint: Sends data out to Wixel.
-        sizeof(struct USB_DESCRIPTOR_ENDPOINT),
+        sizeof(USB_DESCRIPTOR_ENDPOINT),
         USB_DESCRIPTOR_TYPE_ENDPOINT,
         USB_ENDPOINT_ADDRESS_OUT | CDC_DATA_ENDPOINT,    // bEndpointAddress
         USB_TRANSFER_TYPE_BULK,                          // bmAttributes
@@ -212,7 +212,7 @@ CODE struct CONFIG1 {
         0,                                               // bInterval
     },
     {
-        sizeof(struct USB_DESCRIPTOR_ENDPOINT),
+        sizeof(USB_DESCRIPTOR_ENDPOINT),
         USB_DESCRIPTOR_TYPE_ENDPOINT,
         USB_ENDPOINT_ADDRESS_IN | CDC_DATA_ENDPOINT,     // bEndpointAddress
         USB_TRANSFER_TYPE_BULK,                          // bmAttributes

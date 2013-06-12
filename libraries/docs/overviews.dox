@@ -215,7 +215,7 @@ useful for your application.  In particular, if you need to format a string of
 ASCII text, <code>sprintf</code> is useful.  SDCC also provides math routines
 and a memory allocation routine (malloc).
 See the
-<a href="http://sdcc.sourceforge.net/doc/sdccman.html/node92.html">Library
+<a href="http://sdcc.sourceforge.net/doc/sdccman.html/node95.html">Library
 Routines section of the SDCC manual</a> for more information.
 Also, several of the example and test apps in the <code>apps</code> directory
 use <code>printf</code> or <code>sprintf</code>.

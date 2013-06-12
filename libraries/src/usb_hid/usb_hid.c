@@ -653,7 +653,7 @@ uint8 CODE hidKeyCode[128] =
     KEY_PERIOD,        // 0x3E >
     KEY_SLASH,         // 0x3F ?
 
-    KEY_3,             // 0x40 @
+    KEY_2,             // 0x40 @
     KEY_A,             // 0x41 A
     KEY_B,             // 0x42 B
     KEY_C,             // 0x43 C
