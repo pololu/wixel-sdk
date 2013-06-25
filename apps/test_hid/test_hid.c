@@ -101,14 +101,14 @@ void updateMouseState()
 void joystickService()
 {
     uint16 time;
-    uint8 tmp;
+    uint16 tmp;
 
     if (!param_move_joystick){ return; }
 
     time = (uint16)getMs();
-    tmp = (uint8)(time >> 3);
+    tmp = time << 5;
 
-    usbHidJoystickInput.buttons = 1 << (time >> 8 & 0xF);
+    usbHidJoystickInput.buttons = (uint32)1 << (time >> 8 & 0x1F);
 
     usbHidJoystickInput.x = 0;
     usbHidJoystickInput.y = 0;
@@ -125,6 +125,8 @@ void joystickService()
     case 3: usbHidJoystickInput.rx = tmp; break;
     case 4: usbHidJoystickInput.ry = tmp; break;
     case 5: usbHidJoystickInput.rz = tmp; break;
+    case 6: usbHidJoystickInput.slider = tmp; break;
+    case 7: usbHidJoystickInput.dial = tmp; break;
     }
 
     usbHidJoystickInputUpdated = 1;

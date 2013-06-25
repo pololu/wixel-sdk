@@ -103,14 +103,16 @@ typedef struct HID_MOUSE_IN_REPORT
  * device's joystick interface to the host. */
 typedef struct HID_JOYSTICK_IN_REPORT
 {
-    int8 x;  /*!< Joystick X axis position.  Valid values are from -127 to 127. */
-    int8 y;  /*!< Joystick Y axis position.  Valid values are from -127 to 127. */
-    int8 z;  /*!< Joystick Z axis position.  Valid values are from -127 to 127. */
-    int8 rx; /*!< Joystick's rotation about the X axis.  Valid values are from -127 to 127. */
-    int8 ry; /*!< Joystick's rotation about the Y axis.  Valid values are from -127 to 127. */
-    int8 rz; /*!< Joystick's rotation about the Z axis.  Valid values are from -127 to 127. */
+    int16 x;      /*!< Joystick X axis position.  Valid values are from -32767 to 32767. */
+    int16 y;      /*!< Joystick Y axis position.  Valid values are from -32767 to 32767. */
+    int16 z;      /*!< Joystick Z axis position.  Valid values are from -32767 to 32767. */
+    int16 rx;     /*!< Joystick's rotation about the X axis.  Valid values are from -32767 to 32767. */
+    int16 ry;     /*!< Joystick's rotation about the Y axis.  Valid values are from -32767 to 32767. */
+    int16 rz;     /*!< Joystick's rotation about the Z axis.  Valid values are from -32767 to 32767. */
+    int16 slider; /*!< Joystick's slider position.  Valid values are from -32767 to 32767. */
+    int16 dial;   /*!< Joystick's dial position.  Valid values are from -32767 to 32767. */
 
-    uint16 buttons; /*!< A bit map that specifies which buttons are pressed. */
+    uint32 buttons; /*!< A bit map that specifies which buttons are pressed. */
 } HID_JOYSTICK_IN_REPORT;
 
 /*! Contains \b output data received by the \b keyboard interface from the host.
