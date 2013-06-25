@@ -9,7 +9,10 @@
 
 /* HID Library Configuration **************************************************/
 
-#define HID_IN_PACKET_SIZE            8
+#define HID_IN_KEYBOARD_PACKET_SIZE   8
+#define HID_IN_MOUSE_PACKET_SIZE      4
+#define HID_IN_JOYSTICK_PACKET_SIZE   20
+
 #define HID_KEYBOARD_INTERFACE_NUMBER 0
 #define HID_MOUSE_INTERFACE_NUMBER    1
 #define HID_JOYSTICK_INTERFACE_NUMBER 2
@@ -52,6 +55,7 @@
 #define HID_USAGE_MIN       0x19
 #define HID_USAGE_MAX       0x29
 #define HID_LOGICAL_MIN     0x15
+#define HID_LOGICAL_MIN_2   0x16 // 2-byte data
 #define HID_LOGICAL_MAX     0x25
 #define HID_LOGICAL_MAX_2   0x26 // 2-byte data
 #define HID_INPUT           0x81
@@ -74,6 +78,8 @@
 #define HID_USAGE_RX       0x33
 #define HID_USAGE_RY       0x34
 #define HID_USAGE_RZ       0x35
+#define HID_USAGE_SLIDER   0x36
+#define HID_USAGE_DIAL     0x37
 #define HID_USAGE_WHEEL    0x38
 
 // HID Report Collection Types from HID 1.12 6.2.2.6
@@ -213,25 +219,27 @@ uint8 CODE joystickReportDescriptor[]
         HID_USAGE, HID_USAGE_POINTER,
         HID_COLLECTION, HID_COLLECTION_PHYSICAL,
 
-            HID_REPORT_COUNT, 6, // 6 Axes (X, Y, Z, Rx, Ry, Rz)
-            HID_REPORT_SIZE, 8,
+            HID_REPORT_COUNT, 8, // 8 Axes (X, Y, Z, Rx, Ry, Rz, Slider, Dial)
+            HID_REPORT_SIZE, 16,
             HID_USAGE, HID_USAGE_X,
             HID_USAGE, HID_USAGE_Y,
             HID_USAGE, HID_USAGE_Z,
             HID_USAGE, HID_USAGE_RX,
             HID_USAGE, HID_USAGE_RY,
             HID_USAGE, HID_USAGE_RZ,
-            HID_LOGICAL_MIN, -127,
-            HID_LOGICAL_MAX, 127,
+            HID_USAGE, HID_USAGE_SLIDER,
+            HID_USAGE, HID_USAGE_DIAL,
+            HID_LOGICAL_MIN_2, 0x80, 0x01, // -32767
+            HID_LOGICAL_MAX_2, 0x7F, 0xFF, //  32767
             HID_INPUT, HID_ITEM_VARIABLE,
 
         HID_END_COLLECTION,
 
-        HID_REPORT_COUNT, 16, // 16 Joystick Buttons
+        HID_REPORT_COUNT, 32, // 32 Joystick Buttons
         HID_REPORT_SIZE, 1,
         HID_USAGE_PAGE, HID_USAGE_PAGE_BUTTONS,
         HID_USAGE_MIN, 1,
-        HID_USAGE_MAX, 16,
+        HID_USAGE_MAX, 32,
         HID_LOGICAL_MIN, 0,
         HID_LOGICAL_MAX, 1,
         HID_INPUT, HID_ITEM_VARIABLE,
@@ -291,7 +299,7 @@ CODE struct CONFIG1 {
         USB_DESCRIPTOR_TYPE_ENDPOINT,
         USB_ENDPOINT_ADDRESS_IN | HID_KEYBOARD_ENDPOINT, // bEndpointAddress
         USB_TRANSFER_TYPE_INTERRUPT,                     // bmAttributes
-        HID_IN_PACKET_SIZE,                              // wMaxPacketSize
+        HID_IN_KEYBOARD_PACKET_SIZE,                     // wMaxPacketSize
         10,                                              // bInterval
     },
     {                                                    // Mouse Interface
@@ -319,7 +327,7 @@ CODE struct CONFIG1 {
         USB_DESCRIPTOR_TYPE_ENDPOINT,
         USB_ENDPOINT_ADDRESS_IN | HID_MOUSE_ENDPOINT,    // bEndpointAddress
         USB_TRANSFER_TYPE_INTERRUPT,                     // bmAttributes
-        HID_IN_PACKET_SIZE,                              // wMaxPacketSize
+        HID_IN_MOUSE_PACKET_SIZE,                        // wMaxPacketSize
         10,                                              // bInterval
     },
     {                                                    // Joystick Interface
@@ -347,7 +355,7 @@ CODE struct CONFIG1 {
         USB_DESCRIPTOR_TYPE_ENDPOINT,
         USB_ENDPOINT_ADDRESS_IN | HID_JOYSTICK_ENDPOINT, // bEndpointAddress
         USB_TRANSFER_TYPE_INTERRUPT,                     // bmAttributes
-        HID_IN_PACKET_SIZE,                              // wMaxPacketSize
+        HID_IN_JOYSTICK_PACKET_SIZE,                     // wMaxPacketSize
         10,                                              // bInterval
     },
 };
@@ -366,7 +374,7 @@ uint16 CODE * CODE usbStringDescriptors[] = { languages, manufacturer, product, 
 HID_KEYBOARD_OUT_REPORT XDATA usbHidKeyboardOutput = {0};
 HID_KEYBOARD_IN_REPORT XDATA usbHidKeyboardInput = {0, 0, {0}};
 HID_MOUSE_IN_REPORT XDATA usbHidMouseInput = {0, 0, 0, 0};
-HID_JOYSTICK_IN_REPORT XDATA usbHidJoystickInput = {0, 0, 0, 0, 0, 0, 0};
+HID_JOYSTICK_IN_REPORT XDATA usbHidJoystickInput = {0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 BIT usbHidKeyboardInputUpdated = 0;
 BIT usbHidMouseInputUpdated    = 0;
@@ -383,9 +391,9 @@ BIT hidMouseProtocol    = HID_PROTOCOL_REPORT;
 
 void usbCallbackInitEndpoints(void)
 {
-    usbInitEndpointIn(HID_KEYBOARD_ENDPOINT, HID_IN_PACKET_SIZE);
-    usbInitEndpointIn(HID_MOUSE_ENDPOINT, HID_IN_PACKET_SIZE);
-    usbInitEndpointIn(HID_JOYSTICK_ENDPOINT, HID_IN_PACKET_SIZE);
+    usbInitEndpointIn(HID_KEYBOARD_ENDPOINT, HID_IN_KEYBOARD_PACKET_SIZE);
+    usbInitEndpointIn(HID_MOUSE_ENDPOINT, HID_IN_MOUSE_PACKET_SIZE);
+    usbInitEndpointIn(HID_JOYSTICK_ENDPOINT, HID_IN_JOYSTICK_PACKET_SIZE);
 }
 
 // Implements all the control transfers that are required by Appendix G of HID 1.11.
