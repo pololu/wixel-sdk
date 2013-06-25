@@ -49,14 +49,14 @@ int32 CODE param_P1_7_pull_enable = 1;
 // Assign which buttons belong to which pin.
 // Buttons can only be assigned to pins
 // P1_0 through P1_7.
-int32 CODE param_button1_pin = 10;
-int32 CODE param_button2_pin = 11;
-int32 CODE param_button3_pin = 12;
-int32 CODE param_button4_pin = 13;
-int32 CODE param_button5_pin = 14;
-int32 CODE param_button6_pin = 15;
-int32 CODE param_button7_pin = 16;
-int32 CODE param_button8_pin = 17;
+int32 CODE param_button1_pin = 12;
+int32 CODE param_button2_pin = 13;
+int32 CODE param_button3_pin = 14;
+int32 CODE param_button4_pin = 15;
+int32 CODE param_button5_pin = 16;
+int32 CODE param_button6_pin = 17;
+int32 CODE param_button7_pin = -1;
+int32 CODE param_button8_pin = -1;
 int32 CODE param_button9_pin = -1;
 int32 CODE param_button10_pin = -1;
 int32 CODE param_button11_pin = -1;
@@ -119,7 +119,7 @@ void updateLeds()
 }
 
 // Updates the axis position.
-void axisUpdate(int32 analogChannel, int32 axisInvert, int32 axisEnable, int8 * axis)
+void axisUpdate(int32 analogChannel, int32 axisInvert, int32 axisEnable, int16 * axis)
 {
     
     int16 analogValue;
@@ -132,7 +132,7 @@ void axisUpdate(int32 analogChannel, int32 axisInvert, int32 axisEnable, int8 * 
         
     analogValue = adcRead(analogChannel);
     lastValue = *axis;
-    *axis = ((axisInvert ? 2047 - analogValue : analogValue) >> 3) - 128;
+    *axis = ((axisInvert ? 2047 - analogValue : analogValue) << 5) - 32767;
     
     if(lastValue != *axis)
         usbHidJoystickInputUpdated = 1;
