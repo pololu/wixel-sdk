@@ -158,22 +158,22 @@ void joystickService()
     axisUpdate(param_RZ_pin, param_RZ_axis_invert, param_RZ_axis_enable, &usbHidJoystickInput.rz);
     
     // Set button status.
-    usbHidJoystickInput.buttons |= (isPinHigh(param_button1_pin) ^ param_button1_invert) << 1;
-    usbHidJoystickInput.buttons |= (isPinHigh(param_button2_pin) ^ param_button2_invert) << 2;
-    usbHidJoystickInput.buttons |= (isPinHigh(param_button3_pin) ^ param_button3_invert) << 3;
-    usbHidJoystickInput.buttons |= (isPinHigh(param_button4_pin) ^ param_button4_invert) << 4;
-    usbHidJoystickInput.buttons |= (isPinHigh(param_button5_pin) ^ param_button5_invert) << 5;
-    usbHidJoystickInput.buttons |= (isPinHigh(param_button6_pin) ^ param_button6_invert) << 6;
-    usbHidJoystickInput.buttons |= (isPinHigh(param_button7_pin) ^ param_button7_invert) << 7;
-    usbHidJoystickInput.buttons |= (isPinHigh(param_button8_pin) ^ param_button8_invert) << 8;
-    usbHidJoystickInput.buttons |= (isPinHigh(param_button9_pin) ^ param_button9_invert) << 9;
-    usbHidJoystickInput.buttons |= (isPinHigh(param_button10_pin) ^ param_button10_invert) << 10;
-    usbHidJoystickInput.buttons |= (isPinHigh(param_button11_pin) ^ param_button11_invert) << 11;
-    usbHidJoystickInput.buttons |= (isPinHigh(param_button12_pin) ^ param_button12_invert) << 12;
-    usbHidJoystickInput.buttons |= (isPinHigh(param_button13_pin) ^ param_button13_invert) << 13;
-    usbHidJoystickInput.buttons |= (isPinHigh(param_button14_pin) ^ param_button14_invert) << 14;
-    usbHidJoystickInput.buttons |= (isPinHigh(param_button15_pin) ^ param_button15_invert) << 15;
-    usbHidJoystickInput.buttons |= (isPinHigh(param_button16_pin) ^ param_button16_invert) << 16;
+    usbHidJoystickInput.buttons |= (param_button1_pin != -1 & (isPinHigh(param_button1_pin) ^ param_button1_invert)) << 0;
+    usbHidJoystickInput.buttons |= (param_button2_pin != -1 & (isPinHigh(param_button2_pin) ^ param_button2_invert)) << 1;
+    usbHidJoystickInput.buttons |= (param_button3_pin != -1 & (isPinHigh(param_button3_pin) ^ param_button3_invert)) << 2;
+    usbHidJoystickInput.buttons |= (param_button4_pin != -1 & (isPinHigh(param_button4_pin) ^ param_button4_invert)) << 3;
+    usbHidJoystickInput.buttons |= (param_button5_pin != -1 & (isPinHigh(param_button5_pin) ^ param_button5_invert)) << 4;
+    usbHidJoystickInput.buttons |= (param_button6_pin != -1 & (isPinHigh(param_button6_pin) ^ param_button6_invert)) << 5;
+    usbHidJoystickInput.buttons |= (param_button7_pin != -1 & (isPinHigh(param_button7_pin) ^ param_button7_invert)) << 6;
+    usbHidJoystickInput.buttons |= (param_button8_pin != -1 & (isPinHigh(param_button8_pin) ^ param_button8_invert)) << 7;
+    usbHidJoystickInput.buttons |= (param_button9_pin != -1 & (isPinHigh(param_button9_pin) ^ param_button9_invert)) << 8;
+    usbHidJoystickInput.buttons |= (param_button10_pin != -1 & (isPinHigh(param_button10_pin) ^ param_button10_invert)) << 9;
+    usbHidJoystickInput.buttons |= (param_button11_pin != -1 & (isPinHigh(param_button11_pin) ^ param_button11_invert)) << 10;
+    usbHidJoystickInput.buttons |= (param_button12_pin != -1 & (isPinHigh(param_button12_pin) ^ param_button12_invert)) << 11;
+    usbHidJoystickInput.buttons |= (param_button13_pin != -1 & (isPinHigh(param_button13_pin) ^ param_button13_invert)) << 12;
+    usbHidJoystickInput.buttons |= (param_button14_pin != -1 & (isPinHigh(param_button14_pin) ^ param_button14_invert)) << 13;
+    usbHidJoystickInput.buttons |= (param_button15_pin != -1 & (isPinHigh(param_button15_pin) ^ param_button15_invert)) << 14;
+    usbHidJoystickInput.buttons |= (param_button16_pin != -1 & (isPinHigh(param_button16_pin) ^ param_button16_invert)) << 15;
     
     if(lastButtons != usbHidJoystickInput.buttons)
         usbHidJoystickInputUpdated = 1;
