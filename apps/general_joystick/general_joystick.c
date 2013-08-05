@@ -2,22 +2,17 @@
 
  This configurable app allows one to build a custom HID joystick
  using the Wixel. The joystick appears as an HID device over a (wired) USB connection.
- 
+
  Configurable features include:
- 
+
     - Pull types (high or low) for ports 0 and 1
     - Pin enable options for P0_0 through P0_5 and P1_0 through P1_7
     - Assignable buttons to pins
     - Button inversion options
-    - Axis inversion for {x,y,z,Rx,ry,rz}  
+    - Axis inversion for {x,y,z,Rx,ry,rz}
     - Axis enable options for {x,y,z,rx,ry,rz}
-    - Assignable axis {x,y,z,rx,ry,rz} to pins P0_0 through P0_5 
+    - Assignable axis {x,y,z,rx,ry,rz} to pins P0_0 through P0_5
 
- The app parameters are configured with the Wixel Configuration Utility
- and are loaded onto the Wixel. Once the Wixel is integrated into the 
- joystick circuit, the joystick can be plugged into the computer via 
- USB to mini cable.
- 
  The joystick axes {x,y,z,rx,ry,rz} use analog pins P0_0 through P0_5.
  If the joystick does not need all these axes, then the analog pins
  can be used as digital buttons instead. The user can also reassign which axis
@@ -27,7 +22,7 @@
 
 #include <wixel.h>
 #include <usb.h>
-#include <usb_hid.h>                     
+#include <usb_hid.h>
 
 // Each pin can have a pull status of the following:
 // HIGH_IMPEDANCE (0): Disables the internal pull-up and pull-down resistors on that pin.
@@ -121,42 +116,40 @@ void updateLeds()
 // Updates the axis position.
 void axisUpdate(int32 analogChannel, int32 axisInvert, int32 axisEnable, int16 * axis)
 {
-    
     int16 analogValue;
     int8 lastValue;
-    
+
     if(!axisEnable)
         return;
     if(0 > analogChannel || analogChannel > 5)
         return;
-        
+
     analogValue = adcRead(analogChannel);
     lastValue = *axis;
     *axis = ((axisInvert ? 2047 - analogValue : analogValue) << 5) - 32767;
-    
+
     if(lastValue != *axis)
         usbHidJoystickInputUpdated = 1;
-
 }
 
 void joystickService()
 {
     uint16 lastButtons = usbHidJoystickInput.buttons;
     usbHidJoystickInput.buttons = 0;
-    
+
     // Update x-axis position.
     axisUpdate(param_X_pin, param_X_axis_invert, param_X_axis_enable, &usbHidJoystickInput.x);
-    // Update y-axis position.        
+    // Update y-axis position.
     axisUpdate(param_Y_pin, param_Y_axis_invert, param_Y_axis_enable, &usbHidJoystickInput.y);
-    // Update z-axis position.       
+    // Update z-axis position.
     axisUpdate(param_Z_pin, param_Z_axis_invert, param_Z_axis_enable, &usbHidJoystickInput.z);
-    // Update rx-axis position.        
-    axisUpdate(param_RX_pin, param_RX_axis_invert, param_RX_axis_enable, &usbHidJoystickInput.rx);            
-    // Update ry-axis position.       
+    // Update rx-axis position.
+    axisUpdate(param_RX_pin, param_RX_axis_invert, param_RX_axis_enable, &usbHidJoystickInput.rx);
+    // Update ry-axis position.
     axisUpdate(param_RY_pin, param_RY_axis_invert, param_RY_axis_enable, &usbHidJoystickInput.ry);
-    // Update rz-axis position.       
+    // Update rz-axis position.
     axisUpdate(param_RZ_pin, param_RZ_axis_invert, param_RZ_axis_enable, &usbHidJoystickInput.rz);
-    
+
     // Set button status.
     usbHidJoystickInput.buttons |= (param_button1_pin != -1 & (isPinHigh(param_button1_pin) ^ param_button1_invert)) << 0;
     usbHidJoystickInput.buttons |= (param_button2_pin != -1 & (isPinHigh(param_button2_pin) ^ param_button2_invert)) << 1;
@@ -174,17 +167,16 @@ void joystickService()
     usbHidJoystickInput.buttons |= (param_button14_pin != -1 & (isPinHigh(param_button14_pin) ^ param_button14_invert)) << 13;
     usbHidJoystickInput.buttons |= (param_button15_pin != -1 & (isPinHigh(param_button15_pin) ^ param_button15_invert)) << 14;
     usbHidJoystickInput.buttons |= (param_button16_pin != -1 & (isPinHigh(param_button16_pin) ^ param_button16_invert)) << 15;
-    
+
     if(lastButtons != usbHidJoystickInput.buttons)
         usbHidJoystickInputUpdated = 1;
-
 }
 
 void setup()
 {
     // Set pull type for port 0 to either pull up or pull down.
     setPort0PullType(param_port0_pull_type);
-    
+
     // Define enable status for pins on port 0
     setDigitalInput(0, param_P0_0_pull_enable);
     setDigitalInput(1, param_P0_1_pull_enable);
@@ -195,8 +187,8 @@ void setup()
 
     // Set pull type for port 1 to either pull up or pull down.
     setPort1PullType(param_port1_pull_type);
-    
-    // Define enable status for pins on port 1.
+
+    // Define enable status for pins on port 1 (P1_0 and P1_1 don't have pull-ups/pull-downs)
     setDigitalInput(12, param_P1_2_pull_enable);
     setDigitalInput(13, param_P1_3_pull_enable);
     setDigitalInput(14, param_P1_4_pull_enable);
