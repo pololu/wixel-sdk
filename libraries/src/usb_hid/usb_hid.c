@@ -229,8 +229,8 @@ uint8 CODE joystickReportDescriptor[]
             HID_USAGE, HID_USAGE_RZ,
             HID_USAGE, HID_USAGE_SLIDER,
             HID_USAGE, HID_USAGE_DIAL,
-            HID_LOGICAL_MIN_2, 0x80, 0x01, // -32767
-            HID_LOGICAL_MAX_2, 0x7F, 0xFF, //  32767
+            HID_LOGICAL_MIN_2, 0x01, 0x80, // -32767
+            HID_LOGICAL_MAX_2, 0xFF, 0x7F, //  32767
             HID_INPUT, HID_ITEM_VARIABLE,
 
         HID_END_COLLECTION,
