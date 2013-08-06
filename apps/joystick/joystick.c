@@ -1,4 +1,4 @@
-/** general_joystick.c:
+/** joystick.c:
 
  This configurable app allows one to build a custom HID joystick
  using the Wixel. The joystick appears as an HID device over a (wired) USB connection.
