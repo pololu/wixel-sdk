@@ -118,7 +118,7 @@ void updateLeds()
 void axisUpdate(int32 analogChannel, int32 axisInvert, int16 * axis)
 {
     int16 analogValue;
-    int8 lastValue;
+    int16 lastValue;
 
     if(0 > analogChannel || analogChannel > 5)
         return;
