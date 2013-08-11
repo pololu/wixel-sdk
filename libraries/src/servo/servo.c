@@ -51,7 +51,7 @@ static volatile struct SERVO_DATA XDATA servoData[MAX_SERVOS];
 
 // Bitmasks for keeping track of which pins are being used as servos.
 // A 1 bit indicates that the pin is a servo pulse output pin.
-// A 0 but indicates that the pin will be used for something else and
+// A 0 bit indicates that the pin will be used for something else and
 // this library should not touch it.
 static volatile uint8 servoPinsOnPort0;
 static volatile uint8 servoPinsOnPort1;
