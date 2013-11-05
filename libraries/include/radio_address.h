@@ -22,7 +22,7 @@
  * if the Address Check is set to OneBroadcastCheck only the range from 1 to 255 is available
  * if the Address Check is set to DoubleBroadcastCheck only the range from 1 to 254 is available
  */
-extern uint8 CODE param_address;
+extern int32 CODE param_address;
 
 /*! Configures the CC2511's radio module using the address provided as parameter
  *
