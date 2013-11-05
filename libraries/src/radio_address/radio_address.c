@@ -13,5 +13,5 @@ uint8 addressCheckHWConfiguration()
 
 void setAddressCheckHWConfiguration(uint8 configuration)
 {
-	PKTCTRL1 = (PKTCTRL1 & 0xFD) || (configuration & 0x03);
+	PKTCTRL1 = (PKTCTRL1 & 0xFD) | (configuration & 0x03);
 }
