@@ -17,13 +17,13 @@ void radioAddressInit()
     ADDR = param_address;
 }
 
-// Returns the current Adddress Check configuration
+// Returns the current Address Check configuration
 uint8 addressCheckHWConfiguration()
 {
 	return PKTCTRL1 & 0x03;
 }
 
-// Sets the Adddress Check configuration
+// Sets the Address Check configuration
 void setAddressCheckHWConfiguration(uint8 configuration)
 {
 	PKTCTRL1 = (PKTCTRL1 & 0xFD) | (configuration & 0x03);
