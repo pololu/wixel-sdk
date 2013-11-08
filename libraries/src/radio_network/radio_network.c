@@ -444,6 +444,7 @@ BIT managePacket(uint8 *packet)
             }
 			return 1;
         }
+		return 0;
     }
     if (packet[DESTINATION_ADDRESS] != param_address) //not for this node
     {
