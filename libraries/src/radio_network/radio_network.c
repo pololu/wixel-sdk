@@ -36,9 +36,9 @@ int32 CODE param_radio_channel = 128;
 #define RADIO_NETWORK_PACKET_LENGTH_OFFSET 0
 
 #define HEADER_LENGTH 3
-#define NODE_ADDRESS RADIO_NETWORK_PACKET_LENGTH_OFFSET+1
-#define DESTINATION_ADDRESS RADIO_NETWORK_PACKET_LENGTH_OFFSET+2
-#define SOURCE_ADDRESS RADIO_NETWORK_PACKET_LENGTH_OFFSET+3
+#define NODE_ADDRESS 1
+#define DESTINATION_ADDRESS 2
+#define SOURCE_ADDRESS 3
 
 /*  rxPackets:
  *  We need to be prepared at all times to receive a full packet from another
@@ -184,9 +184,9 @@ uint8 XDATA * radioExternalTxCurrentPacket()
 
 void radioNetworkTxSendPacket(void)
 {
-    uint8 XDATA * currentTxPacket = radioNetworkRxPacket[radioNetworkTxMainLoopIndex];
-    //if (currentTxPacket[NODE_ADDRESS] != param_address) // do not send packet to myself
-    //{
+    uint8 XDATA * currentTxPacket = radioNetworkTxPacket[radioNetworkTxMainLoopIndex];
+    if (currentTxPacket[NODE_ADDRESS] != (uint8)param_address) // do not send packet to myself
+    {
         // Update our index of which packet to populate in the main loop.
         if (radioNetworkTxMainLoopIndex == TX_PACKET_COUNT - 1)
         {
@@ -196,7 +196,7 @@ void radioNetworkTxSendPacket(void)
         {
             radioNetworkTxMainLoopIndex++;
         }
-    //}
+    }
 
     // Make sure that radioMacEventHandler runs soon so it can see this new data and send it.
     // This must be done LAST.
@@ -376,7 +376,7 @@ BIT isNodeReachable(uint8 address)
 uint8 getNextNodeAddress(uint8 address)
 {
     if (address == param_address) return param_address; //Very strange in this way i can filter during TX;
-    if (address == 0) return param_address; //Very strange in this way i can filter during TX;
+    if (address == 0) return 0; //broadcast
     if (address > param_address) address -= 1; // the current node is not inside the table
     address -= 1; //zero is not stored;
     if (radioNetworkRoutingTable[address][ROUTING_TABLE_ADDRESS_OFFSET] == 0) return param_address; //Not reachable I'll stop it during TX
@@ -466,7 +466,7 @@ BIT radioNetworkService(void)
 {
     uint8 index;
     uint8 ttl;
-    if (getMs() - lastUpdate > 20000) // 20 seconds
+    if (getMs() - lastUpdate > 10000) // 20 seconds
     {
         if (nextIndex >= ROUTING_TABLE_RECORD_COUNT)
         {
