@@ -93,8 +93,9 @@ static volatile uint8 DATA radioExternalTxInterruptIndex = 0;  // The index of t
 #define ROUTING_TABLE_TTL_MAX 0x03
 #define ROUTING_TABLE_HOP_COUNT_OFFSET 2
 #define ROUTING_TABLE_HOP_COUNT_MASK 0xFC
-#define ROUTING_TABLE_HOP_COUNT_MAX 0x3F
-#define ROUTING_PACKET_RECORD_SIZE ROUTING_TABLE_RECORD_SIZE + 1
+#define ROUTING_TABLE_HOP_COUNT_POISON 0xFF & ROUTING_TABLE_HOP_COUNT_MASK
+#define ROUTING_TABLE_HOP_COUNT_MAX ROUTING_TABLE_HOP_COUNT_POISON - 1 
+#define ROUTING_PACKET_RECORD_SIZE SET_HOP_COUNT(0, GET_HOP_COUNT(ROUTING_TABLE_HOP_COUNT_MAX) -1)
 #define ROUTING_PACKET_ADDRESS_OFFSET 0
 #define ROUTING_PACKET_NEXT_ADDRESS_OFFSET 1
 #define ROUTING_PACKET_OPTIONS_OFFSET 2
@@ -373,7 +374,7 @@ BIT isNodeReachable(uint8 address)
     if (address == 0) return 0; //Very strange
     if (address > param_address) address -= 1; // the current node is not inside the table
     address -= 1; //zero is not stored
-    if (radioNetworkRoutingTable[address][ROUTING_TABLE_ADDRESS_OFFSET] == 0 || GET_HOP_COUNT(radioNetworkRoutingTable[address][ROUTING_TABLE_OPTIONS_OFFSET]) == ROUTING_TABLE_HOP_COUNT_MAX) return 0; //Not reachable (or poisoned) I'll stop it during TX
+    if (radioNetworkRoutingTable[address][ROUTING_TABLE_ADDRESS_OFFSET] == 0 || GET_HOP_COUNT(radioNetworkRoutingTable[address][ROUTING_TABLE_OPTIONS_OFFSET]) == ROUTING_TABLE_HOP_COUNT_POISON) return 0; //Not reachable (or poisoned) I'll stop it during TX
     return 1;
 }
 
@@ -383,7 +384,7 @@ uint8 getNextNodeAddress(uint8 address)
     if (address == 0) return 0; //broadcast
     if (address > param_address) address -= 1; // the current node is not inside the table
     address -= 1; //zero is not stored;
-    if (radioNetworkRoutingTable[address][ROUTING_TABLE_ADDRESS_OFFSET] == 0 || GET_HOP_COUNT(radioNetworkRoutingTable[address][ROUTING_TABLE_OPTIONS_OFFSET]) == ROUTING_TABLE_HOP_COUNT_MAX) return param_address; //Not reachable(or poisoned) I'll stop it during TX
+    if (radioNetworkRoutingTable[address][ROUTING_TABLE_ADDRESS_OFFSET] == 0 || GET_HOP_COUNT(radioNetworkRoutingTable[address][ROUTING_TABLE_OPTIONS_OFFSET]) == ROUTING_TABLE_HOP_COUNT_POISON) return param_address; //Not reachable(or poisoned) I'll stop it during TX
     return radioNetworkRoutingTable[address][ROUTING_TABLE_ADDRESS_OFFSET];
 }
 
@@ -487,10 +488,10 @@ BIT radioNetworkService(void)
                 ttl = GET_TTL(radioNetworkRoutingTable[index][ROUTING_TABLE_OPTIONS_OFFSET]);
                 if (ttl == 0) // it is dead
                 {
-					if (GET_HOP_COUNT(radioNetworkRoutingTable[index][ROUTING_TABLE_OPTIONS_OFFSET]) == ROUTING_TABLE_HOP_COUNT_MAX){
+					if (GET_HOP_COUNT(radioNetworkRoutingTable[index][ROUTING_TABLE_OPTIONS_OFFSET]) == ROUTING_TABLE_HOP_COUNT_POISON){
 						radioNetworkRoutingTable[index][ROUTING_TABLE_ADDRESS_OFFSET] = 0; //not reachable;
 					} else {
-						radioNetworkRoutingTable[index][ROUTING_TABLE_ADDRESS_OFFSET] = SET_TTL(ROUTING_TABLE_HOP_COUNT_MAX, ROUTING_TABLE_TTL_MAX); //route poisoning set max to avoid interferences
+						radioNetworkRoutingTable[index][ROUTING_TABLE_ADDRESS_OFFSET] = SET_TTL(ROUTING_TABLE_HOP_COUNT_POISON, ROUTING_TABLE_TTL_MAX); //route poisoning set max to avoid interferences
 					}
                 }
                 else
@@ -514,7 +515,10 @@ BIT radioNetworkService(void)
                     uint8 address;
                     uint8 hop;
                     while (
-                        radioNetworkRoutingTable[nextIndex][ROUTING_TABLE_ADDRESS_OFFSET] == 0 
+                        (
+						radioNetworkRoutingTable[nextIndex][ROUTING_TABLE_ADDRESS_OFFSET] == 0
+						|| radioNetworkRoutingTable[nextIndex][ROUTING_TABLE_OPTIONS_OFFSET] == SET_TTL(ROUTING_TABLE_HOP_COUNT_POISON, 0)
+						)
                         && (nextIndex < ROUTING_TABLE_RECORD_COUNT)
                     )
                     {
