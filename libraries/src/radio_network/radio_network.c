@@ -93,9 +93,9 @@ static volatile uint8 DATA radioExternalTxInterruptIndex = 0;  // The index of t
 #define ROUTING_TABLE_TTL_MAX 0x03
 #define ROUTING_TABLE_HOP_COUNT_OFFSET 2
 #define ROUTING_TABLE_HOP_COUNT_MASK 0xFC
-#define ROUTING_TABLE_HOP_COUNT_POISON 0xFF & ROUTING_TABLE_HOP_COUNT_MASK
+#define ROUTING_TABLE_HOP_COUNT_POISON (0xFF & ROUTING_TABLE_HOP_COUNT_MASK) >> ROUTING_TABLE_HOP_COUNT_OFFSET
 #define ROUTING_TABLE_HOP_COUNT_MAX ROUTING_TABLE_HOP_COUNT_POISON - 1 
-#define ROUTING_PACKET_RECORD_SIZE SET_HOP_COUNT(0, GET_HOP_COUNT(ROUTING_TABLE_HOP_COUNT_MAX) -1)
+#define ROUTING_PACKET_RECORD_SIZE ROUTING_TABLE_RECORD_SIZE + 1
 #define ROUTING_PACKET_ADDRESS_OFFSET 0
 #define ROUTING_PACKET_NEXT_ADDRESS_OFFSET 1
 #define ROUTING_PACKET_OPTIONS_OFFSET 2
@@ -491,7 +491,7 @@ BIT radioNetworkService(void)
 					if (GET_HOP_COUNT(radioNetworkRoutingTable[index][ROUTING_TABLE_OPTIONS_OFFSET]) == ROUTING_TABLE_HOP_COUNT_POISON){
 						radioNetworkRoutingTable[index][ROUTING_TABLE_ADDRESS_OFFSET] = 0; //not reachable;
 					} else {
-						radioNetworkRoutingTable[index][ROUTING_TABLE_ADDRESS_OFFSET] = SET_TTL(ROUTING_TABLE_HOP_COUNT_POISON, ROUTING_TABLE_TTL_MAX); //route poisoning set max to avoid interferences
+						radioNetworkRoutingTable[index][ROUTING_TABLE_ADDRESS_OFFSET] = SET_TTL(SET_HOP_COUNT(0, ROUTING_TABLE_HOP_COUNT_POISON), ROUTING_TABLE_TTL_MAX); //route poisoning set max to avoid interferences
 					}
                 }
                 else
@@ -517,7 +517,7 @@ BIT radioNetworkService(void)
                     while (
                         (
 						radioNetworkRoutingTable[nextIndex][ROUTING_TABLE_ADDRESS_OFFSET] == 0
-						|| radioNetworkRoutingTable[nextIndex][ROUTING_TABLE_OPTIONS_OFFSET] == SET_TTL(ROUTING_TABLE_HOP_COUNT_POISON, 0)
+						|| radioNetworkRoutingTable[nextIndex][ROUTING_TABLE_OPTIONS_OFFSET] == SET_HOP_COUNT(0,ROUTING_TABLE_HOP_COUNT_POISON)
 						)
                         && (nextIndex < ROUTING_TABLE_RECORD_COUNT)
                     )
