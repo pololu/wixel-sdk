@@ -138,7 +138,7 @@ void radioNetworkInit()
 // This is used to decide when to next transmit a queued data packet.
 static uint8 randomTxDelay()
 {
-    return 1 + (randomNumber() & 3);
+    return 1 + (randomNumber() & 7);
 }
 
 /* TX FUNCTIONS (called by higher-level code in main loop) ********************/
@@ -274,7 +274,7 @@ static void takeInitiative()
     {
         if (!radioNetworkService()) //try network services
         {
-            radioMacRx(radioNetworkRxPacket[radioNetworkRxInterruptIndex], 0);
+            radioMacRx(radioNetworkRxPacket[radioNetworkRxInterruptIndex], randomTxDelay() + 100 );
         }
     }
 }
@@ -285,7 +285,8 @@ void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
 {
     if (event == RADIO_MAC_EVENT_STROBE)
     {
-        takeInitiative();
+        uint8 XDATA * currentRxPacket = radioNetworkRxPacket[radioNetworkRxInterruptIndex];
+        radioMacRx(currentRxPacket, randomTxDelay());
         return;
     }
     else if (event == RADIO_MAC_EVENT_TX)
@@ -321,13 +322,13 @@ void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
         uint8 XDATA * currentRxPacket = radioNetworkRxPacket[radioNetworkRxInterruptIndex];
         if (!radioCrcPassed())
         {
-            if (radioNetworkTxInterruptIndex != radioNetworkTxMainLoopIndex && radioExternalTxInterruptIndex != radioExternalTxManagerIndex)
+            if (radioNetworkTxInterruptIndex != radioNetworkTxMainLoopIndex || radioExternalTxInterruptIndex != radioExternalTxManagerIndex)
             {
                 radioMacRx(currentRxPacket, randomTxDelay());
             }
             else
             {
-                radioMacRx(currentRxPacket, 0);
+                radioMacRx(currentRxPacket, randomTxDelay() + 100);
             }
             return;
         }
