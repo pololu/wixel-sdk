@@ -1,10 +1,12 @@
 /** io_repeater_address_based app:
-
-This app allows you to wirelessly extend the reach of your microcontroller's
-I/O lines using two or more Wixels.
-
-This is a modified version the "I/O Repeater App" that allow to pair 2 wixels in order to avoid interferences from other couples
-
+ *
+ * This app allows you to wirelessly extend the reach of your microcontroller's
+ * I/O lines using two or more Wixels.
+ *
+ * This is a modified version the "I/O Repeater App" that allow to pair 2 wixels in order to avoid interferences from other couples
+ * 
+ * by Carlo Bernaschina (B3rn475)
+ * www.bernaschina.com
 */
 
 /** Dependencies **************************************************************/
