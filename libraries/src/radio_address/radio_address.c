@@ -1,6 +1,9 @@
 /* radio_address.c:
- * this is just an utility library that allow to activate the Address Check Hardware
+ * this is just an utility library that allow to activate the Hardware Address Check 
  * functionality of the processor
+ * 
+ * by Carlo Bernaschina (B3rn475)
+ * www.bernaschina.com
  */
 #include <radio_address.h>
 #include <cc2511_map.h>

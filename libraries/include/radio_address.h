@@ -1,8 +1,10 @@
 /*! \file radio_address.h
- *
- * This header file provides a function for configuring the
+ * <code>radio_address.lib</code> is a library that provides a function to configure the
  * radio address (radioAddressInit()) and also some small
  * functions like edit broadcast configurations.
+ * 
+ * by Carlo Bernaschina (B3rn475)
+ * www.bernaschina.com
  */
 
 #ifndef _RADIO_ADDRESS_H

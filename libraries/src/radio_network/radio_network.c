@@ -15,6 +15,9 @@
  *
  *  Radio_network is essentially an advanced version of the radio_queue
  *  library, so radio_advanced is a good alternative if you do not neet network management but just queueing.
+ * 
+ * by Carlo Bernaschina (B3rn475)
+ * www.bernaschina.com
  */
 
 #include <radio_network.h>

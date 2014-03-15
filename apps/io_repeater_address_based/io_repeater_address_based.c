@@ -3,11 +3,7 @@
 This app allows you to wirelessly extend the reach of your microcontroller's
 I/O lines using two or more Wixels.
 
-For complete documentation and a precompiled version of this app, see the
-"I/O Repeater App" section of the Pololu Wixel User's Guide:
-http://www.pololu.com/docs/0J46
-
-This is a modified version that allow to pair 2 wixels in order to avoid interferences from other couples
+This is a modified version the "I/O Repeater App" that allow to pair 2 wixels in order to avoid interferences from other couples
 
 */
 

@@ -7,6 +7,9 @@
  * LENGTH (1Byte) NEXT_NODE_ADDRESS(1Byte) DESTINATION ADDRESS(1Byte) SOURCE_ADDRESS(1Byte)
  * 
  * This library depends on <code>radio_mac.lib</code> and <code>radio_addres.lib</code>.
+ * 
+ * by Carlo Bernaschina (B3rn475)
+ * www.bernaschina.com
  */
 
 #ifndef _RADIO_NETWORK
