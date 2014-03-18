@@ -130,7 +130,7 @@ void radioNetworkInit()
     
     radioMacInit();
     radioAddressInit();
-    setAddressCheckHWConfiguration(OneBroadcastCheck);
+    radioAddressSetHWConfiguration(OneBroadcastCheck);
     radioMacStrobe();
     timeInit();
     lastUpdate = getMs();

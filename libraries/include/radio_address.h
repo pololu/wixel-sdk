@@ -40,7 +40,7 @@ void radioAddressInit();
  * OneBroadcastCheck 0x2
  * DoubleBroadcastCheck 0x3
  */
-uint8 addressCheckHWConfiguration();
+uint8 radioAddressHWConfiguration();
 
 /*! Allow to change the configuration for hardware address check
  *
@@ -50,6 +50,6 @@ uint8 addressCheckHWConfiguration();
  * OneBroadcastCheck 0x2
  * DoubleBroadcastCheck 0x3
  */
-void setAddressCheckHWConfiguration(uint8 configuration);
+void radioAddressSetHWConfiguration(uint8 configuration);
 
 #endif /* _RADIO_ADDRESS_H */

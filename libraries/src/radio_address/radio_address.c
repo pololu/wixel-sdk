@@ -21,13 +21,13 @@ void radioAddressInit()
 }
 
 // Returns the current Address Check configuration
-uint8 addressCheckHWConfiguration()
+uint8 radioAddressHWConfiguration()
 {
 	return PKTCTRL1 & 0x03;
 }
 
 // Sets the Address Check configuration
-void setAddressCheckHWConfiguration(uint8 configuration)
+void radioAddressSetHWConfiguration(uint8 configuration)
 {
 	PKTCTRL1 = (PKTCTRL1 & 0xFD) | (configuration & 0x03);
 }

@@ -175,7 +175,7 @@ void main(void)
 
     radioQueueInit();
     radioAddressInit();
-    setAddressCheckHWConfiguration(NoBroadcastCheck);
+    radioAddressSetHWConfiguration(NoBroadcastCheck);
 
     configurePins();
 
