@@ -60,7 +60,7 @@
  * All the functions in this library are declared as reentrant, which means it is
  * safe to call them in your main loop and also in your interrupt service routines
  * (ISRs).
- * However, if you are using these functions in an ISR, you should make sure that
+ * However, if you are using these functions in an ISR, you should make sure that you
  * have no code in your main loop that does a non-atomic read-modify-write operation
  * on any of the I/O registers that are changed in the interrupt.
  * The risk is that the interrupt could fire after while the read-modify-write
