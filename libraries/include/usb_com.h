@@ -131,7 +131,7 @@ uint8 usbComRxReceiveByte(void);
  * usbComRxAvailable().
  *
  * See also usbComRxReceiveByte(). */
-void usbComRxReceive(const uint8 XDATA * buffer, uint8 size);
+void usbComRxReceive(uint8 XDATA * buffer, uint8 size);
 
 /*! \return The number of bytes available in the TX buffers.
  *
