@@ -3,6 +3,9 @@
  * radio address (radioAddressInit()) and also some small
  * functions like edit broadcast configurations.
  * 
+ * This has been developed during the course of Pervasive Systems (Prof. Fabio Salice)
+ * at Politecnico di Milano, Como campus.
+ *
  * by Carlo Bernaschina (B3rn475)
  * www.bernaschina.com
  */

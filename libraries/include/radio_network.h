@@ -8,6 +8,9 @@
  * 
  * This library depends on <code>radio_mac.lib</code> and <code>radio_addres.lib</code>.
  * 
+ * This has been developed during the course of Pervasive Systems (Prof. Fabio Salice)
+ * at Politecnico di Milano, Como campus.
+ *
  * by Carlo Bernaschina (B3rn475)
  * www.bernaschina.com
  */

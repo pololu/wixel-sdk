@@ -2,6 +2,9 @@
  * this is just an utility library that allow to activate the Hardware Address Check 
  * functionality of the processor
  * 
+ * This has been developed during the course of Pervasive Systems (Prof. Fabio Salice)
+ * at Politecnico di Milano, Como campus.
+ *
  * by Carlo Bernaschina (B3rn475)
  * www.bernaschina.com
  */
