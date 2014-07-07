@@ -5,7 +5,7 @@
  * This file also provides macros for defining Interrupt Service Routines (ISRs).
  *
  * For documentation, see the
- * <a href="http://focus.ti.com/docs/prod/folders/print/cc2511f32.html">CC2511F32 datasheet</a>.
+ * <a href="http://www.ti.com/product/CC2511">CC2511F32 datasheet</a>.
  */
 
 #ifndef _CC2511_MAP_H

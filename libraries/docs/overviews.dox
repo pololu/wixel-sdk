@@ -6,7 +6,7 @@ that will help you create your own applications for the
 The Wixel is a general-purpose programmable module featuring a 2.4&nbsp;GHz radio
 and USB.
 The Wixel is based on the
-<a href="http://focus.ti.com/docs/prod/folders/print/cc2511f32.html">CC2511F32</a>
+<a href="http://www.ti.com/product/CC2511">CC2511F32</a>
 microcontroller from Texas Instruments, which has an integrated radio transceiver,
 32 KB of flash memory, 4 KB of RAM, and a full-speed USB interface.
 
@@ -110,12 +110,12 @@ The user's guide contains schematic diagrams, pinout diagrams, documentation for
 apps, example wiring, and more.
 
 Documentation for the CC2511F32 (the microcontroller on the Wixel) is available in the
-<a href="http://focus.ti.com/docs/prod/folders/print/cc2511f32.html">CC2511F32 datasheet</a>
+<a href="http://www.ti.com/product/CC2511">CC2511F32 datasheet</a>
 provided by Texas Instruments.
 The datasheet provides detailed technical information about the hardware peripherals and
 how to control them, as well as electrical specifications, and more.
 Texas Instruments also provides many app notes and design notes on the
-<a href="http://focus.ti.com/docs/prod/folders/print/cc2511f32.html">CC2511F32</a> page.
+<a href="http://www.ti.com/product/CC2511">CC2511 page</a>.
 
 Documentation for SDCC is available on the <a href="http://sdcc.sourceforge.net/">SDCC website</a>.
 
