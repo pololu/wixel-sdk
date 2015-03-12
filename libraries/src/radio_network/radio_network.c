@@ -15,7 +15,7 @@
  *
  *  Radio_network is essentially an advanced version of the radio_queue
  *  library, so radio_advanced is a good alternative if you do not neet network management but just queueing.
- * 
+ *
  * This has been developed during the course of Pervasive Systems (Prof. Fabio Salice)
  * at Politecnico di Milano, Como campus.
  *
@@ -90,7 +90,7 @@ static volatile uint8 DATA radioExternalTxInterruptIndex = 0;  // The index of t
  * Options: TTL (count down to avoid to keep dead routes) HOP COUNT (to allow to choose the shortest path)
  */
 #define ROUTING_TABLE_RECORD_SIZE 2
-//256 - 1 (zero) -1 (255) -1 (this node)
+//256 - 1 (zero) -1 (this node)
 #define ROUTING_TABLE_RECORD_COUNT 254
 #define ROUTING_TABLE_ADDRESS_OFFSET 0
 #define ROUTING_TABLE_OPTIONS_OFFSET 1
@@ -100,15 +100,16 @@ static volatile uint8 DATA radioExternalTxInterruptIndex = 0;  // The index of t
 #define ROUTING_TABLE_HOP_COUNT_OFFSET 2
 #define ROUTING_TABLE_HOP_COUNT_MASK 0xFC
 #define ROUTING_TABLE_HOP_COUNT_POISON (0xFF & ROUTING_TABLE_HOP_COUNT_MASK) >> ROUTING_TABLE_HOP_COUNT_OFFSET
-#define ROUTING_TABLE_HOP_COUNT_MAX ROUTING_TABLE_HOP_COUNT_POISON - 1 
+#define ROUTING_TABLE_HOP_COUNT_MAX ROUTING_TABLE_HOP_COUNT_POISON - 1
 #define ROUTING_PACKET_RECORD_SIZE ROUTING_TABLE_RECORD_SIZE + 1
 #define ROUTING_PACKET_ADDRESS_OFFSET 0
 #define ROUTING_PACKET_NEXT_ADDRESS_OFFSET 1
 #define ROUTING_PACKET_OPTIONS_OFFSET 2
 #define GET_HOP_COUNT(X) (((X) & ROUTING_TABLE_HOP_COUNT_MASK) >> ROUTING_TABLE_HOP_COUNT_OFFSET)
-#define SET_HOP_COUNT(ORIGINAL, X) ((((X) << ROUTING_TABLE_HOP_COUNT_OFFSET) & ROUTING_TABLE_HOP_COUNT_MASK) | (ORIGINAL & ROUTING_TABLE_TTL_MASK))
+#define SET_HOP_COUNT(ORIGINAL, X) ((((X) << ROUTING_TABLE_HOP_COUNT_OFFSET) & ROUTING_TABLE_HOP_COUNT_MASK) | ((ORIGINAL) & ROUTING_TABLE_TTL_MASK))
 #define GET_TTL(X) (((X) & ROUTING_TABLE_TTL_MASK) >> ROUTING_TABLE_TTL_OFFSET)
-#define SET_TTL(ORIGINAL, X) ((((X) << ROUTING_TABLE_TTL_OFFSET) & ROUTING_TABLE_TTL_MASK) | (ORIGINAL & ROUTING_TABLE_HOP_COUNT_MASK))
+#define SET_TTL(ORIGINAL, X) ((((X) << ROUTING_TABLE_TTL_OFFSET) & ROUTING_TABLE_TTL_MASK) | ((ORIGINAL) & ROUTING_TABLE_HOP_COUNT_MASK))
+#define MAKE_OPTIONS(TTL, HOP_COUNT) (SET_HOP_COUNT(SET_TTL(0, TTL), HOP_COUNT))
 static volatile uint8 XDATA radioNetworkRoutingTable[ROUTING_TABLE_RECORD_COUNT][ROUTING_TABLE_RECORD_SIZE];
 static volatile uint32 DATA lastUpdate = 0;
 static volatile uint8 DATA nextIndex = 0;
@@ -130,7 +131,7 @@ void radioNetworkInit()
     PKTLEN = RADIO_MAX_PACKET_SIZE;
     CHANNR = param_radio_channel;
     memset(radioNetworkRoutingTable,0, ROUTING_TABLE_RECORD_SIZE * ROUTING_TABLE_RECORD_COUNT);
-    
+
     radioMacInit();
     radioAddressInit();
     radioAddressSetHWConfiguration(OneBroadcastCheck);
@@ -435,13 +436,13 @@ BIT managePacket(uint8 *packet)
                         address -= 2; // the current node is not inside the table
                     }
                     else
-                    { 
+                    {
                         address -= 1;
                     }
                     if (radioNetworkRoutingTable[address][ROUTING_TABLE_ADDRESS_OFFSET] == 0) // no available routes
                     {
                         radioNetworkRoutingTable[address][ROUTING_TABLE_ADDRESS_OFFSET] = packet[SOURCE_ADDRESS]; //the source address
-                        radioNetworkRoutingTable[address][ROUTING_TABLE_OPTIONS_OFFSET] = (packet[i + ROUTING_PACKET_OPTIONS_OFFSET] & ROUTING_TABLE_HOP_COUNT_MASK) | ROUTING_TABLE_TTL_MAX; //hop from packet ttl max
+                        radioNetworkRoutingTable[address][ROUTING_TABLE_OPTIONS_OFFSET] = SET_TTL(packet[i + ROUTING_PACKET_OPTIONS_OFFSET], ROUTING_TABLE_TTL_MAX); //hop from packet ttl max
                     }
                     else
                     {
@@ -450,12 +451,12 @@ BIT managePacket(uint8 *packet)
                             if (GET_HOP_COUNT(radioNetworkRoutingTable[address][ROUTING_TABLE_ADDRESS_OFFSET]) >= GET_HOP_COUNT(packet[i + ROUTING_PACKET_OPTIONS_OFFSET])) //the shorter or the newer
                             {
                                 radioNetworkRoutingTable[address][ROUTING_TABLE_ADDRESS_OFFSET] = packet[SOURCE_ADDRESS]; //the source address
-                                radioNetworkRoutingTable[address][ROUTING_TABLE_OPTIONS_OFFSET] = (packet[i + ROUTING_PACKET_OPTIONS_OFFSET] & ROUTING_TABLE_HOP_COUNT_MASK) | ROUTING_TABLE_TTL_MAX;//hop from packet ttl max
+                                radioNetworkRoutingTable[address][ROUTING_TABLE_OPTIONS_OFFSET] = SET_TTL(packet[i + ROUTING_PACKET_OPTIONS_OFFSET], ROUTING_TABLE_TTL_MAX);//hop from packet ttl max
                             }
-                        } 
-                        else 
+                        }
+                        else
                         { // same address
-                                radioNetworkRoutingTable[address][ROUTING_TABLE_OPTIONS_OFFSET] = (packet[i + ROUTING_PACKET_OPTIONS_OFFSET] & ROUTING_TABLE_HOP_COUNT_MASK) | ROUTING_TABLE_TTL_MAX;//hop from packet ttl max
+                            radioNetworkRoutingTable[address][ROUTING_TABLE_OPTIONS_OFFSET] = SET_TTL(packet[i + ROUTING_PACKET_OPTIONS_OFFSET], ROUTING_TABLE_TTL_MAX);//hop from packet ttl max
                         }
                     }
                 }
@@ -498,7 +499,7 @@ BIT radioNetworkService(void)
                     if (GET_HOP_COUNT(radioNetworkRoutingTable[index][ROUTING_TABLE_OPTIONS_OFFSET]) == ROUTING_TABLE_HOP_COUNT_POISON){
                         radioNetworkRoutingTable[index][ROUTING_TABLE_ADDRESS_OFFSET] = 0; //not reachable;
                     } else {
-                        radioNetworkRoutingTable[index][ROUTING_TABLE_OPTIONS_OFFSET] = SET_TTL(SET_HOP_COUNT(0, ROUTING_TABLE_HOP_COUNT_POISON), ROUTING_TABLE_TTL_MAX); //route poisoning set max to avoid interferences
+                        radioNetworkRoutingTable[index][ROUTING_TABLE_OPTIONS_OFFSET] = MAKE_OPTIONS(ROUTING_TABLE_TTL_MAX, ROUTING_TABLE_HOP_COUNT_POISON); //route poisoning set max to avoid interferences
                     }
                 }
                 else
@@ -524,7 +525,7 @@ BIT radioNetworkService(void)
                     while (
                         (
                         radioNetworkRoutingTable[nextIndex][ROUTING_TABLE_ADDRESS_OFFSET] == 0
-                        || radioNetworkRoutingTable[nextIndex][ROUTING_TABLE_OPTIONS_OFFSET] == SET_HOP_COUNT(0,ROUTING_TABLE_HOP_COUNT_POISON)
+                        || radioNetworkRoutingTable[nextIndex][ROUTING_TABLE_OPTIONS_OFFSET] == MAKE_OPTIONS(0, ROUTING_TABLE_HOP_COUNT_POISON)
                         )
                         && (nextIndex < ROUTING_TABLE_RECORD_COUNT)
                     )
@@ -537,7 +538,7 @@ BIT radioNetworkService(void)
                     packet[len + 1 + ROUTING_PACKET_ADDRESS_OFFSET] = address;
                     packet[len + 1 + ROUTING_PACKET_NEXT_ADDRESS_OFFSET] = radioNetworkRoutingTable[nextIndex][ROUTING_TABLE_ADDRESS_OFFSET];
                     hop = GET_HOP_COUNT(radioNetworkRoutingTable[nextIndex][ROUTING_TABLE_OPTIONS_OFFSET]);
-                    packet[len + 1 + ROUTING_PACKET_OPTIONS_OFFSET] = SET_HOP_COUNT(0, hop + 1);
+                    packet[len + 1 + ROUTING_PACKET_OPTIONS_OFFSET] = MAKE_OPTIONS(0, hop + 1);
                     len += ROUTING_PACKET_RECORD_SIZE;
                     nextIndex++;
                 }
