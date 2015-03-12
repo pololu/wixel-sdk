@@ -78,7 +78,7 @@ static volatile uint8 DATA radioNetworkTxInterruptIndex = 0;  // The index of th
 
 /* txPackets are handled similarly (this are the packets that just pass through this node for routing)*/
 #define TX_PACKET_EXTERNAL_COUNT 8
-static volatile uint8 XDATA radioExternalTxPacket[TX_PACKET_COUNT][1 + RADIO_MAX_PACKET_SIZE];  // The first byte is the length.
+static volatile uint8 XDATA radioExternalTxPacket[TX_PACKET_EXTERNAL_COUNT][1 + RADIO_MAX_PACKET_SIZE];  // The first byte is the length.
 static volatile uint8 DATA radioExternalTxManagerIndex = 0;   // The index of the next txPacket to write to in the routing manager.
 static volatile uint8 DATA radioExternalTxInterruptIndex = 0;  // The index of the current txPacket we are trying to send on the radio.
 
@@ -174,13 +174,13 @@ uint8 XDATA * radioNetworkTxCurrentPacket()
 
 uint8 radioExternalTxAvailable(void)
 {
-    // Assumption: TX_PACKET_COUNT is a power of 2
+    // Assumption: TX_PACKET_EXTERNAL_COUNT is a power of 2
     return (radioExternalTxInterruptIndex - radioExternalTxManagerIndex - 1) & (TX_PACKET_EXTERNAL_COUNT - 1);
 }
 
 uint8 radioExternalTxQueued(void)
 {
-    return (radioExternalTxManagerIndex - radioExternalTxInterruptIndex) & (TX_PACKET_COUNT - 1);
+    return (radioExternalTxManagerIndex - radioExternalTxInterruptIndex) & (TX_PACKET_EXTERNAL_COUNT - 1);
 }
 
 uint8 XDATA * radioExternalTxCurrentPacket()
