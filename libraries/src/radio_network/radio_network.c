@@ -498,7 +498,7 @@ BIT radioNetworkService(void)
                     if (GET_HOP_COUNT(radioNetworkRoutingTable[index][ROUTING_TABLE_OPTIONS_OFFSET]) == ROUTING_TABLE_HOP_COUNT_POISON){
                         radioNetworkRoutingTable[index][ROUTING_TABLE_ADDRESS_OFFSET] = 0; //not reachable;
                     } else {
-                        radioNetworkRoutingTable[index][ROUTING_TABLE_ADDRESS_OFFSET] = SET_TTL(SET_HOP_COUNT(0, ROUTING_TABLE_HOP_COUNT_POISON), ROUTING_TABLE_TTL_MAX); //route poisoning set max to avoid interferences
+                        radioNetworkRoutingTable[index][ROUTING_TABLE_OPTIONS_OFFSET] = SET_TTL(SET_HOP_COUNT(0, ROUTING_TABLE_HOP_COUNT_POISON), ROUTING_TABLE_TTL_MAX); //route poisoning set max to avoid interferences
                     }
                 }
                 else
