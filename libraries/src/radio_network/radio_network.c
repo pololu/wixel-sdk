@@ -231,9 +231,7 @@ void radioExternalTxSendPacket(void)
             radioExternalTxManagerIndex++;
         }
     }
-    // Make sure that radioMacEventHandler runs soon so it can see this new data and send it.
-    // This must be done LAST.
-    radioMacStrobe();
+    // do not call radioMacStrobe() here. Otherwise it will go in infinite loop
 }
 
 /* RX FUNCTIONS (called by higher-level code in main loop) ********************/
