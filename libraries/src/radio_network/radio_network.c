@@ -122,6 +122,9 @@ static volatile uint8 DATA nextIndex = 0;
 #define EXTERNAL_PACKET 1
 BIT lastPacket = MAIN_LOOP_PACKET;
 
+#define TX_DELAY 100
+#define SERVICE_PERIOD 10000
+
 /* GENERAL FUNCTIONS **********************************************************/
 
 void radioNetworkInit()
@@ -135,10 +138,8 @@ void radioNetworkInit()
     radioMacInit();
     radioAddressInit();
     radioAddressSetHWConfiguration(OneBroadcastCheck);
-    radioMacStrobe();
-    timeInit();
     lastUpdate = getMs();
-    nextIndex = 0;
+    radioMacStrobe();
 }
 
 // Returns a random delay in units of 0.922 ms (the same units of radioMacRx).
@@ -260,10 +261,11 @@ void radioNetworkRxDoneWithPacket(void)
 
 /* FUNCTIONS CALLED IN RF_ISR *************************************************/
 
-BIT radioNetworkService();
+void radioNetworkService(void);
 
-static void takeInitiative()
+static void takeInitiative(void)
 {
+    radioNetworkService();
     //Network packates have priority
     if (radioExternalTxInterruptIndex != radioExternalTxManagerIndex)
     {
@@ -279,10 +281,7 @@ static void takeInitiative()
     }
     else
     {
-        if (!radioNetworkService()) //try network services
-        {
-            radioMacRx(radioNetworkRxPacket[radioNetworkRxInterruptIndex], randomTxDelay() + 100 );
-        }
+        radioMacRx(radioNetworkRxPacket[radioNetworkRxInterruptIndex], randomTxDelay() + TX_DELAY);
     }
 }
 
@@ -335,7 +334,7 @@ void radioMacEventHandler(uint8 event) // called by the MAC in an ISR
             }
             else
             {
-                radioMacRx(currentRxPacket, randomTxDelay() + 100);
+                radioMacRx(currentRxPacket, randomTxDelay() + TX_DELAY);
             }
             return;
         }
@@ -482,11 +481,11 @@ BIT managePacket(uint8 *packet)
     return 0;
 }
 
-BIT radioNetworkService(void)
+void radioNetworkService(void)
 {
     uint8 index;
     uint8 ttl;
-    if (getMs() - lastUpdate > 10000) // 20 seconds
+    if (getMs() - lastUpdate > SERVICE_PERIOD)
     {
         if (nextIndex >= ROUTING_TABLE_RECORD_COUNT)
         {
@@ -511,23 +510,21 @@ BIT radioNetworkService(void)
         }
         else
         {
-            uint8 *packet = radioExternalTxCurrentPacket();
-            while (packet != 0 && (nextIndex < ROUTING_TABLE_RECORD_COUNT))
+            uint8 *packet;
+            while ((nextIndex < ROUTING_TABLE_RECORD_COUNT) && (packet = radioExternalTxCurrentPacket()))
             {
                 uint8 len = 3;
                 packet[NODE_ADDRESS] = 0;
                 packet[DESTINATION_ADDRESS] = ROUTING_TABLE;
                 packet[SOURCE_ADDRESS] = param_address;
-                while (len + ROUTING_PACKET_RECORD_SIZE <= RADIO_MAX_PACKET_SIZE && (nextIndex < ROUTING_TABLE_RECORD_COUNT)) //there is space for another element
+                while ((nextIndex < ROUTING_TABLE_RECORD_COUNT) && (len + ROUTING_PACKET_RECORD_SIZE <= RADIO_MAX_PACKET_SIZE)) //there is space for another element
                 {
                     uint8 address;
                     uint8 hop;
                     while (
-                        (
-                        radioNetworkRoutingTable[nextIndex][ROUTING_TABLE_ADDRESS_OFFSET] == 0
-                        || radioNetworkRoutingTable[nextIndex][ROUTING_TABLE_OPTIONS_OFFSET] == MAKE_OPTIONS(0, ROUTING_TABLE_HOP_COUNT_POISON)
-                        )
-                        && (nextIndex < ROUTING_TABLE_RECORD_COUNT)
+                        (nextIndex < ROUTING_TABLE_RECORD_COUNT)
+                        &&
+                        (radioNetworkRoutingTable[nextIndex][ROUTING_TABLE_ADDRESS_OFFSET] == 0)
                     )
                     {
                         nextIndex++;
@@ -538,20 +535,19 @@ BIT radioNetworkService(void)
                     packet[len + 1 + ROUTING_PACKET_ADDRESS_OFFSET] = address;
                     packet[len + 1 + ROUTING_PACKET_NEXT_ADDRESS_OFFSET] = radioNetworkRoutingTable[nextIndex][ROUTING_TABLE_ADDRESS_OFFSET];
                     hop = GET_HOP_COUNT(radioNetworkRoutingTable[nextIndex][ROUTING_TABLE_OPTIONS_OFFSET]);
-                    packet[len + 1 + ROUTING_PACKET_OPTIONS_OFFSET] = MAKE_OPTIONS(0, hop + 1);
+                    if (hop != ROUTING_TABLE_HOP_COUNT_POISON)
+                        hop++;
+                    packet[len + 1 + ROUTING_PACKET_OPTIONS_OFFSET] = MAKE_OPTIONS(0, hop);
                     len += ROUTING_PACKET_RECORD_SIZE;
                     nextIndex++;
                 }
                 packet[RADIO_NETWORK_PACKET_LENGTH_OFFSET] = len;
                 radioExternalTxSendPacket();
-                packet = radioExternalTxCurrentPacket();
             }
             if (nextIndex == ROUTING_TABLE_RECORD_COUNT)
             {
                 lastUpdate = getMs();
             }
-            return 1;
         }
     }
-    return 0;
 }
