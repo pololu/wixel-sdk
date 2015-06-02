@@ -449,8 +449,12 @@ extern uint16 CODE * CODE usbStringDescriptors[];
  * See usb_cdc_acm.c for an example. */
 void usbCallbackSetupHandler(void);
 
-/*! This is called by usbPoll() whenever a Get Descriptor request is received by
- * the host that can not be handled by the USB library.
+/*! This is called by usbPoll() for certain Get Descriptor requests
+ * that are not supported by the USB library.
+ *
+ * This callback is only called if bmRequest and bRequest indicate a standard
+ * Get Descriptor request, so there is no need to check those fields in this
+ * callback.
  *
  * This function should read #usbSetupPacket.
  * If it recognizes the Get Descriptor request, it should call usbControlRead().
