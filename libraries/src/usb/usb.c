@@ -223,6 +223,12 @@ void usbPoll()
 
                 USBINDEX = 0;  // Select EP0 again because the functions above might have changed USBINDEX.
 
+                // Modify the count so that we don't send more data than the host requested.
+                if(controlTransferBytesLeft > usbSetupPacket.wLength)
+                {
+                    controlTransferBytesLeft = usbSetupPacket.wLength;
+                }
+
                 // Prepare for the first transaction after the SETUP packet.
                 if (controlTransferState == CONTROL_TRANSFER_STATE_NONE)
                 {
@@ -360,12 +366,6 @@ static void usbStandardDeviceRequestHandler()
                     }
                     break;
                 }
-            }
-
-            // Modify the count so that we don't send more data than the host requested.
-            if(controlTransferBytesLeft > usbSetupPacket.wLength)
-            {
-                controlTransferBytesLeft = usbSetupPacket.wLength;
             }
 
             controlTransferState = CONTROL_TRANSFER_STATE_READ;
