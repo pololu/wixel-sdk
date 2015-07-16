@@ -8,7 +8,7 @@
 
 extern uint8 CODE usbConfigurationDescriptor[];
 
-void usbStandardDeviceRequestHandler();
+static void usbStandardDeviceRequestHandler();
 
 #define CONTROL_TRANSFER_STATE_NONE  0
 #define CONTROL_TRANSFER_STATE_WRITE 1
