@@ -86,7 +86,7 @@ void sendRadioBursts()
         packetsSent++;
 
         RFIF &= ~(1<<4);                   // Clear IRQ_DONE
-        DMAARM |= (1<<DMA_CHANNEL_RADIO);  // Arm DMA channel
+        DMAARM = (1<<DMA_CHANNEL_RADIO);   // Arm DMA channel
         RFST = 3;                          // Switch radio to TX
     }
 

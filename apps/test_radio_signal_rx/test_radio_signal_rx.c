@@ -81,7 +81,7 @@ void perTestRxInit()
     dmaConfig.radio.VLEN_LENH = 0b10000000; // Transfer length is FirstByte+3
     dmaConfig.radio.DC7 = 0x10; // SRCINC = 0, DESTINC = 1, IRQMASK = 0, M8 = 0, PRIORITY = 0
 
-    DMAARM |= (1<<DMA_CHANNEL_RADIO);  // Arm DMA channel
+    DMAARM = (1<<DMA_CHANNEL_RADIO);   // Arm DMA channel
     RFST = 2;                          // Switch radio to RX mode.
 }
 
@@ -113,7 +113,7 @@ void receiveRadioBursts()
         }
 
         RFIF &= ~(1<<4);                   // Clear IRQ_DONE
-        DMAARM |= (1<<DMA_CHANNEL_RADIO);  // Arm DMA channel
+        DMAARM = (1<<DMA_CHANNEL_RADIO);   // Arm DMA channel
         RFST = 2;                          // Switch radio to RX mode.
     }
 }

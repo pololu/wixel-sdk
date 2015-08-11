@@ -185,11 +185,11 @@ void radioMacEvent(uint8 event)
     switch(radioMacState)
     {
     case RADIO_MAC_STATE_RX:
-        DMAARM |= (1<<DMA_CHANNEL_RADIO);   // Arm DMA channel.
+        DMAARM = (1<<DMA_CHANNEL_RADIO);    // Arm DMA channel.
         RFST = SRX;                         // Switch radio to RX.
         break;
     case RADIO_MAC_STATE_TX:
-        DMAARM |= (1<<DMA_CHANNEL_RADIO);   // Arm DMA channel.
+        DMAARM = (1<<DMA_CHANNEL_RADIO);    // Arm DMA channel.
         RFST = STX;                         // Switch radio to TX.
         break;
     }
