@@ -43,9 +43,8 @@
  *
  * The CC2511F32 datasheet says that to configure a pin on Port 0 to
  * be used as an analog pin, the corresponding bit in the ADCCFG
- * register must be set to 1.  However, we have not noticed the ADCCFG
- * register making any difference, and this library does not touch
- * ADCCFG.
+ * register must be set to 1.  However, we have not found this to be
+ * necessary, and this library does not touch ADCCFG.
  *
  * If you want to follow the datasheet, then you could write to ADCCFG
  * at the beginning of your program with some code like this:
