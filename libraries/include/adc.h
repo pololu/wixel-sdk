@@ -39,6 +39,21 @@
  *   use a different resolution by specifying #ADC_BITS_10, #ADC_BITS_9, or
  *   #ADC_BITS_7 in the channel parameter.
  *
+ * \section adccfg The ADCCFG register
+ *
+ * The CC2511F32 datasheet says that to configure a pin on Port 0 to
+ * be used as an analog pin, the corresponding bit in the ADCCFG
+ * register must be set to 1.  However, we have not noticed the ADCCFG
+ * register making any difference, and this library does not touch
+ * ADCCFG.
+ *
+ * If you want to follow the datasheet, then you could write to ADCCFG
+ * at the beginning of your program with some code like this:
+ *
+ * \code{.c}
+ * ADCCFG |= (1 << 3);  // Enable ADC input on P0_3.
+ * \endcode
+ *
  */
 
 #ifndef _ADC_H
