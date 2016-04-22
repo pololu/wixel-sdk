@@ -29,7 +29,7 @@ I_FLAGS = $(patsubst %,-I%,$(INCDIRS))
 #### Compilation options #######################################################
 
 # Generate dependency information
-C_FLAGS += -Wp,-MD,$(@:%.rel=%.d),-MT,$@,-MP
+C_FLAGS += -Wp,-MMD,$(@:%.rel=%.d),-MT,$@,-MP
 
 # Disable warning 110: conditional flow changed by optimizer
 WARNING := --disable-warning 110
