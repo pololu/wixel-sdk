@@ -198,7 +198,7 @@ uint8 CODE mouseReportDescriptor[]
             HID_USAGE, HID_USAGE_X,
             HID_USAGE, HID_USAGE_Y,
             HID_USAGE, HID_USAGE_WHEEL,
-            HID_LOGICAL_MIN, -127,
+            HID_LOGICAL_MIN, (uint8)-127,
             HID_LOGICAL_MAX, 127,
             HID_INPUT, (HID_ITEM_VARIABLE | HID_ITEM_RELATIVE),
 
