@@ -46,6 +46,7 @@ radio_channel: See description in radio_link.h.
 #include <board.h>
 #include <random.h>
 #include <time.h>
+#include <old_putchar.h>
 
 #include <usb.h>
 #include <usb_com.h>
@@ -66,10 +67,18 @@ void updateLeds()
 }
 
 // This is called by printf and printPacket.
+#ifdef OLD_PUTCHAR
 void putchar(char c)
 {
     usbComTxSendByte(c);
 }
+#else
+int putchar(int c)
+{
+    usbComTxSendByte(c);
+    return (uint8)c;
+}
+#endif
 
 char nibbleToAscii(uint8 nibble)
 {

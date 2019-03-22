@@ -67,10 +67,18 @@ void updateLeds()
     LED_RED(0);
 }
 
+#ifdef OLD_PUTCHAR
 void putchar(char c)
 {
     usbComTxSendByte(c);
 }
+#else
+int putchar(int c)
+{
+  usbComTxSendByte(c);
+  return (uint8)c;
+}
+#endif
 
 void radioToUsbService()
 {

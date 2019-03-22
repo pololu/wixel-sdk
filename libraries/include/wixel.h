@@ -8,3 +8,4 @@
 #include <adc.h>
 #include <gpio.h>
 #include <random.h>
+#include <old_putchar.h>

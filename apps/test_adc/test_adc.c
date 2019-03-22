@@ -59,11 +59,20 @@ void updateLeds()
 
 // This gets called by puts, printf, and printBar to populate
 // the report buffer.  The result is sent to USB later.
+#ifdef OLD_PUTCHAR
 void putchar(char c)
 {
     report[reportLength] = c;
     reportLength++;
 }
+#else
+int putchar(int c)
+{
+    report[reportLength] = c;
+    reportLength++;
+    return (uint8)c;
+}
+#endif
 
 // adcResult should be between 0 and 2047 inclusive.
 void printBar(const char * name, uint16 adcResult)
