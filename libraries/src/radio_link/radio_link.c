@@ -33,11 +33,11 @@ int32 CODE param_radio_channel = 128;
 #define RADIO_LINK_PAYLOAD_TYPE_BIT_OFFSET 1
 #define RADIO_LINK_PAYLOAD_TYPE_MASK       0b00011110
 
-#define PACKET_TYPE_MASK  (3 << 6) // These are the bits that determine the packet type.
-#define PACKET_TYPE_PING  (0 << 6) // If both bits are zero, it is just a Ping packet (with optional data).
-#define PACKET_TYPE_NAK   (1 << 6) // A NAK packet (with optional data)
-#define PACKET_TYPE_ACK   (2 << 6) // An ACK packet (with optional data)
-#define PACKET_TYPE_RESET (3 << 6) // A Reset packet (the next packet transmitted by the sender of this packet will have a sequence number of 0)
+#define PACKET_TYPE_MASK  0xC0  // These are the bits that determine the packet type.
+#define PACKET_TYPE_PING  0x00  // If both bits are zero, it is just a Ping packet (with optional data).
+#define PACKET_TYPE_NAK   0x40  // A NAK packet (with optional data)
+#define PACKET_TYPE_ACK   0x80  // An ACK packet (with optional data)
+#define PACKET_TYPE_RESET 0xC0  // A Reset packet (the next packet transmitted by the sender of this packet will have a sequence number of 0)
 
 /*  rxPackets:
  *  We need to be prepared at all times to receive a full packet from the other party,
