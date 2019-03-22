@@ -3,7 +3,7 @@
 
 // In SDCC versions older than 3.7.0, putchar had a prototype of
 // 'void putchar(char)'.
-#if __SDCC_VERSION_MAJOR == 3 && __SDCC_VERSION_MINOR < 7
+#if !defined(__SDCC_VERSION_MAJOR) || (__SDCC_VERSION_MAJOR == 3 && __SDCC_VERSION_MINOR < 7)
 #define OLD_PUTCHAR
 #endif
 
