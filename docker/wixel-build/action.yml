@@ -1,0 +1,7 @@
+name: "Wixel Build"
+description: "Pre-installed tools to build firmware images from wixel SDK"
+author: "kaikok@github.com"
+
+runs:
+  using: "docker"
+  image: "Dockerfile"
