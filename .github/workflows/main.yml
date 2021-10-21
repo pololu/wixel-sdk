@@ -1,0 +1,16 @@
+name: A workflow for wixel firmware development
+on: push
+
+jobs:
+  wixel-build:
+    name: Builds the firmware for wixel
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: ./docker/wixel-build
+      - run: make all
+      - run: zip -r ./apps.zip ./apps
+      - uses: actions/upload-artifact@v2
+          with:
+            name: wixel-firmware
+            path: ./apps.zip
