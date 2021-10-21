@@ -8,15 +8,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: debug
-        run: ls -la
-      - name: Login to Packages Container registry
-        uses: docker/login-action@v1 
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: actions/checkout@v1
       - uses: ./github-actions/wixel-build
       - run: zip -r ./apps.zip ./apps
       - uses: actions/upload-artifact@v2
