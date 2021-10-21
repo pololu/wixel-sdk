@@ -36,3 +36,9 @@ apps/*/*
 /libraries/src/spi_master/spi1_master.c
 
 /installer/build/
+
+# Ignore built firmware bundle
+apps.zip
+
+# Ignore macos meta file
+.DS_Store
