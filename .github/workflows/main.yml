@@ -11,6 +11,6 @@ jobs:
       - run: make all
       - run: zip -r ./apps.zip ./apps
       - uses: actions/upload-artifact@v2
-          with:
-            name: wixel-firmware
-            path: ./apps.zip
+        with:
+          name: wixel-firmware
+          path: ./apps.zip
