@@ -1,4 +1,4 @@
 FROM ghcr.io/kaikok/wixel-build:latest
-
-RUN ls -la
-RUN make all
+COPY entrypoint.sh /entrypoint.sh
+ 
+ENTRYPOINT ["/entrypoint.sh"]
