@@ -1,19 +1,3 @@
-# Wixel build action
-
-This action provides a docker container with the SDCC build tools to compile the Wixel firmware.
-
-## Inputs
-
-No inputs required.
-
-## Outputs
-
-No outputs generated.
-
-## Example usage
-
-uses: actions/wixel-build@v1
-
 ## Local development
 
 Docker image to build Wixel firmware.
@@ -35,4 +19,12 @@ docker run \
   --privileged \
   -v $(pwd)/../..:/home -it --rm wixel-build sh
 make load_example_blink_led
+```
+
+Updating docker image at ghcr.io
+
+```
+export CR_PAT=YOUR_TOKEN
+echo $CR_PAT | docker login ghcr.io -u USERNAME --password-stdin
+docker tag wixel-build:latest ghcr.io/USERNAME/wixel-build:latest
 ```
