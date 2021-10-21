@@ -1,4 +1,5 @@
 FROM ghcr.io/kaikok/wixel-build:latest
-COPY entrypoint.sh /entrypoint.sh
+ADD entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
  
 ENTRYPOINT ["/entrypoint.sh"]
