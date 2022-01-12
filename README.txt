@@ -8,7 +8,7 @@ which has an integrated radio transceiver, 32 KB of flash memory, 4 KB
 of RAM, and a full-speed USB interface.
 
 For documentation of this SDK, see:
-http://pololu.github.com/wixel-sdk
+http://pololu.github.io/wixel-sdk
 
 (You can also generate the documentation yourself by running
 Doxygen on libraries/Doxyfile.)
