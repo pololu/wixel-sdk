@@ -10,7 +10,7 @@
 #### Programs used by this Makefile ############################################
 CC := sdcc#         C compiler: creates object files (.rel) from C files (.c)
 AS := sdas8051#     Assembler:  creates object files (.rel) from assembly files (.s)
-AR := sdcclib#      Librarian:  creates .lib
+AR := sdar -rc #      Librarian:  creates .lib
 LD := sdld#         Linker:     creates .hex files from .rel/.lib files)
 PACKIHX := packihx# makes .hex files smaller
 MV := move#         moves files
